@@ -11,7 +11,7 @@ Anlysis we are going to do to understand the customer churn and retention.
 
 We look at month-on-month retention of customers recruited in a month. Say if we recruit 100 customers in a month, how many of them stay and are active in 2nd month and how many of them are active in month after that, so and so forth. Plot below shows the percentage of customers who transacted in the nth month after enrolment.
 
-	[Image 1]
+	![https://manikazad.github.io/Image1.png]
 
 ### Observations from M-o-M cohort analysis plot
 	
@@ -25,7 +25,7 @@ We can observe from the plot above that:
 Definition of Customer value in this context is Average Spend Value per month after N months since enrolment for each cohort.
 Plotting month on month Average Customer Value per month after enrolling
 
-	[Image 2]
+	![https://manikazad.github.io/Image2.png]
 
 A cell in this plot shows us the average lifetime value per month of a customer in Nth month after enrolment.
 We can observe from this plot and the one above that:
@@ -56,7 +56,7 @@ Given the above fact it will be only prudent to analyse the customer behaviour m
 
 Next we create a sankey diagram observe the movement of customers across these buckets for each quarter. 	
 
-	[Image 5]
+	![https://manikazad.github.io/Image5.png]
 
 ### Observations from Customer Movement Behavior
 From the plot above we can observe how the customer movement happens across the buckets. Some of the observations are as follows:
