@@ -1,6 +1,6 @@
 # Construction Detection using Satellite Images
-### Objective: Identify the areas with construction sites
-### Simplified Objective: Localize and Identify the areas with possible under construction sites using satellite images.
+### Objective: 
+Localize and Identify the areas with possible under construction sites using satellite images.
 
 ### Available Data :
 1. Satellite images for few areas (AOI).
