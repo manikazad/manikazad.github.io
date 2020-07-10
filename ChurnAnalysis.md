@@ -11,7 +11,7 @@ Anlysis we are going to do to understand the customer churn and retention.
 
 We look at month-on-month retention of customers recruited in a month. Say if we recruit 100 customers in a month, how many of them stay and are active in 2nd month and how many of them are active in month after that, so and so forth. Plot below shows the percentage of customers who transacted in the nth month after enrolment.
 
-![https://manikazad.github.io/image1.png]
+![Image](https://manikazad.github.io/image1.png)
 
 ### Observations from M-o-M cohort analysis plot
 	
@@ -25,7 +25,7 @@ We can observe from the plot above that:
 Definition of Customer value in this context is Average Spend Value per month after N months since enrolment for each cohort.
 Plotting month on month Average Customer Value per month after enrolling
 
-![https://manikazad.github.io/Image2.png]
+![Image](https://manikazad.github.io/Image2.png)
 
 A cell in this plot shows us the average lifetime value per month of a customer in Nth month after enrolment.
 We can observe from this plot and the one above that:
@@ -35,11 +35,11 @@ We can observe from this plot and the one above that:
 
 In order to quantify the same we look at month on month CHANGE in Average customer value / month after enrolment.
 
-![https://manikazad.github.io/Image3.png]
+![Image](https://manikazad.github.io/Image3.png)
 
 In the chart above we can easily observe that the change in CLTV per month decreases initially for a few months and then starts increasing gradually. To observe this trend more clearly we average the change over 6 months cycle and plot it again. 
 
-![https://manikazad.github.io/Image4.png]
+![Image](https://manikazad.github.io/Image4.png)
 
 Here we can observe that the change in customer value is decreasing for first 8-9 months initially and 5-6 months later on. Then it starts increasing gradually for first two averaged data over contiguous timelines. And in the last two contiguous timelines the decrease in change can be seen to happening till 3-4 months and then increasing . 
 This suggests that for recent years the newly enrolled customer's behaviour has changed significantly and we can interpret 2 things:
@@ -56,7 +56,7 @@ Given the above fact it will be only prudent to analyse the customer behaviour m
 
 Next we create a sankey diagram observe the movement of customers across these buckets for each quarter. 	
 
-![https://manikazad.github.io/Image5.png]
+![Image](https://manikazad.github.io/Image5.png)
 
 ### Observations from Customer Movement Behavior
 From the plot above we can observe how the customer movement happens across the buckets. Some of the observations are as follows:
