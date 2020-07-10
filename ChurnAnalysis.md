@@ -35,11 +35,11 @@
 
 	In order to quantify the same we look at month on month CHANGE in Average customer value / month after enrolment.
 
-	[Image 3]
+	![https://manikazad.github.io/Image3.png]
 
 	In the chart above we can easily observe that the change in CLTV per month decreases initially for a few months and then starts increasing gradually. To observe this trend more clearly we average the change over 6 months cycle and plot it again. 
 
-	[Image 4]
+	![https://manikazad.github.io/Image4.png]
 
 	Here we can observe that the change in customer value is decreasing for first 8-9 months initially and 5-6 months later on. Then it starts increasing gradually for first two averaged data over contiguous timelines. And in the last two contiguous timelines the decrease in change can be seen to happening till 3-4 months and then increasing . 
 	This suggests that for recent years the newly enrolled customer's behaviour has changed significantly and we can interpret 2 things:
