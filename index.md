@@ -11,3 +11,5 @@ I am Manik, a Data Scientist by Designation and a Hacker cum problem solver by p
 
 [Customer Churn Analysis](https://manikazad.github.io/ChurnAnalysis) 
 
+[Application Fraud Model](https://actifydatalabs.com/portfolio/application-fraud-prediction-using-machine-learning-model-adds-10-revenue/)
+
