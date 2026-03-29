@@ -5,7 +5,7 @@ I am Manik, a Data Scientist by Designation and a Hacker cum problem solver by p
 
 [Delivery Planning (Vehicle Routing Problem)](https://manikazad.github.io/delivery_plan) 
 
-[Demand Forecasting and Inventory Otimization](https://manikazad.github.io/inventoryPlanning) 
+[Demand Forecasting and Inventory Otimization](https://manikazad.github.io/inventoryPlanning.md) 
 
 [Construction Detection using HighRes Satellite Imagery](https://manikazad.github.io/construct_detect) 
 
@@ -13,3 +13,6 @@ I am Manik, a Data Scientist by Designation and a Hacker cum problem solver by p
 
 [Application Fraud Model](https://actifydatalabs.com/portfolio/application-fraud-prediction-using-machine-learning-model-adds-10-revenue/)
 
+### Learning Resources 
+
+[Learning AI Coding Agents](https://manikazad.github.io/AI-Coding-Agents-Interactive-Book.html)
