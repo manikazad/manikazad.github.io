@@ -5,7 +5,7 @@ I am Manik, a Data Scientist by Designation and a Hacker cum problem solver by p
 
 [Delivery Planning (Vehicle Routing Problem)](https://manikazad.github.io/delivery_plan) 
 
-[Demand Forecasting and Inventory Otimization](https://manikazad.github.io/inventoryPlanning.md) 
+[Demand Forecasting and Inventory Otimization](https://manikazad.github.io/InventoryPlanning) 
 
 [Construction Detection using HighRes Satellite Imagery](https://manikazad.github.io/construct_detect) 
 
