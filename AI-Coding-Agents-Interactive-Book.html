@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Coding Agents — From First Principles to Production</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0c;--bg2:#111114;--bg3:#18181c;--bg4:#222228;
+  --text:#e8e4df;--text-dim:#8a8680;--text-faint:#55524e;
+  --accent:#d4a853;--accent2:#e8c97a;--accent-dim:rgba(212,168,83,.12);
+  --red:#e05555;--green:#5ec269;--blue:#5b9bd5;--purple:#a78bda;
+  --serif:'Instrument Serif',Georgia,serif;
+  --sans:'DM Sans',-apple-system,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.7;overflow-x:hidden}
+::selection{background:var(--accent);color:var(--bg)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;width:280px;height:100vh;background:var(--bg2);border-right:1px solid var(--bg4);z-index:100;overflow-y:auto;padding:2rem 0;transition:transform .4s var(--ease)}
+.nav-brand{padding:0 1.5rem 1.5rem;border-bottom:1px solid var(--bg4);margin-bottom:1rem}
+.nav-brand h1{font-family:var(--serif);font-size:1.15rem;color:var(--accent);font-weight:400;line-height:1.3}
+.nav-brand span{font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.12em;display:block;margin-top:.4rem}
+.nav-items{padding:0 .75rem}
+.nav-item{display:block;padding:.55rem .75rem;color:var(--text-dim);text-decoration:none;font-size:.82rem;border-radius:6px;transition:all .2s;cursor:pointer;line-height:1.4}
+.nav-item:hover{color:var(--text);background:var(--bg3)}
+.nav-item.active{color:var(--accent);background:var(--accent-dim)}
+.nav-item .ch-num{color:var(--text-faint);font-family:var(--mono);font-size:.7rem;margin-right:.4rem}
+.nav-part{padding:.6rem .75rem .3rem;font-size:.65rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-faint);margin-top:.5rem}
+
+/* MOBILE NAV */
+.nav-toggle{display:none;position:fixed;top:1rem;left:1rem;z-index:200;width:40px;height:40px;background:var(--bg2);border:1px solid var(--bg4);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.nav-toggle span{display:block;width:18px;height:2px;background:var(--text);position:relative;transition:all .3s}
+.nav-toggle span::before,.nav-toggle span::after{content:'';position:absolute;width:18px;height:2px;background:var(--text);transition:all .3s}
+.nav-toggle span::before{top:-6px}
+.nav-toggle span::after{top:6px}
+
+@media(max-width:900px){
+  .nav{transform:translateX(-100%)}
+  .nav.open{transform:translateX(0)}
+  .nav-toggle{display:flex}
+  .main{margin-left:0!important}
+}
+
+/* MAIN */
+.main{margin-left:280px;min-height:100vh}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:4rem 2rem}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(212,168,83,.06) 0%,transparent 70%)}
+.hero-content{max-width:700px;text-align:center;position:relative;z-index:1}
+.hero h1{font-family:var(--serif);font-size:clamp(2.5rem,6vw,4.5rem);line-height:1.1;color:var(--text);margin-bottom:1.5rem}
+.hero h1 em{color:var(--accent);font-style:italic}
+.hero p{font-size:1.1rem;color:var(--text-dim);max-width:500px;margin:0 auto 2.5rem;line-height:1.8}
+.hero-cta{display:inline-block;padding:.8rem 2rem;background:var(--accent);color:var(--bg);font-weight:600;text-decoration:none;border-radius:8px;transition:all .3s;font-size:.9rem}
+.hero-cta:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(212,168,83,.3)}
+.hero-grid{position:absolute;inset:0;opacity:.04;background-image:linear-gradient(var(--text-faint) 1px,transparent 1px),linear-gradient(90deg,var(--text-faint) 1px,transparent 1px);background-size:60px 60px}
+.hero-particles{position:absolute;inset:0;overflow:hidden}
+.particle{position:absolute;width:3px;height:3px;background:var(--accent);border-radius:50%;opacity:.3;animation:float-up linear infinite}
+@keyframes float-up{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.3}90%{opacity:.3}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+
+/* CHAPTER */
+.chapter{padding:5rem 2rem 6rem;max-width:800px;margin:0 auto;border-top:1px solid var(--bg3)}
+.chapter-label{font-family:var(--mono);font-size:.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:.2em;margin-bottom:.5rem}
+.chapter h2{font-family:var(--serif);font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.2;margin-bottom:.8rem}
+.chapter h2 em{color:var(--accent);font-style:italic}
+.chapter-subtitle{color:var(--text-dim);font-size:1.05rem;margin-bottom:2.5rem;line-height:1.6}
+.chapter h3{font-family:var(--serif);font-size:1.5rem;margin:2.5rem 0 1rem;color:var(--text)}
+.chapter h4{font-size:.95rem;font-weight:600;margin:2rem 0 .8rem;color:var(--accent2)}
+.chapter p{margin-bottom:1.2rem;color:var(--text-dim);font-size:.95rem;line-height:1.8}
+.chapter strong{color:var(--text);font-weight:600}
+.chapter em{color:var(--accent2);font-style:normal}
+.chapter a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+
+/* CONCEPT CARDS */
+.concept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:2rem 0}
+.concept-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:12px;padding:1.5rem;transition:all .3s var(--ease)}
+.concept-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.concept-card .icon{font-size:1.6rem;margin-bottom:.8rem}
+.concept-card h4{font-size:.9rem;margin-bottom:.5rem;color:var(--text);font-weight:600}
+.concept-card p{font-size:.8rem;color:var(--text-dim);line-height:1.6;margin:0}
+
+/* KEY INSIGHT BOX */
+.insight{background:var(--accent-dim);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:1.2rem 1.5rem;margin:2rem 0}
+.insight-label{font-family:var(--mono);font-size:.65rem;text-transform:uppercase;letter-spacing:.15em;color:var(--accent);margin-bottom:.4rem}
+.insight p{color:var(--text);font-size:.9rem;margin:0;line-height:1.7}
+
+/* CODE BLOCKS */
+.code-block{background:var(--bg2);border:1px solid var(--bg4);border-radius:10px;padding:1.2rem 1.5rem;margin:1.5rem 0;overflow-x:auto;font-family:var(--mono);font-size:.8rem;line-height:1.7;color:var(--text-dim)}
+.code-block .kw{color:var(--purple)}
+.code-block .fn{color:var(--blue)}
+.code-block .str{color:var(--green)}
+.code-block .cm{color:var(--text-faint);font-style:italic}
+.code-block .num{color:var(--accent)}
+
+/* COMPARE TABLE */
+.compare-table{width:100%;border-collapse:collapse;margin:2rem 0;font-size:.85rem}
+.compare-table th{text-align:left;padding:.7rem 1rem;background:var(--bg3);color:var(--accent);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em}
+.compare-table td{padding:.7rem 1rem;border-bottom:1px solid var(--bg3);color:var(--text-dim)}
+.compare-table tr:hover td{background:var(--bg2)}
+
+/* INTERACTIVE DEMOS */
+.demo-container{background:var(--bg2);border:1px solid var(--bg4);border-radius:14px;padding:2rem;margin:2.5rem 0;position:relative;overflow:hidden}
+.demo-container::before{content:'INTERACTIVE';position:absolute;top:0;right:0;background:var(--accent);color:var(--bg);font-family:var(--mono);font-size:.6rem;padding:.25rem .8rem;border-radius:0 0 0 8px;letter-spacing:.1em;font-weight:600}
+.demo-title{font-family:var(--serif);font-size:1.2rem;margin-bottom:.5rem}
+.demo-subtitle{font-size:.8rem;color:var(--text-dim);margin-bottom:1.5rem}
+
+/* AGENT LOOP ANIMATION */
+.loop-viz{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;padding:1rem 0}
+.loop-node{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:.75rem;font-weight:600;transition:all .5s var(--ease);cursor:pointer;position:relative;border:2px solid transparent}
+.loop-node.think{background:rgba(167,139,218,.15);color:var(--purple);border-color:rgba(167,139,218,.3)}
+.loop-node.act{background:rgba(212,168,83,.15);color:var(--accent);border-color:rgba(212,168,83,.3)}
+.loop-node.observe{background:rgba(91,155,213,.15);color:var(--blue);border-color:rgba(91,155,213,.3)}
+.loop-node.active{transform:scale(1.15);box-shadow:0 0 30px currentColor;border-color:currentColor}
+.loop-node .node-icon{font-size:1.6rem;margin-bottom:.3rem}
+.loop-node .node-label{font-size:.7rem}
+.loop-arrow{font-size:1.2rem;color:var(--text-faint);margin:0 .5rem;transition:color .3s}
+.loop-arrow.active{color:var(--accent)}
+.loop-log{background:var(--bg);border-radius:8px;padding:1rem;margin-top:1.5rem;max-height:200px;overflow-y:auto;font-family:var(--mono);font-size:.75rem;line-height:1.8}
+.loop-log .log-think{color:var(--purple)}
+.loop-log .log-act{color:var(--accent)}
+.loop-log .log-obs{color:var(--blue)}
+.loop-log .log-done{color:var(--green)}
+.loop-controls{display:flex;gap:.8rem;margin-top:1rem;justify-content:center}
+.loop-btn{padding:.5rem 1.2rem;background:var(--bg3);border:1px solid var(--bg4);color:var(--text);border-radius:6px;cursor:pointer;font-family:var(--sans);font-size:.8rem;transition:all .2s}
+.loop-btn:hover{background:var(--bg4)}
+.loop-btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.loop-btn.primary:hover{background:var(--accent2)}
+
+/* COMPOUND ERROR CALCULATOR */
+.calc-container{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start}
+@media(max-width:600px){.calc-container{grid-template-columns:1fr}}
+.calc-sliders{display:flex;flex-direction:column;gap:1.5rem}
+.slider-group label{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-dim);margin-bottom:.5rem}
+.slider-group label span{color:var(--accent);font-family:var(--mono);font-weight:600}
+.slider-group input[type=range]{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--bg4);outline:none}
+.slider-group input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 10px rgba(212,168,83,.4)}
+.calc-result{text-align:center;padding:2rem;background:var(--bg);border-radius:12px}
+.calc-result .big-num{font-family:var(--serif);font-size:3.5rem;font-weight:400;transition:color .3s}
+.calc-result .big-label{font-size:.75rem;color:var(--text-dim);margin-top:.3rem}
+.calc-bar-chart{margin-top:1.5rem}
+.calc-bar{display:flex;align-items:center;gap:.8rem;margin-bottom:.5rem;font-size:.75rem}
+.calc-bar-label{width:60px;text-align:right;color:var(--text-dim);font-family:var(--mono)}
+.calc-bar-track{flex:1;height:20px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.calc-bar-fill{height:100%;border-radius:4px;transition:width .5s var(--ease),background .3s}
+.calc-bar-val{width:45px;font-family:var(--mono);color:var(--text-dim)}
+
+/* CONTEXT WINDOW VIZ */
+.ctx-window{background:var(--bg);border-radius:10px;padding:1.5rem;position:relative}
+.ctx-bar{height:40px;border-radius:6px;overflow:hidden;display:flex;margin-bottom:1rem;background:var(--bg3)}
+.ctx-segment{height:100%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:600;color:var(--bg);transition:width .5s var(--ease);cursor:pointer;position:relative}
+.ctx-segment:hover{filter:brightness(1.2)}
+.ctx-legend{display:flex;flex-wrap:wrap;gap:.8rem}
+.ctx-legend-item{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--text-dim)}
+.ctx-legend-dot{width:10px;height:10px;border-radius:3px}
+
+/* PATTERN CARDS */
+.pattern-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.pattern-tab{padding:.5rem 1rem;background:var(--bg3);border:1px solid var(--bg4);border-radius:6px;color:var(--text-dim);cursor:pointer;font-size:.8rem;transition:all .2s}
+.pattern-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.pattern-content{display:none;animation:fadeIn .4s var(--ease)}
+.pattern-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.pattern-diagram{background:var(--bg);border-radius:10px;padding:1.5rem;margin:1rem 0;text-align:center;font-family:var(--mono);font-size:.8rem;line-height:2.2}
+.pattern-diagram .node{display:inline-block;padding:.3rem .8rem;border-radius:6px;margin:0 .3rem}
+.pattern-diagram .node-input{background:rgba(91,155,213,.15);color:var(--blue)}
+.pattern-diagram .node-llm{background:rgba(212,168,83,.15);color:var(--accent)}
+.pattern-diagram .node-gate{background:rgba(94,194,105,.15);color:var(--green)}
+.pattern-diagram .node-output{background:rgba(167,139,218,.15);color:var(--purple)}
+.pattern-diagram .arrow{color:var(--text-faint)}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:2rem;margin:2rem 0}
+.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--accent),var(--purple),var(--blue))}
+.timeline-item{position:relative;margin-bottom:1.8rem;padding-left:1.5rem}
+.timeline-item::before{content:'';position:absolute;left:-2rem;top:.4rem;width:14px;height:14px;border-radius:50%;border:2px solid var(--accent);background:var(--bg)}
+.timeline-item.major::before{background:var(--accent)}
+.timeline-year{font-family:var(--mono);font-size:.7rem;color:var(--accent);font-weight:600}
+.timeline-text{font-size:.85rem;color:var(--text-dim);line-height:1.6}
+.timeline-text strong{color:var(--text)}
+
+/* TOOL FLOW */
+.tool-flow{display:flex;flex-direction:column;gap:.8rem;margin:1.5rem 0}
+.tool-step{display:flex;align-items:flex-start;gap:1rem;padding:1rem;background:var(--bg);border-radius:8px;border-left:3px solid var(--bg4);transition:all .3s;cursor:pointer}
+.tool-step:hover,.tool-step.active{border-left-color:var(--accent);background:var(--accent-dim)}
+.tool-step-num{width:28px;height:28px;background:var(--bg3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.7rem;font-weight:600;color:var(--text-dim);flex-shrink:0}
+.tool-step.active .tool-step-num{background:var(--accent);color:var(--bg)}
+.tool-step h5{font-size:.85rem;margin-bottom:.2rem;color:var(--text)}
+.tool-step p{font-size:.78rem;color:var(--text-dim);margin:0;line-height:1.5}
+
+/* PRODUCTIVITY CHART */
+.prod-chart{display:flex;align-items:flex-end;justify-content:center;gap:1.5rem;height:200px;padding:1rem 0;margin:1.5rem 0}
+.prod-bar-group{display:flex;flex-direction:column;align-items:center;gap:.5rem}
+.prod-bar{width:50px;border-radius:6px 6px 0 0;transition:height .8s var(--ease);position:relative}
+.prod-bar-label{font-size:.65rem;color:var(--text-dim);text-align:center;max-width:70px;line-height:1.3}
+.prod-bar-value{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:.7rem;white-space:nowrap}
+
+/* MULTI-AGENT VIZ */
+.multi-agent-viz{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;margin:1.5rem 0}
+.agent-topology{text-align:center;padding:1.5rem;background:var(--bg);border-radius:10px;flex:1;min-width:200px}
+.agent-topology h5{font-size:.8rem;margin-bottom:.5rem;color:var(--text)}
+.agent-dot{display:inline-block;width:30px;height:30px;border-radius:50%;margin:.3rem;transition:all .3s}
+.agent-dot.ok{background:rgba(94,194,105,.3);border:2px solid var(--green)}
+.agent-dot.err{background:rgba(224,85,85,.3);border:2px solid var(--red)}
+.error-rate{font-family:var(--mono);font-size:1.5rem;font-weight:600;margin:.5rem 0}
+
+/* FOOTER */
+.footer{text-align:center;padding:4rem 2rem;border-top:1px solid var(--bg3);color:var(--text-faint);font-size:.8rem}
+.footer a{color:var(--accent)}
+
+/* PROGRESS BAR */
+.progress-bar{position:fixed;top:0;left:280px;right:0;height:3px;z-index:99;background:var(--bg2)}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width .1s}
+@media(max-width:900px){.progress-bar{left:0}}
+
+/* SCROLL ANIMATIONS */
+.fade-up{opacity:0;transform:translateY(30px);transition:all .6s var(--ease)}.fade-up.visible{opacity:1;transform:translateY(0)}
+
+/* QUIZ */
+.quiz-box{background:var(--bg3);border-radius:10px;padding:1.5rem;margin:2rem 0}
+.quiz-q{font-size:.9rem;font-weight:600;margin-bottom:1rem;color:var(--text)}
+.quiz-option{display:block;padding:.6rem 1rem;margin-bottom:.5rem;background:var(--bg);border:1px solid var(--bg4);border-radius:6px;cursor:pointer;font-size:.85rem;color:var(--text-dim);transition:all .2s}
+.quiz-option:hover{border-color:var(--accent);color:var(--text)}
+.quiz-option.correct{background:rgba(94,194,105,.15);border-color:var(--green);color:var(--green)}
+.quiz-option.wrong{background:rgba(224,85,85,.15);border-color:var(--red);color:var(--red)}
+.quiz-explain{display:none;margin-top:.8rem;padding:.8rem;background:var(--bg);border-radius:6px;font-size:.8rem;color:var(--text-dim);line-height:1.6}
+.quiz-explain.show{display:block;animation:fadeIn .3s}
+
+/* DIG DEEPER */
+.dig-deeper{background:var(--bg3);border-radius:10px;margin:2rem 0;overflow:hidden}
+.dig-deeper summary{padding:1rem 1.5rem;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--accent);list-style:none;display:flex;align-items:center;gap:.5rem}
+.dig-deeper summary::before{content:'▸';transition:transform .2s}
+.dig-deeper[open] summary::before{transform:rotate(90deg)}
+.dig-deeper .dig-content{padding:0 1.5rem 1.5rem}
+.dig-deeper .dig-content p{font-size:.83rem;color:var(--text-dim)}
+.dig-deeper .dig-content a{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- MOBILE NAV TOGGLE -->
+<button class="nav-toggle" onclick="document.querySelector('.nav').classList.toggle('open')">
+  <span></span>
+</button>
+
+<!-- NAVIGATION -->
+<nav class="nav" id="nav">
+  <div class="nav-brand">
+    <h1>AI Coding Agents</h1>
+    <span>From First Principles to Production</span>
+  </div>
+  <div class="nav-items">
+    <a class="nav-item active" href="#hero">Overview</a>
+    <div class="nav-part">Part I · Foundations</div>
+    <a class="nav-item" href="#ch1"><span class="ch-num">01</span> The World Before Agents</a>
+    <a class="nav-item" href="#ch2"><span class="ch-num">02</span> The Agent Loop</a>
+    <a class="nav-item" href="#ch3"><span class="ch-num">03</span> Tool Use & Function Calling</a>
+    <div class="nav-part">Part II · Architecture</div>
+    <a class="nav-item" href="#ch4"><span class="ch-num">04</span> Five Composable Patterns</a>
+    <a class="nav-item" href="#ch5"><span class="ch-num">05</span> Context Engineering</a>
+    <a class="nav-item" href="#ch6"><span class="ch-num">06</span> Multi-Agent Systems</a>
+    <div class="nav-part">Part III · Practice</div>
+    <a class="nav-item" href="#ch7"><span class="ch-num">07</span> Practical Workflows</a>
+    <a class="nav-item" href="#ch8"><span class="ch-num">08</span> The Think Tool</a>
+    <a class="nav-item" href="#ch9"><span class="ch-num">09</span> Evaluating Agents</a>
+    <div class="nav-part">Part IV · Reality</div>
+    <a class="nav-item" href="#ch10"><span class="ch-num">10</span> Compound Error Problem</a>
+    <a class="nav-item" href="#ch11"><span class="ch-num">11</span> The Productivity Paradox</a>
+    <a class="nav-item" href="#ch12"><span class="ch-num">12</span> The Road Ahead</a>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-particles" id="particles"></div>
+  <div class="hero-content fade-up">
+    <h1>Master <em>AI Coding Agents</em></h1>
+    <p>An interactive guide to understanding, building, and working with the technology reshaping software development. From first principles to production patterns.</p>
+    <a class="hero-cta" href="#ch1">Start Learning →</a>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 1 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch1">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 01</div>
+    <h2>The World <em>Before Agents</em></h2>
+    <p class="chapter-subtitle">Why do AI coding agents exist? What were we doing before them? Understanding the history helps you understand the present — and what agents are actually good at.</p>
+  </div>
+
+  <div class="fade-up">
+    <h3>The Problem Agents Solve</h3>
+    <p>Software development has always required you to be the <strong>translator between intent and implementation at every step.</strong> You knew <em>what</em> you wanted. The computer could help you <em>type it faster.</em> But the cognitive work — navigating code, planning changes, writing, testing, debugging — was entirely on you.</p>
+    <p>AI coding agents automate this entire cycle. They can read files, plan changes, write code, run tests, read error messages, fix failures, and loop until everything works. <strong>No single step is done better than a skilled developer. But the entire loop runs at machine speed, without losing focus.</strong></p>
+  </div>
+
+  <div class="fade-up">
+    <h3>The Three Eras</h3>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <div class="icon">⌨️</div>
+        <h4>Era 1: Deterministic (1996–2018)</h4>
+        <p>IntelliSense, IDE refactoring, scaffolding tools, linters. The computer knew the <em>rules</em> of the language. Zero intelligence, maximum reliability.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">🧠</div>
+        <h4>Era 2: Neural Completion (2018–2022)</h4>
+        <p>TabNine, Kite, Codex, Copilot. The computer had <em>seen</em> millions of code files. It could predict what you'd type next. Pattern-based, not understanding-based.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">🤖</div>
+        <h4>Era 3: Agentic (2022–Now)</h4>
+        <p>ChatGPT, Devin, Claude Code, Cursor Agent. The computer can <em>understand</em> what you want, write the code, test it, and fix its own mistakes autonomously.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade-up">
+    <h3>Interactive Timeline</h3>
+    <div class="demo-container">
+      <div class="demo-title">Key Milestones in Code Assistance</div>
+      <div class="demo-subtitle">Click any milestone to learn more</div>
+      <div class="timeline">
+        <div class="timeline-item" onclick="this.querySelector('.timeline-text').classList.toggle('expanded')">
+          <div class="timeline-year">1996</div>
+          <div class="timeline-text"><strong>Microsoft IntelliSense</strong> ships with VB 5.0 — the first widely available code completion. Purely deterministic: parsed AST + type tables → dropdown of available methods.</div>
+        </div>
+        <div class="timeline-item" onclick="this.querySelector('.timeline-text').classList.toggle('expanded')">
+          <div class="timeline-year">2001</div>
+          <div class="timeline-text"><strong>IntelliJ IDEA</strong> crosses the "Refactoring Rubicon" — first automated, semantics-preserving code transformations. Extract Method, Rename, Move — guaranteed behavior-preserving.</div>
+        </div>
+        <div class="timeline-item" onclick="this.querySelector('.timeline-text').classList.toggle('expanded')">
+          <div class="timeline-year">2019</div>
+          <div class="timeline-text"><strong>Deep TabNine</strong> uses GPT-2 trained on 2M GitHub files. First deep-learning code completor to go mainstream. Predicted not just valid completions but <em>likely</em> ones.</div>
+        </div>
+        <div class="timeline-item major" onclick="this.querySelector('.timeline-text').classList.toggle('expanded')">
+          <div class="timeline-year">Jul 2021</div>
+          <div class="timeline-text"><strong>OpenAI Codex</strong> paper published. GPT fine-tuned on 54M GitHub repos (179 GB Python). 28.8% pass@1 on HumanEval — the first model to write working functions from English descriptions. Powers GitHub Copilot.</div>
+        </div>
+        <div class="timeline-item major" onclick="this.querySelector('.timeline-text').classList.toggle('expanded')">
+          <div class="timeline-year">Oct 2022</div>
+          <div class="timeline-text"><strong>ReAct paper</strong> published — the Think→Act→Observe loop that would become the architecture of every coding agent. Also: ChatGPT launches Nov 30, shifting the paradigm from completion to conversation.</div>
+        </div>
+        <div class="timeline-item" onclick="this.querySelector('.timeline-text').classList.toggle('expanded')">
+          <div class="timeline-year">Oct 2023</div>
+          <div class="timeline-text"><strong>SWE-bench</strong> by Princeton defines real-world agent evaluation: 2,294 GitHub issues from Django, scikit-learn, etc. Claude 2 solves only 1.96%. This becomes the standard.</div>
+        </div>
+        <div class="timeline-item major" onclick="this.querySelector('.timeline-text').classList.toggle('expanded')">
+          <div class="timeline-year">Mar 2024</div>
+          <div class="timeline-text"><strong>Devin announced</strong> — "first AI software engineer." Solves 13.86% of SWE-bench unassisted. Uses shell, editor, browser in a sandbox. Proves the autonomous agent concept.</div>
+        </div>
+        <div class="timeline-item major" onclick="this.querySelector('.timeline-text').classList.toggle('expanded')">
+          <div class="timeline-year">Feb–May 2025</div>
+          <div class="timeline-text"><strong>Claude Code, Cursor Agent, Codex CLI</strong> all launch. The agentic coding era begins for real. By late 2025, SWE-bench scores exceed 80%. AI writes 30% of Microsoft's code.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight fade-up">
+    <div class="insight-label">Key Insight</div>
+    <p>Agents didn't emerge from a single invention. They required three threads converging: <strong>models got good enough at code</strong> (Codex→GPT-4→Claude), <strong>tool-use APIs became first-class</strong> (function calling, June 2023), and <strong>the ReAct loop pattern showed how to iterate</strong> (Oct 2022).</p>
+  </div>
+
+  <div class="fade-up">
+    <h3>What Would You Use Without Agents?</h3>
+    <table class="compare-table">
+      <thead><tr><th>Need</th><th>Without Agents</th><th>With Agents</th></tr></thead>
+      <tbody>
+        <tr><td>Write new code</td><td>Type manually, copy from Stack Overflow</td><td>Describe intent, review generated code</td></tr>
+        <tr><td>Understand unfamiliar code</td><td>Read source, print-debug, use debugger</td><td>Ask the agent to explain it</td></tr>
+        <tr><td>Find relevant files</td><td>grep, file tree, IDE search</td><td>Agent explores autonomously</td></tr>
+        <tr><td>Write tests</td><td>Manually write, copy patterns</td><td>Agent generates from implementation</td></tr>
+        <tr><td>Debug failures</td><td>Read stack traces, add logging</td><td>Agent reads errors and iterates fixes</td></tr>
+        <tr><td>Code review</td><td>Line-by-line human review</td><td>AI pre-review + human final review</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="quiz-box fade-up">
+    <div class="quiz-q">🧪 Check your understanding: Why did Kite (an early AI code assistant) shut down in 2022?</div>
+    <div class="quiz-option" onclick="checkQuiz(this,'wrong')">Its AI model wasn't accurate enough</div>
+    <div class="quiz-option" onclick="checkQuiz(this,'wrong')">It was acquired by GitHub</div>
+    <div class="quiz-option" onclick="checkQuiz(this,'correct')">Predicting the next few tokens wasn't transformative enough to monetize</div>
+    <div class="quiz-option" onclick="checkQuiz(this,'wrong')">It used too much compute to run locally</div>
+    <div class="quiz-explain">Kite's founder said they were "10+ years too early." The gap between "type faster" and "think less" was too narrow for a business. It saved keystrokes but not cognitive work. The lesson: <strong>code completion is useful but not transformative.</strong> Agents are transformative because they automate the entire think-act-verify cycle.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 2 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch2">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 02</div>
+    <h2>The Agent Loop — <em>How Agents Think</em></h2>
+    <p class="chapter-subtitle">Every coding agent — Claude Code, Cursor, Devin, Codex — runs the same fundamental loop. Understanding it is like understanding how an engine works before driving a car.</p>
+  </div>
+
+  <div class="fade-up">
+    <h3>The Core Pattern: ReAct</h3>
+    <p>Published October 2022 by Shunyu Yao et al., the <strong>ReAct pattern</strong> interleaves reasoning and action. Before ReAct, models either reasoned internally (Chain-of-Thought, prone to hallucination) or acted without reasoning (prone to aimless exploration). ReAct combines both:</p>
+  </div>
+
+  <div class="demo-container fade-up">
+    <div class="demo-title">The Agent Loop — Live Simulation</div>
+    <div class="demo-subtitle">Watch an agent solve a task step by step. Click "Run" to start.</div>
+    <div class="loop-viz">
+      <div class="loop-node think" id="nodeThink"><div class="node-icon">💭</div><div class="node-label">Think</div></div>
+      <div class="loop-arrow" id="arrow1">→</div>
+      <div class="loop-node act" id="nodeAct"><div class="node-icon">⚡</div><div class="node-label">Act</div></div>
+      <div class="loop-arrow" id="arrow2">→</div>
+      <div class="loop-node observe" id="nodeObserve"><div class="node-icon">👁</div><div class="node-label">Observe</div></div>
+      <div class="loop-arrow" id="arrow3">↩</div>
+    </div>
+    <div class="loop-log" id="loopLog">
+      <div style="color:var(--text-faint)">Task: "How many Python files exist, and what's 25% of that?"</div>
+      <div style="color:var(--text-faint)">Press Run to start the agent loop...</div>
+    </div>
+    <div class="loop-controls">
+      <button class="loop-btn primary" id="loopRunBtn" onclick="runAgentLoop()">▶ Run Loop</button>
+      <button class="loop-btn" onclick="resetAgentLoop()">↺ Reset</button>
+    </div>
+  </div>
+
+  <div class="fade-up">
+    <h3>The Entire Architecture in Code</h3>
+    <p>The agent loop fits in <strong>under 20 lines of logic</strong>. Here it is — the same pattern used by Claude Code, Cursor, and Codex:</p>
+    <div class="code-block"><span class="kw">def</span> <span class="fn">agent_loop</span>(query):
+    messages = [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: query}]
+    <span class="kw">while</span> <span class="kw">True</span>:
+        response = client.messages.create(
+            model=MODEL, system=SYSTEM,
+            messages=messages, tools=TOOLS,
+        )
+        messages.append({<span class="str">"role"</span>: <span class="str">"assistant"</span>, <span class="str">"content"</span>: response.content})
+        
+        <span class="kw">if</span> response.stop_reason != <span class="str">"tool_use"</span>:
+            <span class="kw">return</span>  <span class="cm"># Model finished — no more tool calls</span>
+        
+        results = []
+        <span class="kw">for</span> block <span class="kw">in</span> response.content:
+            <span class="kw">if</span> block.type == <span class="str">"tool_use"</span>:
+                output = run_tool(block.name, block.input)
+                results.append({<span class="str">"type"</span>: <span class="str">"tool_result"</span>,
+                    <span class="str">"tool_use_id"</span>: block.id, <span class="str">"content"</span>: output})
+        messages.append({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: results})</div>
+    <p>That's it. The model generates text or tool calls. If text → done. If tool calls → execute them, feed results back, repeat. <strong>Every coding agent in existence is a variation of this loop.</strong></p>
+  </div>
+
+  <div class="fade-up">
+    <h3>Four Universal Components</h3>
+    <div class="concept-grid">
+      <div class="concept-card"><div class="icon">🧠</div><h4>Brain (LLM)</h4><p>The model that generates reasoning and tool calls. Claude, GPT-4, etc.</p></div>
+      <div class="concept-card"><div class="icon">📋</div><h4>Instructions</h4><p>System prompt + CLAUDE.md. Tells the model who it is and how to work.</p></div>
+      <div class="concept-card"><div class="icon">🔧</div><h4>Tools</h4><p>Functions the model can call: read files, run commands, search, etc.</p></div>
+      <div class="concept-card"><div class="icon">💾</div><h4>Memory</h4><p>The message history — every user message, assistant response, and tool result.</p></div>
+    </div>
+  </div>
+
+  <div class="insight fade-up">
+    <div class="insight-label">Why This Matters</div>
+    <p>The loop gives agents their most important capability: <strong>the ability to recover from mistakes.</strong> A single-shot model that writes buggy code is stuck. An agent that writes buggy code can run the tests, read the error, reason about the cause, and try again.</p>
+  </div>
+
+  <details class="dig-deeper fade-up">
+    <summary>📚 Dig Deeper — ReAct Performance Numbers</summary>
+    <div class="dig-content">
+      <p>On <strong>ALFWorld</strong> (text-based navigation): ReAct achieved 71% success vs 45% for action-only. On <strong>Fever</strong> (fact verification): 60.9 EM vs 56.3 for Chain-of-Thought. The best approach was <strong>ReAct → CoT-SC fallback</strong>: try the agent loop first, fall back to pure reasoning if the loop gets stuck.</p>
+      <p><strong>Original paper:</strong> <a href="https://arxiv.org/abs/2210.03629" target="_blank">arXiv:2210.03629</a> · <strong>Simon Willison's implementation:</strong> <a href="https://til.simonwillison.net/llms/python-react-pattern" target="_blank">Python ReAct pattern</a></p>
+    </div>
+  </details>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 3 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch3">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 03</div>
+    <h2>Tool Use & <em>Function Calling</em></h2>
+    <p class="chapter-subtitle">An LLM without tools is a brain in a jar. Tools give it hands. This chapter explains the exact mechanism — and why tool descriptions matter more than the model itself.</p>
+  </div>
+
+  <div class="demo-container fade-up">
+    <div class="demo-title">The Five-Step Tool Calling Protocol</div>
+    <div class="demo-subtitle">Click each step to see the details</div>
+    <div class="tool-flow" id="toolFlow">
+      <div class="tool-step active" onclick="activateToolStep(0)">
+        <div class="tool-step-num">1</div>
+        <div><h5>Define tools as JSON schemas</h5><p>You describe each tool's name, purpose, and parameters. The model learns what it can do from these descriptions.</p></div>
+      </div>
+      <div class="tool-step" onclick="activateToolStep(1)">
+        <div class="tool-step-num">2</div>
+        <div><h5>Send request with tools + message</h5><p>The API receives the user's question alongside the tool definitions. Behind the scenes, tools become part of the prompt.</p></div>
+      </div>
+      <div class="tool-step" onclick="activateToolStep(2)">
+        <div class="tool-step-num">3</div>
+        <div><h5>Model returns structured tool calls</h5><p>Instead of free text, the model outputs JSON: which tool to call and with what arguments. Schema-enforced via constrained decoding.</p></div>
+      </div>
+      <div class="tool-step" onclick="activateToolStep(3)">
+        <div class="tool-step-num">4</div>
+        <div><h5>YOUR code executes the function</h5><p>The LLM never runs code directly. Your application receives the tool call, executes it, and captures the result.</p></div>
+      </div>
+      <div class="tool-step" onclick="activateToolStep(4)">
+        <div class="tool-step-num">5</div>
+        <div><h5>Send result back, model continues</h5><p>The tool result becomes a new message. The model reads it and either calls another tool or generates a final response.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight fade-up">
+    <div class="insight-label">The #1 Finding</div>
+    <p>Anthropic found that <strong>tool descriptions are "by far the most important factor in tool performance."</strong> Optimizing descriptions achieved a 40% decrease in task completion time. A description should be 3-4+ sentences, explain when to use the tool, what it returns, and what to watch out for.</p>
+  </div>
+
+  <div class="fade-up">
+    <h3>MCP: The Universal Connector</h3>
+    <p>The <strong>Model Context Protocol</strong> (Anthropic, Nov 2024) is "USB-C for AI." Before MCP: N models × M tools = N×M integrations. With MCP: each model implements it once, each tool implements it once. Adopted by OpenAI, Google, Cursor, Zed, and 60K+ projects.</p>
+    <div class="concept-grid">
+      <div class="concept-card"><div class="icon">🔧</div><h4>Tools</h4><p>Executable functions that change state. The model decides when to call them.</p></div>
+      <div class="concept-card"><div class="icon">📄</div><h4>Resources</h4><p>Read-only data via URIs (file://, db://). The app decides when to include them.</p></div>
+      <div class="concept-card"><div class="icon">📝</div><h4>Prompts</h4><p>Reusable templates. User-controlled, retrieved and customized on demand.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 4 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch4">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 04</div>
+    <h2>Five <em>Composable Patterns</em></h2>
+    <p class="chapter-subtitle">From Anthropic's canonical guide. The building blocks for every agent system. The golden rule: start simple, add complexity only when measurement proves it's needed.</p>
+  </div>
+
+  <div class="demo-container fade-up">
+    <div class="demo-title">Explore Each Pattern</div>
+    <div class="demo-subtitle">Click a pattern to see its architecture, use cases, and risks</div>
+    <div class="pattern-tabs">
+      <div class="pattern-tab active" onclick="showPattern(0)">Prompt Chaining</div>
+      <div class="pattern-tab" onclick="showPattern(1)">Routing</div>
+      <div class="pattern-tab" onclick="showPattern(2)">Parallelization</div>
+      <div class="pattern-tab" onclick="showPattern(3)">Orchestrator-Workers</div>
+      <div class="pattern-tab" onclick="showPattern(4)">Evaluator-Optimizer</div>
+    </div>
+
+    <div class="pattern-content active" id="pat0">
+      <div class="pattern-diagram">
+        <span class="node node-input">Input</span> <span class="arrow">→</span>
+        <span class="node node-llm">LLM 1</span> <span class="arrow">→</span>
+        <span class="node node-gate">✓ Gate</span> <span class="arrow">→</span>
+        <span class="node node-llm">LLM 2</span> <span class="arrow">→</span>
+        <span class="node node-gate">✓ Gate</span> <span class="arrow">→</span>
+        <span class="node node-output">Output</span>
+      </div>
+      <p><strong>What:</strong> Fixed sequence of LLM calls. Each step processes the previous output. Gates validate quality between steps.</p>
+      <p><strong>When:</strong> Task decomposes into predictable subtasks. You want higher accuracy by making each call simpler.</p>
+      <p><strong>Example:</strong> Generate code → validate syntax → generate tests → run tests → fix failures.</p>
+      <p><strong>Risk:</strong> Cascade failures — bad output from step 1 poisons everything. Latency scales linearly.</p>
+    </div>
+    <div class="pattern-content" id="pat1">
+      <div class="pattern-diagram">
+        <span class="node node-input">Input</span> <span class="arrow">→</span>
+        <span class="node node-llm">Router</span> <span class="arrow">→</span>
+        <span class="node node-gate">billing?</span> <span class="arrow">→</span> <span class="node node-output">Billing Handler</span><br>
+        <span style="visibility:hidden" class="node node-input">Input</span> <span style="visibility:hidden" class="arrow">→</span>
+        <span style="visibility:hidden" class="node node-llm">Router</span> <span class="arrow">→</span>
+        <span class="node node-gate">technical?</span> <span class="arrow">→</span> <span class="node node-output">Tech Handler</span>
+      </div>
+      <p><strong>What:</strong> Classify input, direct to specialized handler. Each handler optimized independently.</p>
+      <p><strong>When:</strong> Distinct categories needing different prompts, tools, or even models.</p>
+      <p><strong>Example:</strong> Simple queries → Haiku (fast/cheap), complex → Opus (powerful).</p>
+      <p><strong>Risk:</strong> Misclassification sends inputs to wrong handler. Ambiguous inputs that span categories.</p>
+    </div>
+    <div class="pattern-content" id="pat2">
+      <div class="pattern-diagram">
+        <span style="visibility:hidden" class="node node-input">---</span> <span style="visibility:hidden" class="arrow">-</span> <span class="node node-llm">Security</span> <span class="arrow">↘</span><br>
+        <span class="node node-input">Input</span> <span class="arrow">→</span> <span class="node node-llm">Quality</span> <span class="arrow">→</span> <span class="node node-output">Merge</span><br>
+        <span style="visibility:hidden" class="node node-input">---</span> <span style="visibility:hidden" class="arrow">-</span> <span class="node node-llm">Tests</span> <span class="arrow">↗</span>
+      </div>
+      <p><strong>What:</strong> Multiple LLM calls run simultaneously. Results aggregated. Two variants: <em>sectioning</em> (split task) and <em>voting</em> (same task, multiple tries).</p>
+      <p><strong>When:</strong> Genuinely independent subtasks. Or when you need reliability via majority vote.</p>
+      <p><strong>Example:</strong> Review code security + quality + tests in parallel. Run guardrail alongside main response.</p>
+      <p><strong>Risk:</strong> Results may be inconsistent. Aggregation logic must handle contradictions.</p>
+    </div>
+    <div class="pattern-content" id="pat3">
+      <div class="pattern-diagram">
+        <span style="visibility:hidden" class="node node-input">---</span> <span style="visibility:hidden" class="arrow">-</span> <span class="node node-output">Worker 1</span> <span class="arrow">↘</span><br>
+        <span class="node node-input">Task</span> <span class="arrow">→</span> <span class="node node-llm">Orchestrator</span> <span class="arrow">→</span> <span class="node node-llm">Synthesize</span><br>
+        <span style="visibility:hidden" class="node node-input">---</span> <span style="visibility:hidden" class="arrow">-</span> <span class="node node-output">Worker 2</span> <span class="arrow">↗</span>
+      </div>
+      <p><strong>What:</strong> Central LLM dynamically plans subtasks, delegates to workers, synthesizes results. Subtasks are NOT predetermined.</p>
+      <p><strong>When:</strong> You can't predict what subtasks are needed. Multi-file coding — the orchestrator analyzes the task first.</p>
+      <p><strong>This is how Claude Code, Cursor Agent, and Devin work.</strong></p>
+      <p><strong>Risk:</strong> Vague delegation produces poor worker output. Workers may produce conflicting changes.</p>
+    </div>
+    <div class="pattern-content" id="pat4">
+      <div class="pattern-diagram">
+        <span class="node node-input">Task</span> <span class="arrow">→</span>
+        <span class="node node-llm">Generator</span> <span class="arrow">→</span>
+        <span class="node node-gate">Evaluator</span> <span class="arrow">→ Approved?</span> <span class="arrow">→</span>
+        <span class="node node-output">Output</span><br>
+        <span style="visibility:hidden" class="node">...</span><span style="visibility:hidden" class="arrow">-</span>
+        <span class="arrow">↑ No</span> <span class="arrow">←——————— feedback ——</span>
+      </div>
+      <p><strong>What:</strong> One LLM generates, another evaluates and provides feedback, looping until quality criteria met.</p>
+      <p><strong>When:</strong> Output demonstrably improves from iterative feedback. Translation, code optimization, creative writing.</p>
+      <p><strong>Practical note:</strong> Diminishing returns after 2-3 iterations. Overly strict evaluators cause infinite loops.</p>
+    </div>
+  </div>
+
+  <div class="quiz-box fade-up">
+    <div class="quiz-q">🧪 You need to build an agent that handles both billing questions AND technical debugging. Which pattern?</div>
+    <div class="quiz-option" onclick="checkQuiz(this,'wrong')">Prompt Chaining — process billing then technical</div>
+    <div class="quiz-option" onclick="checkQuiz(this,'correct')">Routing — classify the input, direct to a specialized handler</div>
+    <div class="quiz-option" onclick="checkQuiz(this,'wrong')">Parallelization — run both handlers simultaneously</div>
+    <div class="quiz-option" onclick="checkQuiz(this,'wrong')">Evaluator-Optimizer — iterate until the answer is good</div>
+    <div class="quiz-explain">Routing is correct because billing and technical support are distinct categories that benefit from different prompts, tools, and potentially different models. The router classifies first, then each handler operates independently with optimized context.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 5 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch5">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 05</div>
+    <h2><em>Context Engineering</em></h2>
+    <p class="chapter-subtitle">Prompt engineering was about crafting the right question. Context engineering is about curating the right information. It's the most impactful skill in the entire agent toolkit.</p>
+  </div>
+
+  <div class="fade-up">
+    <p>Andrej Karpathy's analogy: the LLM is a <strong>CPU</strong>. The context window is <strong>RAM</strong>. Your job is the <strong>operating system</strong> — loading exactly the right data for each task. Random data in RAM = bad performance. Random context in the window = bad agent output.</p>
+  </div>
+
+  <div class="demo-container fade-up">
+    <div class="demo-title">Context Window Visualizer</div>
+    <div class="demo-subtitle">See how a 200K token context window fills up during a coding session</div>
+    <div class="ctx-window">
+      <div class="ctx-bar" id="ctxBar">
+        <div class="ctx-segment" style="width:2.5%;background:var(--accent)" title="System Prompt">Sys</div>
+        <div class="ctx-segment" style="width:1.5%;background:var(--purple)" title="Tool Definitions">Tools</div>
+        <div class="ctx-segment" style="width:1%;background:var(--blue)" title="CLAUDE.md">MD</div>
+        <div class="ctx-segment" id="ctxConvo" style="width:0%;background:var(--green)" title="Conversation">Conv</div>
+        <div class="ctx-segment" id="ctxTools" style="width:0%;background:#e08855" title="Tool Results">Results</div>
+        <div class="ctx-segment" id="ctxFree" style="width:95%;background:var(--bg4)" title="Free Space"></div>
+      </div>
+      <div class="ctx-legend">
+        <div class="ctx-legend-item"><div class="ctx-legend-dot" style="background:var(--accent)"></div>System Prompt (~5K)</div>
+        <div class="ctx-legend-item"><div class="ctx-legend-dot" style="background:var(--purple)"></div>Tool Definitions (~3K)</div>
+        <div class="ctx-legend-item"><div class="ctx-legend-dot" style="background:var(--blue)"></div>CLAUDE.md (~2K)</div>
+        <div class="ctx-legend-item"><div class="ctx-legend-dot" style="background:var(--green)"></div>Conversation</div>
+        <div class="ctx-legend-item"><div class="ctx-legend-dot" style="background:#e08855"></div>Tool Results</div>
+        <div class="ctx-legend-item"><div class="ctx-legend-dot" style="background:var(--bg4)"></div>Free</div>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="loop-btn" onclick="simCtx(5,10,80)">After 5 turns</button>
+        <button class="loop-btn" onclick="simCtx(15,30,50)">After 15 turns</button>
+        <button class="loop-btn" onclick="simCtx(25,50,20)">After 30 turns</button>
+        <button class="loop-btn" onclick="simCtx(3,3,89)" style="border-color:var(--accent);color:var(--accent)">After /compact</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade-up">
+    <h3>Three Retrieval Strategies</h3>
+    <div class="concept-grid">
+      <div class="concept-card"><div class="icon">📦</div><h4>Upfront</h4><p>Load everything potentially relevant before inference. CLAUDE.md, RAG. Fast and predictable, but may waste space.</p></div>
+      <div class="concept-card"><div class="icon">🔍</div><h4>Just-in-Time</h4><p>Agent uses grep/glob/read to explore on demand. Maximally efficient but costs tool calls. How Claude Code explores codebases.</p></div>
+      <div class="concept-card"><div class="icon">⚡</div><h4>Hybrid</h4><p>CLAUDE.md (upfront) + filesystem tools (JIT). The recommended approach. All major agents use this.</p></div>
+    </div>
+  </div>
+
+  <div class="fade-up">
+    <h3>CLAUDE.md Quick Reference</h3>
+    <div class="code-block"><span class="cm"># MyProject</span>
+
+<span class="cm">## WHY: Project Overview</span>
+E-commerce API, 50K RPM. TypeScript strict mode.
+PostgreSQL via Prisma ORM.
+
+<span class="cm">## WHAT: Key Commands</span>
+- <span class="str">`npm run dev`</span> — Start dev server
+- <span class="str">`npm test`</span> — Jest tests (needs local DB)
+- <span class="str">`npm run lint`</span> — ESLint + Prettier
+
+<span class="cm">## HOW: Conventions</span>
+- All handlers use zod for validation
+- Response shape: <span class="str">{ data: T | null, error: string | null }</span>
+- Never use <span class="str">`any`</span> — use <span class="str">`unknown`</span> and narrow
+
+<span class="cm">## Watch Out For</span>
+- Tests use real local DB, NOT mocks
+- Payments module has its own rules (src/payments/CLAUDE.md)</div>
+    <p><strong>Key rules:</strong> Keep under 150-200 instructions. Tell Claude how to <em>find</em> info, not the info itself. Add rules reactively when you notice repeated mistakes. Use WHY/WHAT/HOW structure.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 6 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch6">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 06</div>
+    <h2><em>Multi-Agent</em> Systems</h2>
+    <p class="chapter-subtitle">The most overhyped and under-understood area of agent engineering. Multi-agent can amplify errors by 17× — or deliver 90%+ improvements. The difference is architecture.</p>
+  </div>
+
+  <div class="demo-container fade-up">
+    <div class="demo-title">Error Amplification: Single vs. Multi-Agent</div>
+    <div class="demo-subtitle">From Google DeepMind's study of 180 configurations (Dec 2025)</div>
+    <div class="multi-agent-viz" id="multiAgentViz">
+      <div class="agent-topology">
+        <h5>Single Agent (5% error)</h5>
+        <div><div class="agent-dot ok"></div></div>
+        <div class="error-rate" style="color:var(--green)">5% error</div>
+        <div style="font-size:.75rem;color:var(--text-dim)">Baseline</div>
+      </div>
+      <div class="agent-topology">
+        <h5>Supervised (4.4× amplification)</h5>
+        <div>
+          <div class="agent-dot ok"></div><br>
+          <div class="agent-dot ok"></div><div class="agent-dot ok"></div><div class="agent-dot err"></div>
+        </div>
+        <div class="error-rate" style="color:var(--accent)">~22% error</div>
+        <div style="font-size:.75rem;color:var(--text-dim)">Contained by coordination</div>
+      </div>
+      <div class="agent-topology">
+        <h5>Independent (17.2× amplification)</h5>
+        <div>
+          <div class="agent-dot err"></div><div class="agent-dot ok"></div><div class="agent-dot err"></div><br>
+          <div class="agent-dot err"></div><div class="agent-dot err"></div><div class="agent-dot ok"></div>
+        </div>
+        <div class="error-rate" style="color:var(--red)">~86% error</div>
+        <div style="font-size:.75rem;color:var(--text-dim)">Errors cascade unchecked</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight fade-up">
+    <div class="insight-label">Decision Rules</div>
+    <p><strong>The 45% Rule:</strong> If a single agent exceeds 45% accuracy, adding agents likely hurts.<br>
+    <strong>Always use a supervisor.</strong> Independent voting amplifies errors 17.2×; supervision contains to 4.4×.<br>
+    <strong>Cap at 4 agents</strong> under constrained budgets — gains plateau beyond that.<br>
+    <strong>Budget 2–6×</strong> the token cost of a single agent.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 7 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch7">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 07</div>
+    <h2>Practical <em>Workflows</em></h2>
+    <p class="chapter-subtitle">The day-to-day workflows that separate casual users from power users. Agents reward existing engineering discipline — testing, planning, documentation, version control.</p>
+  </div>
+
+  <div class="fade-up">
+    <div class="concept-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+      <div class="concept-card">
+        <div class="icon">🗺️</div>
+        <h4>Waterfall in 15 Minutes</h4>
+        <p>Interview → Spec → Plan → Implement. Ask the agent to interview you about requirements BEFORE coding. Saves hours of rework.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">✅</div>
+        <h4>Test-Driven Agentic Dev</h4>
+        <p>Write tests first (in isolation, no peeking at implementation). Then implement against those tests. Reduced regressions by 70%.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">🎤</div>
+        <h4>The Interview Workflow</h4>
+        <p>"Interview me with 8 questions about [feature], then create a spec." Forces hidden assumptions into the open. Developers report 40+ questions surfacing requirements they'd never have thought of.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">💾</div>
+        <h4>Git Checkpointing</h4>
+        <p>Commit after each successful small change. Treat commits as "save points in a game." Granular rollback when things go sideways.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">🌲</div>
+        <h4>Multi-Worktree Parallel</h4>
+        <p>Use <code>git worktree add</code> to run multiple agent sessions on different features simultaneously. True parallelism.</p>
+      </div>
+      <div class="concept-card">
+        <div class="icon">🧹</div>
+        <h4>The /clear Discipline</h4>
+        <p>Between unrelated tasks, reset context. Old task context is noise. If the next task doesn't build on the previous, clear.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade-up">
+    <h4>Thinking Budget Tiers (Claude Code CLI only)</h4>
+    <table class="compare-table">
+      <thead><tr><th>Keyword</th><th>Budget</th><th>Best For</th></tr></thead>
+      <tbody>
+        <tr><td><code>"think"</code></td><td>~4,000 tokens</td><td>Simple decisions, quick analysis</td></tr>
+        <tr><td><code>"think hard"</code> / <code>"megathink"</code></td><td>~10,000 tokens</td><td>Complex implementations</td></tr>
+        <tr><td><code>"think harder"</code> / <code>"ultrathink"</code></td><td>~32,000 tokens</td><td>Architecture decisions, hard debugging</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 8 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch8">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 08</div>
+    <h2>The <em>Think Tool</em></h2>
+    <p class="chapter-subtitle">A tool that does nothing — and improves performance by 54%.</p>
+  </div>
+
+  <div class="fade-up">
+    <p>The think tool is a <strong>no-op tool.</strong> It accepts a thought and returns it unchanged. No external action, no new information — just structured reflection space between tool calls. On τ-bench (airline domain), it improved performance from 0.332 to 0.584 — a <strong>54% relative improvement.</strong></p>
+    
+    <div class="concept-grid">
+      <div class="concept-card" style="border-color:var(--purple)">
+        <div class="icon">🔮</div>
+        <h4>Extended Thinking</h4>
+        <p>Activates <em>before</em> the response. Deep pre-planning. Best for coding, math, architecture decisions.</p>
+      </div>
+      <div class="concept-card" style="border-color:var(--accent)">
+        <div class="icon">💭</div>
+        <h4>Think Tool</h4>
+        <p>Activates <em>during</em> the response, between tool calls. Processing external info as it arrives. Best for sequential chains + policy-heavy tasks.</p>
+      </div>
+    </div>
+  </div>
+
+  <details class="dig-deeper fade-up">
+    <summary>📚 Dig Deeper — Think Tool Implementation</summary>
+    <div class="dig-content">
+      <div class="code-block">{
+  <span class="str">"name"</span>: <span class="str">"think"</span>,
+  <span class="str">"description"</span>: <span class="str">"Use this tool to think about something. It will not
+    obtain new information, but just append the thought to the log.
+    Use it when complex reasoning or cache memory is needed."</span>,
+  <span class="str">"input_schema"</span>: {
+    <span class="str">"properties"</span>: {
+      <span class="str">"thought"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}
+    }
+  }
+}</div>
+      <p><a href="https://www.anthropic.com/engineering/claude-think-tool" target="_blank">Read the full Anthropic blog post →</a></p>
+    </div>
+  </details>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 9 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch9">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 09</div>
+    <h2><em>Evaluating</em> Agents</h2>
+    <p class="chapter-subtitle">Traditional testing assumes determinism. Agents are non-deterministic. You need a different approach: evaluations (evals).</p>
+  </div>
+
+  <div class="fade-up">
+    <div class="concept-grid">
+      <div class="concept-card"><div class="icon">☑️</div><h4>Deterministic Graders</h4><p>Tests pass/fail, syntax checks, keyword matching. Fast, cheap, reproducible. Can only verify objective criteria.</p></div>
+      <div class="concept-card"><div class="icon">🤖</div><h4>LLM-as-Judge</h4><p>Another LLM evaluates quality. 80%+ agreement with humans. Flexible but introduces its own biases (verbosity, position).</p></div>
+      <div class="concept-card"><div class="icon">👤</div><h4>Human Evaluation</h4><p>The gold standard. Expensive and slow. Best used for calibrating automated graders.</p></div>
+    </div>
+  </div>
+
+  <div class="demo-container fade-up">
+    <div class="demo-title">pass@k vs. pass^k Calculator</div>
+    <div class="demo-subtitle">Two metrics that look similar but measure completely different things</div>
+    <div class="calc-container">
+      <div class="calc-sliders">
+        <div class="slider-group">
+          <label>Per-trial accuracy: <span id="evalAccVal">75%</span></label>
+          <input type="range" min="50" max="99" value="75" id="evalAccSlider" oninput="updateEvalCalc()">
+        </div>
+        <div class="slider-group">
+          <label>Number of trials (k): <span id="evalKVal">3</span></label>
+          <input type="range" min="1" max="10" value="3" id="evalKSlider" oninput="updateEvalCalc()">
+        </div>
+        <div style="margin-top:1rem">
+          <p style="font-size:.85rem;margin-bottom:.5rem"><strong style="color:var(--green)">pass@k</strong> = at least ONE success in k tries (measures capability)</p>
+          <p style="font-size:.85rem"><strong style="color:var(--red)">pass^k</strong> = ALL k trials succeed (measures consistency)</p>
+        </div>
+      </div>
+      <div class="calc-result">
+        <div style="margin-bottom:1.5rem">
+          <div class="big-num" id="passAtK" style="color:var(--green)">98.4%</div>
+          <div class="big-label">pass@k (at least one success)</div>
+        </div>
+        <div>
+          <div class="big-num" id="passExpK" style="color:var(--red)">42.2%</div>
+          <div class="big-label">pass^k (all must succeed)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight fade-up">
+    <div class="insight-label">Key Principle</div>
+    <p><strong>Eval-driven development:</strong> Build evals before building features. Start with 20-50 tasks from real failures. Two categories: capability evals (climbing toward higher pass rates) and regression evals (maintaining 100%). When capability evals hit high pass rates, they graduate to the regression suite.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 10 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch10">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 10</div>
+    <h2>The <em>Compound Error</em> Problem</h2>
+    <p class="chapter-subtitle">The most important chapter in this book. Every other concept exists to mitigate the problem described here.</p>
+  </div>
+
+  <div class="demo-container fade-up">
+    <div class="demo-title">Compound Error Calculator</div>
+    <div class="demo-subtitle">Slide to see how small per-step errors snowball across multiple steps</div>
+    <div class="calc-container">
+      <div class="calc-sliders">
+        <div class="slider-group">
+          <label>Per-step accuracy (p): <span id="stepAccVal">95%</span></label>
+          <input type="range" min="80" max="99" value="95" id="stepAccSlider" oninput="updateCompoundCalc()">
+        </div>
+        <div class="slider-group">
+          <label>Number of steps (n): <span id="stepCountVal">10</span></label>
+          <input type="range" min="1" max="50" value="10" id="stepCountSlider" oninput="updateCompoundCalc()">
+        </div>
+        <div class="calc-bar-chart" id="compoundChart"></div>
+      </div>
+      <div class="calc-result">
+        <div class="big-num" id="compoundResult" style="color:var(--accent)">59.9%</div>
+        <div class="big-label">Overall success rate (p<sup>n</sup>)</div>
+        <div style="margin-top:1rem;font-size:.8rem;color:var(--text-dim)" id="compoundNote">
+          At 95% per-step accuracy, a 10-step task <strong style="color:var(--red)">fails 40% of the time</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade-up">
+    <h3>This Explains Everything</h3>
+    <table class="compare-table">
+      <thead><tr><th>Phenomenon</th><th>Compound Error Explanation</th></tr></thead>
+      <tbody>
+        <tr><td>The 70% Problem</td><td>AI gets 70% done (low n), but the remaining 30% requires many steps (high n) where errors compound</td></tr>
+        <tr><td>Productivity Paradox</td><td>Simple tasks (low n) speed up. Complex tasks (high n) slow down or break entirely</td></tr>
+        <tr><td>Multi-Agent Trap</td><td>Each agent adds steps. More agents × more steps = exponential error growth</td></tr>
+        <tr><td>Expert developers slower</td><td>Experts tackle harder tasks (higher n) where compound errors dominate</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="fade-up">
+    <h3>Five Mitigation Strategies</h3>
+    <div class="concept-grid">
+      <div class="concept-card"><div class="icon">📉</div><h4>Reduce n</h4><p>Fewer, more capable steps. One rich LLM call beats five thin ones.</p></div>
+      <div class="concept-card"><div class="icon">📈</div><h4>Increase p</h4><p>Better models, better context, better tools. 95%→99% per-step transforms 10-step success from 60%→90%.</p></div>
+      <div class="concept-card"><div class="icon">✅</div><h4>Verify Each Step</h4><p>TDD, type checking, linting. Catch errors immediately. TDD reduced regressions by 70%.</p></div>
+      <div class="concept-card"><div class="icon">👤</div><h4>Human-in-the-Loop</h4><p>Human critics boost completion rates by ~30 percentage points. AI critics show marginal gains.</p></div>
+      <div class="concept-card"><div class="icon">📦</div><h4>Richer Context</h4><p>Instead of 10 steps with thin context, use 3 steps with rich context. Context engineering reduces n.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 11 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch11">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 11</div>
+    <h2>The <em>Productivity</em> Paradox</h2>
+    <p class="chapter-subtitle">Experienced developers were 19% slower with AI tools — while believing they were 20% faster. The gap between perception and reality is 39 percentage points.</p>
+  </div>
+
+  <div class="demo-container fade-up">
+    <div class="demo-title">The Productivity Evidence</div>
+    <div class="demo-subtitle">What different studies found — and why they disagree</div>
+    <div class="prod-chart" id="prodChart">
+      <div class="prod-bar-group">
+        <div class="prod-bar" style="height:160px;background:var(--green)"><div class="prod-bar-value" style="color:var(--green)">+55%</div></div>
+        <div class="prod-bar-label">GitHub 2023<br><span style="font-size:.6rem;color:var(--text-faint)">Lab, single task</span></div>
+      </div>
+      <div class="prod-bar-group">
+        <div class="prod-bar" style="height:130px;background:var(--green)"><div class="prod-bar-value" style="color:var(--green)">+2×</div></div>
+        <div class="prod-bar-label">McKinsey 2023<br><span style="font-size:.6rem;color:var(--text-faint)">Lab, simple tasks</span></div>
+      </div>
+      <div class="prod-bar-group">
+        <div class="prod-bar" style="height:15px;background:var(--text-dim)"><div class="prod-bar-value" style="color:var(--text-dim)">0%</div></div>
+        <div class="prod-bar-label">Uplevel 2024<br><span style="font-size:.6rem;color:var(--text-faint)">Enterprise, 800 devs</span></div>
+      </div>
+      <div class="prod-bar-group">
+        <div class="prod-bar" style="height:60px;background:var(--red)"><div class="prod-bar-value" style="color:var(--red)">−19%</div></div>
+        <div class="prod-bar-label">METR 2025<br><span style="font-size:.6rem;color:var(--text-faint)">Real-world, experts</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight fade-up">
+    <div class="insight-label">Why They Disagree</div>
+    <p><strong>Task complexity is the key variable.</strong> AI accelerates simple, well-defined tasks (lab studies) while potentially slowing complex, context-dependent ones (expert real-world work). Fred Brooks' law: coding is only 15-20% of engineering time. Even doubling coding speed improves total delivery by just 7-10%.</p>
+  </div>
+
+  <div class="fade-up">
+    <h4>AI Code Quality (CodeRabbit, Dec 2025)</h4>
+    <table class="compare-table">
+      <thead><tr><th>Metric</th><th>Human Code</th><th>AI Code</th><th>Difference</th></tr></thead>
+      <tbody>
+        <tr><td>Issues per PR</td><td>6.45</td><td>10.83</td><td style="color:var(--red)">+68%</td></tr>
+        <tr><td>Logic defects</td><td>baseline</td><td>+75%</td><td style="color:var(--red)">worse</td></tr>
+        <tr><td>Security vulnerabilities</td><td>baseline</td><td>+1.5–2×</td><td style="color:var(--red)">worse</td></tr>
+        <tr><td>Performance issues</td><td>baseline</td><td>+8×</td><td style="color:var(--red)">much worse</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 12 -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="chapter" id="ch12">
+  <div class="fade-up">
+    <div class="chapter-label">Chapter 12</div>
+    <h2>The Road <em>Ahead</em></h2>
+    <p class="chapter-subtitle">Five predictions for 2026–2028, and five enduring principles that will outlast any specific tool.</p>
+  </div>
+
+  <div class="fade-up">
+    <h3>Five Enduring Principles</h3>
+    <div class="concept-grid" style="grid-template-columns:1fr">
+      <div class="concept-card" style="display:flex;gap:1.2rem;align-items:flex-start">
+        <div class="icon" style="font-size:2rem">1</div>
+        <div><h4>Simplicity Wins</h4><p>Start with the simplest approach that could work. A single LLM call with good tools beats a complex multi-agent swarm in most cases. Add complexity only when measurement proves it's needed.</p></div>
+      </div>
+      <div class="concept-card" style="display:flex;gap:1.2rem;align-items:flex-start">
+        <div class="icon" style="font-size:2rem">2</div>
+        <div><h4>Context Is Everything</h4><p>The quality of an agent's output is bounded by the quality of its context. Every token in the context window should earn its place. Invest in context engineering above all else.</p></div>
+      </div>
+      <div class="concept-card" style="display:flex;gap:1.2rem;align-items:flex-start">
+        <div class="icon" style="font-size:2rem">3</div>
+        <div><h4>Compound Errors Are the Fundamental Constraint</h4><p>P(success) = p<sup>n</sup>. Design architectures to minimize sequential dependencies and maximize verification at each step.</p></div>
+      </div>
+      <div class="concept-card" style="display:flex;gap:1.2rem;align-items:flex-start">
+        <div class="icon" style="font-size:2rem">4</div>
+        <div><h4>Measure, Don't Assume</h4><p>The METR study's 39-percentage-point perception gap proves intuitions about AI effectiveness are systematically wrong. Measure your own team's results.</p></div>
+      </div>
+      <div class="concept-card" style="display:flex;gap:1.2rem;align-items:flex-start">
+        <div class="icon" style="font-size:2rem">5</div>
+        <div><h4>Agents Amplify Engineering Discipline</h4><p>Testing, planning, documentation, version control, code review — these practices become more valuable, not less, in an agent-assisted workflow. The agents reward the practices good engineers already follow.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight fade-up">
+    <div class="insight-label">The Bottom Line</div>
+    <p>The tools will change. The principles won't. The age of AI coding agents is just beginning. The foundations you've learned — the agent loop, tool use, composable patterns, context engineering, compound error mitigation — will serve you regardless of which specific tools dominate in two years.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p>Synthesized from ~50 key articles, papers, and guides published 2022–2026.<br>
+  Key sources: Anthropic, OpenAI, Google DeepMind, LangChain, Chip Huyen, Simon Willison, Addy Osmani, METR, Princeton.<br><br>
+  <a href="#hero">↑ Back to top</a></p>
+</footer>
+
+</div><!-- .main -->
+
+<script>
+// ──── SCROLL ANIMATIONS ────
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible') });
+}, {threshold: 0.1});
+document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+
+// ──── PROGRESS BAR ────
+window.addEventListener('scroll', () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  document.getElementById('progressFill').style.width = (window.scrollY / h * 100) + '%';
+});
+
+// ──── ACTIVE NAV ────
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.nav-item');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if(window.scrollY >= s.offsetTop - 200) current = s.id; });
+  navItems.forEach(a => {
+    a.classList.remove('active');
+    if(a.getAttribute('href') === '#' + current) a.classList.add('active');
+  });
+});
+// Close mobile nav on click
+navItems.forEach(a => a.addEventListener('click', () => document.querySelector('.nav').classList.remove('open')));
+
+// ──── HERO PARTICLES ────
+const pc = document.getElementById('particles');
+for(let i=0;i<15;i++){
+  const p=document.createElement('div');p.className='particle';
+  p.style.left=Math.random()*100+'%';p.style.animationDuration=(8+Math.random()*12)+'s';
+  p.style.animationDelay=Math.random()*10+'s';pc.appendChild(p);
+}
+
+// ──── AGENT LOOP SIMULATION ────
+const loopSteps = [
+  {node:'think',text:'<span class="log-think">💭 Think:</span> I need to find the Python files first. Let me use the search tool.',arrow:0},
+  {node:'act',text:'<span class="log-act">⚡ Act:</span> search_files("*.py")',arrow:1},
+  {node:'observe',text:'<span class="log-obs">👁 Observe:</span> ["main.py", "utils.py", "test_main.py"]',arrow:2},
+  {node:'think',text:'<span class="log-think">💭 Think:</span> Found 3 Python files. Now I need to calculate 25% of 3.',arrow:0},
+  {node:'act',text:'<span class="log-act">⚡ Act:</span> calculate("0.25 * 3")',arrow:1},
+  {node:'observe',text:'<span class="log-obs">👁 Observe:</span> 0.75',arrow:2},
+  {node:'think',text:'<span class="log-done">✅ Done:</span> There are 3 Python files. 25% of that is 0.75.',arrow:-1},
+];
+let loopStep = 0, loopRunning = false;
+
+function runAgentLoop(){
+  if(loopRunning) return;
+  loopRunning = true;
+  loopStep = 0;
+  document.getElementById('loopLog').innerHTML='<div style="color:var(--text-faint)">Task: "How many Python files exist, and what\'s 25% of that?"</div>';
+  document.getElementById('loopRunBtn').textContent = '⏳ Running...';
+  doStep();
+}
+function doStep(){
+  if(loopStep >= loopSteps.length){loopRunning=false;document.getElementById('loopRunBtn').textContent='▶ Run Loop';clearNodes();return}
+  const s = loopSteps[loopStep];
+  clearNodes();
+  document.getElementById('node'+cap(s.node)).classList.add('active');
+  if(s.arrow>=0) document.getElementById('arrow'+(s.arrow+1)).classList.add('active');
+  const log = document.getElementById('loopLog');
+  log.innerHTML += '<div>'+s.text+'</div>';
+  log.scrollTop = log.scrollHeight;
+  loopStep++;
+  setTimeout(doStep, 1500);
+}
+function clearNodes(){document.querySelectorAll('.loop-node,.loop-arrow').forEach(n=>n.classList.remove('active'))}
+function cap(s){return s[0].toUpperCase()+s.slice(1)}
+function resetAgentLoop(){
+  loopRunning=false;loopStep=0;clearNodes();
+  document.getElementById('loopLog').innerHTML='<div style="color:var(--text-faint)">Task: "How many Python files exist, and what\'s 25% of that?"</div><div style="color:var(--text-faint)">Press Run to start the agent loop...</div>';
+  document.getElementById('loopRunBtn').textContent='▶ Run Loop';
+}
+
+// ──── COMPOUND ERROR CALCULATOR ────
+function updateCompoundCalc(){
+  const p = parseInt(document.getElementById('stepAccSlider').value)/100;
+  const n = parseInt(document.getElementById('stepCountSlider').value);
+  document.getElementById('stepAccVal').textContent = (p*100).toFixed(0)+'%';
+  document.getElementById('stepCountVal').textContent = n;
+  const result = Math.pow(p, n) * 100;
+  const el = document.getElementById('compoundResult');
+  el.textContent = result.toFixed(1)+'%';
+  el.style.color = result>80?'var(--green)':result>50?'var(--accent)':'var(--red)';
+  const fail = (100-result).toFixed(0);
+  document.getElementById('compoundNote').innerHTML =
+    `At ${(p*100).toFixed(0)}% per-step accuracy, a ${n}-step task <strong style="color:${result>80?'var(--green)':result>50?'var(--accent)':'var(--red)'}">fails ${fail}% of the time</strong>`;
+  // Bar chart
+  const chart = document.getElementById('compoundChart');
+  chart.innerHTML = '';
+  const steps = [1,5,10,20,n>20?n:null].filter(Boolean);
+  const unique = [...new Set(steps)];
+  unique.forEach(s => {
+    const v = Math.pow(p,s)*100;
+    const c = v>80?'var(--green)':v>50?'var(--accent)':'var(--red)';
+    chart.innerHTML += `<div class="calc-bar"><div class="calc-bar-label">${s} steps</div><div class="calc-bar-track"><div class="calc-bar-fill" style="width:${v}%;background:${c}"></div></div><div class="calc-bar-val" style="color:${c}">${v.toFixed(1)}%</div></div>`;
+  });
+}
+updateCompoundCalc();
+
+// ──── EVAL CALCULATOR ────
+function updateEvalCalc(){
+  const p = parseInt(document.getElementById('evalAccSlider').value)/100;
+  const k = parseInt(document.getElementById('evalKSlider').value);
+  document.getElementById('evalAccVal').textContent = (p*100).toFixed(0)+'%';
+  document.getElementById('evalKVal').textContent = k;
+  const passAtK = (1 - Math.pow(1-p, k)) * 100;
+  const passExpK = Math.pow(p, k) * 100;
+  document.getElementById('passAtK').textContent = passAtK.toFixed(1)+'%';
+  document.getElementById('passExpK').textContent = passExpK.toFixed(1)+'%';
+}
+
+// ──── CONTEXT WINDOW SIM ────
+function simCtx(conv,tools,free){
+  document.getElementById('ctxConvo').style.width=conv+'%';
+  document.getElementById('ctxTools').style.width=tools+'%';
+  document.getElementById('ctxFree').style.width=free+'%';
+}
+
+// ──── TOOL FLOW ────
+function activateToolStep(i){
+  document.querySelectorAll('.tool-step').forEach((s,j)=>{
+    s.classList.toggle('active',j===i);
+  });
+}
+
+// ──── PATTERN TABS ────
+function showPattern(i){
+  document.querySelectorAll('.pattern-tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pattern-content').forEach((c,j)=>c.classList.toggle('active',j===i));
+}
+
+// ──── QUIZ ────
+function checkQuiz(el, type){
+  const box = el.closest('.quiz-box');
+  if(box.querySelector('.correct,.wrong')) return; // already answered
+  el.classList.add(type);
+  if(type==='correct'){
+    box.querySelector('.quiz-explain').classList.add('show');
+  } else {
+    // highlight correct
+    box.querySelectorAll('.quiz-option').forEach(o=>{
+      if(!o.classList.contains('wrong')){
+        // find and mark correct
+      }
+    });
+    box.querySelector('.quiz-explain').classList.add('show');
+  }
+}
+</script>
+</body>
+</html>
