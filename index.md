@@ -1,17 +1,36 @@
-## About me
+## About Me
 
-I am Manik, a Data Scientist by Designation and a Hacker cum problem solver by profession. This space is devoted to problems I hacked through and found interesting enough to be shared with everyone. 
+I'm Manik — a Data Scientist by title, a hacker and problem solver by nature. This space is a collection of real-world problems I've tackled and interactive learning resources I've built along the way.
 
+---
 
-[Delivery Planning (Vehicle Routing Problem)](https://manikazad.github.io/delivery_plan) 
+## Interactive AI & ML Learning Resources
 
-[Demand Forecasting and Inventory Otimization](https://manikazad.github.io/InventoryPlanning) 
+Hands-on, interactive guides covering the modern AI/ML stack — from fundamentals to production systems.
 
-[Construction Detection using HighRes Satellite Imagery](https://manikazad.github.io/construct_detect) 
+| Resource | Topic |
+|----------|-------|
+| [AI Engineering — Interactive Field Guide](ai_engineering_decoded.html) | End-to-end AI engineering principles and practices |
+| [LLM Engineer's Handbook](llm_handbook.html) | Large language model development and deployment |
+| [AI Coding Agents — From First Principles to Production](AI-Coding-Agents-Interactive-Book.html) | Building AI-powered coding agents |
+| [Designing ML Systems](ml-systems-design.html) | Architecture and design of machine learning systems |
+| [ML Design Patterns](ml-design-patterns.html) | Reusable patterns for ML system implementation |
+| [Practical MLOps](mlops_learning.html) | Production ML operations and best practices |
+| [CS231N — Visual Intelligence from Scratch](cs231n.html) | Computer vision fundamentals (Stanford CS231N) |
 
-[Customer Churn Analysis](https://manikazad.github.io/ChurnAnalysis) 
+---
 
-[Application Fraud Model](https://actifydatalabs.com/portfolio/application-fraud-prediction-using-machine-learning-model-adds-10-revenue/)
+## Data Science Projects
+
+Real-world projects spanning operations research, computer vision, and predictive modeling.
+
+| Project | Description |
+|---------|-------------|
+| [Delivery Planning (Vehicle Routing)](delivery_plan) | Optimizing delivery routes to reduce cost while meeting SLA |
+| [Demand Forecasting & Inventory Optimization](InventoryPlanning) | Forecasting demand and planning inventory levels |
+| [Construction Detection via Satellite Imagery](construct_detect) | Detecting construction activity from high-res satellite images |
+| [Customer Churn Analysis](ChurnAnalysis) | Predicting and analyzing customer churn |
+| [Application Fraud Model](https://actifydatalabs.com/portfolio/application-fraud-prediction-using-machine-learning-model-adds-10-revenue/) | ML model for fraud detection in applications |
 
 ### Learning Resources 
 

@@ -1,0 +1,3183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS231N — Visual Intelligence from Scratch</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --bg-card: #111827;
+  --bg-card-hover: #1a2234;
+  --bg-code: #0d1321;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-bright: #f8fafc;
+  --accent: #60a5fa;
+  --accent2: #a78bfa;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --border: #1e293b;
+  --border-bright: #334155;
+  --gradient1: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+  --gradient2: linear-gradient(135deg, #34d399 0%, #60a5fa 100%);
+  --gradient3: linear-gradient(135deg, #fb923c 0%, #f472b6 100%);
+  --serif: 'Source Serif 4', Georgia, serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --sidebar-w: 300px;
+  --content-max: 860px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 17px; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+  overflow-x: hidden;
+}
+::selection { background: rgba(96,165,250,0.3); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ─── SIDEBAR ─── */
+#sidebar {
+  position: fixed; top: 0; left: 0;
+  width: var(--sidebar-w); height: 100vh;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  overflow-y: auto; z-index: 100;
+  display: flex; flex-direction: column;
+  transition: transform 0.3s ease;
+}
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-track { background: transparent; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+.sidebar-header {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sidebar-header h1 {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  background: var(--gradient1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+.sidebar-header p {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.nav-section {
+  padding: 12px 12px 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+.nav-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 6px;
+  margin: 1px 8px;
+  transition: all 0.15s;
+  border: none; background: none; text-align: left; width: calc(100% - 16px);
+  font-family: var(--sans);
+}
+.nav-link:hover { background: var(--bg-card-hover); color: var(--text); }
+.nav-link.active { background: rgba(96,165,250,0.12); color: var(--accent); font-weight: 600; }
+.nav-link .ch-num {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  min-width: 24px;
+}
+.nav-link.active .ch-num { color: var(--accent); }
+
+/* ─── MAIN CONTENT ─── */
+#main {
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+}
+.chapter {
+  display: none;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 48px 40px 100px;
+  animation: fadeIn 0.4s ease;
+}
+.chapter.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+.chapter-label {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 8px;
+}
+.chapter h2 {
+  font-family: var(--serif);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--text-bright);
+  line-height: 1.2;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.chapter .subtitle {
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  margin-bottom: 36px;
+  font-style: italic;
+  font-family: var(--serif);
+}
+.chapter h3 {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin: 48px 0 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.chapter h4 {
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 32px 0 12px;
+}
+.chapter p { margin-bottom: 18px; color: var(--text); }
+.chapter ul, .chapter ol { margin: 0 0 18px 20px; }
+.chapter li { margin-bottom: 6px; }
+.chapter strong { color: var(--text-bright); font-weight: 600; }
+
+/* ─── SPECIAL BLOCKS ─── */
+.insight-box {
+  background: linear-gradient(135deg, rgba(96,165,250,0.08), rgba(167,139,250,0.08));
+  border-left: 3px solid var(--accent);
+  padding: 20px 24px;
+  border-radius: 0 10px 10px 0;
+  margin: 24px 0;
+}
+.insight-box .label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+.history-box {
+  background: linear-gradient(135deg, rgba(251,146,60,0.08), rgba(244,114,182,0.08));
+  border-left: 3px solid var(--accent4);
+  padding: 20px 24px;
+  border-radius: 0 10px 10px 0;
+  margin: 24px 0;
+}
+.history-box .label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--accent4);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+.why-box {
+  background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(96,165,250,0.08));
+  border-left: 3px solid var(--accent3);
+  padding: 20px 24px;
+  border-radius: 0 10px 10px 0;
+  margin: 24px 0;
+}
+.why-box .label {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--accent3);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+.math-block {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  overflow-x: auto;
+  color: var(--accent);
+  line-height: 2;
+}
+.code-block {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 20px 0;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  overflow-x: auto;
+  color: var(--text);
+  line-height: 1.7;
+  white-space: pre;
+}
+.code-block .kw { color: var(--accent5); }
+.code-block .fn { color: var(--accent); }
+.code-block .st { color: var(--accent3); }
+.code-block .cm { color: var(--text-dim); }
+.code-block .num { color: var(--accent4); }
+
+/* ─── INTERACTIVE DEMOS ─── */
+.demo-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 28px 0;
+  position: relative;
+  overflow: hidden;
+}
+.demo-container::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--gradient1);
+}
+.demo-title {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--accent2);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.demo-title::before { content: '▸'; color: var(--accent); }
+canvas.demo-canvas {
+  width: 100%;
+  border-radius: 8px;
+  background: var(--bg);
+  display: block;
+  cursor: crosshair;
+}
+.demo-controls {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin-top: 14px; align-items: center;
+}
+.demo-btn {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  padding: 7px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border-bright);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.demo-btn:hover { border-color: var(--accent); color: var(--accent); }
+.demo-btn.active { background: rgba(96,165,250,0.15); border-color: var(--accent); color: var(--accent); }
+.demo-slider-group { display: flex; align-items: center; gap: 8px; }
+.demo-slider-group label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+.demo-slider-group input[type="range"] {
+  -webkit-appearance: none;
+  height: 4px;
+  background: var(--border-bright);
+  border-radius: 2px;
+  outline: none;
+  width: 120px;
+}
+.demo-slider-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+.demo-info {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 10px;
+  line-height: 1.6;
+}
+
+/* ─── NAVIGATION BUTTONS ─── */
+.chapter-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.chapter-nav button {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--border-bright);
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chapter-nav button:hover { border-color: var(--accent); color: var(--accent); }
+.chapter-nav button:disabled { opacity: 0.3; cursor: default; }
+
+/* ─── PROGRESS BAR ─── */
+#progress-bar {
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0;
+  height: 3px; z-index: 99;
+  background: var(--border);
+}
+#progress-fill {
+  height: 100%;
+  background: var(--gradient1);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* ─── MOBILE ─── */
+#mobile-toggle {
+  display: none;
+  position: fixed; top: 12px; left: 12px;
+  z-index: 200;
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  align-items: center; justify-content: center;
+}
+@media (max-width: 900px) {
+  #mobile-toggle { display: flex; }
+  #sidebar { transform: translateX(-100%); z-index: 300; }
+  #sidebar.open { transform: translateX(0); box-shadow: 20px 0 60px rgba(0,0,0,0.5); }
+  #main { margin-left: 0; }
+  #progress-bar { left: 0; }
+  .chapter { padding: 48px 20px 80px; }
+  .chapter h2 { font-size: 1.8rem; }
+}
+
+/* ─── GRID LAYOUTS ─── */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+@media (max-width: 700px) { .comparison-grid { grid-template-columns: 1fr; } }
+.comparison-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+.comparison-card h5 {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ─── TIMELINE ─── */
+.timeline { position: relative; padding-left: 28px; margin: 20px 0; }
+.timeline::before {
+  content: '';
+  position: absolute; left: 8px; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--border-bright);
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+  padding-bottom: 4px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute; left: -24px; top: 8px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+}
+.timeline-year {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+/* ─── TABBED CONTENT ─── */
+.tab-container { margin: 24px 0; }
+.tab-buttons {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+.tab-btn {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  padding: 10px 18px;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-panel { display: none; padding: 20px 0; }
+.tab-panel.active { display: block; }
+
+.neuron-layer {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+}
+.neuron-node {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  color: var(--accent);
+  transition: all 0.3s;
+}
+.neuron-node.active { background: var(--accent); color: var(--bg); }
+
+/* Quiz */
+.quiz-block { margin: 24px 0; }
+.quiz-q {
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 12px;
+}
+.quiz-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: all 0.15s;
+}
+.quiz-option:hover { border-color: var(--accent); }
+.quiz-option.correct { border-color: var(--accent3); background: rgba(52,211,153,0.1); color: var(--accent3); }
+.quiz-option.wrong { border-color: #ef4444; background: rgba(239,68,68,0.1); color: #ef4444; }
+.quiz-explanation {
+  margin-top: 10px;
+  padding: 12px 16px;
+  background: rgba(96,165,250,0.08);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  display: none;
+}
+.quiz-explanation.show { display: block; }
+</style>
+</head>
+<body>
+
+<button id="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<div id="progress-bar"><div id="progress-fill"></div></div>
+
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <h1>CS231N</h1>
+    <p>Visual Intelligence from Scratch</p>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:8px 0;">
+    <div class="nav-section">Foundations</div>
+    <button class="nav-link active" onclick="goTo(0)"><span class="ch-num">00</span> The Big Picture</button>
+    <button class="nav-link" onclick="goTo(1)"><span class="ch-num">01</span> Image Classification</button>
+    <button class="nav-link" onclick="goTo(2)"><span class="ch-num">02</span> Linear Classifiers</button>
+    <button class="nav-link" onclick="goTo(3)"><span class="ch-num">03</span> Loss Functions</button>
+    <button class="nav-link" onclick="goTo(4)"><span class="ch-num">04</span> Optimization</button>
+
+    <div class="nav-section">Core Learning</div>
+    <button class="nav-link" onclick="goTo(5)"><span class="ch-num">05</span> Backpropagation</button>
+    <button class="nav-link" onclick="goTo(6)"><span class="ch-num">06</span> Neural Networks</button>
+    <button class="nav-link" onclick="goTo(7)"><span class="ch-num">07</span> Activation Functions</button>
+
+    <div class="nav-section">Convolutional Networks</div>
+    <button class="nav-link" onclick="goTo(8)"><span class="ch-num">08</span> Convolutions</button>
+    <button class="nav-link" onclick="goTo(9)"><span class="ch-num">09</span> CNN Architectures</button>
+
+    <div class="nav-section">Training Mastery</div>
+    <button class="nav-link" onclick="goTo(10)"><span class="ch-num">10</span> Training Deep Nets</button>
+    <button class="nav-link" onclick="goTo(11)"><span class="ch-num">11</span> Regularization</button>
+
+    <div class="nav-section">Advanced Topics</div>
+    <button class="nav-link" onclick="goTo(12)"><span class="ch-num">12</span> Detection &amp; Segmentation</button>
+    <button class="nav-link" onclick="goTo(13)"><span class="ch-num">13</span> Generative Models</button>
+    <button class="nav-link" onclick="goTo(14)"><span class="ch-num">14</span> Recurrent Networks</button>
+    <button class="nav-link" onclick="goTo(15)"><span class="ch-num">15</span> Attention &amp; Transformers</button>
+    <button class="nav-link" onclick="goTo(16)"><span class="ch-num">16</span> Transfer Learning</button>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 0: THE BIG PICTURE                  -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter active" id="ch0">
+  <div class="chapter-label">Chapter 00</div>
+  <h2>The Big Picture</h2>
+  <p class="subtitle">Why teach machines to see — and why it took us 60 years to get it right.</p>
+
+  <h3>Why Does This Field Exist?</h3>
+  <p>You open your eyes and instantly recognize thousands of objects, their textures, distances, motion, and meaning. You do this effortlessly, consuming roughly 30% of your cortex to process vision. Now imagine you want a machine to do the same thing. That's computer vision — and it's one of the hardest problems in all of AI.</p>
+
+  <p>Computer vision exists because <strong>the world is visual</strong>. Over 80% of the data on the internet is images and video. Self-driving cars need to see roads, medical imaging needs to detect tumors, robots need to navigate warehouses, and your phone needs to unlock when it sees your face. Without teaching machines to see, most of the AI revolution simply cannot happen.</p>
+
+  <div class="why-box">
+    <div class="label">🎯 Why Should You Care?</div>
+    <p>If you work in any domain that touches images, video, medical scans, satellite imagery, autonomous vehicles, robotics, or even natural language processing (which now uses vision-inspired architectures), CS231N gives you the foundational toolkit. The convolutional neural network architectures born from this field are the backbone of modern AI.</p>
+  </div>
+
+  <h3>A 60-Year Journey</h3>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-year">1959 — Hubel & Wiesel</div>
+      <p>Neurophysiologists discover that cat visual cortex has neurons responding to specific edge orientations. This biological insight will later inspire the architecture of convolutional networks. They found that simple cells detect edges, and complex cells pool over spatial regions — a hierarchy of increasing abstraction.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1966 — The Summer Vision Project</div>
+      <p>MIT's Seymour Papert proposed solving computer vision in one summer as a student project. The problem statement was simple: "Connect a camera to a computer and have it describe what it sees." That summer project is still unsolved 60 years later — a testament to how deceptively hard vision is.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1970s–1990s — Hand-Crafted Features</div>
+      <p>Researchers tried edge detectors (Canny, Sobel), template matching, and geometric models. David Marr proposed a computational theory of vision: from raw pixels → primal sketch (edges) → 2.5D sketch (surfaces) → 3D model. Progress was real but painfully slow.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1998 — LeNet (Yann LeCun)</div>
+      <p>LeCun builds LeNet-5, a convolutional neural network that reads handwritten digits for the US Postal Service. It works beautifully — but only on small, clean, grayscale images. The world isn't ready for bigger networks (not enough data, not enough compute).</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">1999–2005 — Feature Engineering Era</div>
+      <p>SIFT (1999), HOG (2005), and Bag of Words become dominant. Engineers hand-designed feature extractors, then fed those features into simple classifiers like SVMs. This was the state-of-the-art for a decade. You had to be a domain expert to design good features.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2009 — ImageNet</div>
+      <p>Fei-Fei Li and her team create ImageNet: 14 million labeled images across 22,000 categories. For the first time, there's enough data to train very large models. The annual ImageNet Large Scale Visual Recognition Challenge (ILSVRC) begins.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2012 — The AlexNet Moment</div>
+      <p>Alex Krizhevsky, Ilya Sutskever, and Geoffrey Hinton enter ILSVRC with AlexNet — a deep convolutional neural network trained on GPUs. They crush the competition, dropping the error rate from 26% to 16%. This is the moment everything changed. Deep learning had arrived.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2015+ — Superhuman Performance</div>
+      <p>ResNet achieves 3.57% error on ImageNet — better than humans (~5%). Vision Transformers (ViTs) arrive. Foundation models like CLIP learn vision and language together. The field explodes into detection, segmentation, generation, and 3D understanding.</p>
+    </div>
+  </div>
+
+  <h3>What If Neural Networks Hadn't Worked?</h3>
+  <p>If deep learning hadn't emerged, you'd still be in the <strong>feature engineering era</strong>. You'd manually design SIFT descriptors, HOG templates, and color histograms. You'd need years of domain expertise to build a passable image classifier. Each new task (faces, cars, medical images) would require starting from scratch with new hand-designed features.</p>
+
+  <p>The breakthrough of deep learning is that <strong>the network learns its own features</strong>. Instead of you telling the computer "look for edges, then corners, then shapes," the network discovers these representations automatically from data. The first layers learn edges, middle layers learn textures and parts, and deep layers learn whole objects. This is representation learning, and it's the central idea of CS231N.</p>
+
+  <div class="insight-box">
+    <div class="label">💡 Core Insight</div>
+    <p>CS231N is fundamentally about one idea: <strong>learning hierarchical representations directly from pixels</strong>. Every chapter builds toward understanding how neural networks transform raw pixel values into meaningful, abstract features that enable classification, detection, generation, and understanding.</p>
+  </div>
+
+  <h3>What You'll Build, Concept by Concept</h3>
+  <p>This course walks you through building a complete visual intelligence system from scratch. We start with the simplest possible classifier — comparing pixel values directly — and show why that fails. Then we introduce linear classifiers, loss functions, and optimization. We discover that linear models can't capture complex patterns, so we stack them into neural networks. We learn backpropagation to train them efficiently. Then we discover convolutions — the key architectural insight from neuroscience — and build modern deep networks. Finally, we explore the frontiers: object detection, image generation, sequence modeling, and attention.</p>
+
+  <p>At every step, we'll ask: <strong>Why this approach? What problem does it solve? What came before? What would you use instead?</strong></p>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: The Hierarchy of Visual Features</div>
+    <canvas class="demo-canvas" id="canvas-hierarchy" width="780" height="320"></canvas>
+    <div class="demo-controls">
+      <button class="demo-btn active" onclick="drawHierarchy(0)">Layer 1: Edges</button>
+      <button class="demo-btn" onclick="drawHierarchy(1)">Layer 2: Textures</button>
+      <button class="demo-btn" onclick="drawHierarchy(2)">Layer 3: Parts</button>
+      <button class="demo-btn" onclick="drawHierarchy(3)">Layer 4: Objects</button>
+    </div>
+    <div class="demo-info">Click each layer to see what a CNN learns at different depths. Early layers detect simple edges; deeper layers recognize complex objects.</div>
+  </div>
+
+  <div class="chapter-nav">
+    <button disabled>← Previous</button>
+    <button onclick="goTo(1)">Next: Image Classification →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 1: IMAGE CLASSIFICATION              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch1">
+  <div class="chapter-label">Chapter 01</div>
+  <h2>Image Classification</h2>
+  <p class="subtitle">The core task of visual recognition — assigning a label to an image — and why it's absurdly hard for machines.</p>
+
+  <h3>Why Does Image Classification Exist?</h3>
+  <p>At its heart, image classification answers one question: <strong>"What is in this image?"</strong> It's the foundation upon which all other vision tasks are built. Object detection is "what AND where." Segmentation is "which pixel belongs to what." Image generation is "create new images of this category." But classification came first, and getting it right was the gateway to everything else.</p>
+
+  <div class="why-box">
+    <div class="label">🎯 The Fundamental Problem</div>
+    <p>To a computer, an image is just a 3D array of numbers. A 256×256 color image is a matrix of shape (256, 256, 3) containing integers from 0 to 255. The challenge: given this grid of numbers, determine whether it contains a cat, a dog, a car, or any of thousands of possible categories. The gap between "grid of numbers" and "semantic meaning" is called the <strong>semantic gap</strong>, and bridging it is the central challenge of computer vision.</p>
+  </div>
+
+  <h3>What Makes This So Hard?</h3>
+  <p>Consider what happens when you shift a cat one pixel to the right. Every single number in the array changes. Yet it's obviously still a cat. This is just one of many challenges:</p>
+
+  <div class="comparison-grid">
+    <div class="comparison-card">
+      <h5>Viewpoint Variation</h5>
+      <p>The same object looks completely different from the front, side, top, or at an angle. A car seen head-on vs. from above shares almost no pixel patterns.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Illumination</h5>
+      <p>The same scene under sunlight vs. shadow vs. artificial light produces wildly different pixel values. Your classifier must be invariant to lighting.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Deformation</h5>
+      <p>Cats can curl, stretch, twist into bizarre shapes. A classifier must recognize a cat whether it's sleeping, jumping, or squeezing into a box.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Occlusion</h5>
+      <p>Objects are often partially hidden. You need to recognize a cat even if only its head peeks out from behind a sofa.</p>
+    </div>
+  </div>
+
+  <h3>The Naive Approach: Why Can't We Just Write Rules?</h3>
+  <p>Your first instinct might be to write explicit rules: "If there are pointy ears at the top AND whiskers AND fur texture, it's a cat." This approach — called <strong>explicit programming</strong> — fails catastrophically. Why?</p>
+  <p>Because you can't write rules for every viewpoint, every lighting condition, every breed, every pose. And even if you could write rules for cats, you'd need entirely different rules for dogs, cars, birds, and 10,000 other categories. The rule-based approach doesn't scale.</p>
+
+  <div class="history-box">
+    <div class="label">📜 Historical Context</div>
+    <p>The early vision community (1960s–1990s) tried exactly this approach. They built edge detectors, shape matchers, and geometric models. Some worked for narrow domains (reading zip codes, detecting faces under controlled lighting) but always failed when conditions changed. The realization was that <strong>you need a data-driven approach</strong>: instead of writing rules, show the computer thousands of examples and let it figure out the patterns.</p>
+  </div>
+
+  <h3>The Data-Driven Paradigm</h3>
+  <p>The modern approach to image classification follows a simple recipe:</p>
+  <p><strong>1. Collect</strong> a dataset of labeled images (e.g., ImageNet: 1.2 million images, 1,000 categories).</p>
+  <p><strong>2. Train</strong> a classifier on this dataset — the model examines many examples and learns patterns.</p>
+  <p><strong>3. Evaluate</strong> on new, unseen images to see if the learned patterns generalize.</p>
+  <p>This is the machine learning approach, and it's the foundation of everything in CS231N.</p>
+
+  <h3>Attempt #1: Nearest Neighbor Classifier</h3>
+  <p>The simplest possible data-driven classifier: given a new image, find the most similar image in the training set and copy its label. "Similarity" is measured by the distance between pixel arrays.</p>
+
+  <h4>L1 (Manhattan) Distance</h4>
+  <div class="math-block">d₁(I₁, I₂) = Σₚ |I₁ᵖ - I₂ᵖ|
+
+Sum of absolute differences across all pixels.</div>
+
+  <h4>L2 (Euclidean) Distance</h4>
+  <div class="math-block">d₂(I₁, I₂) = √(Σₚ (I₁ᵖ - I₂ᵖ)²)
+
+Root of the sum of squared differences.</div>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: Nearest Neighbor Classification</div>
+    <canvas class="demo-canvas" id="canvas-nn" width="780" height="400"></canvas>
+    <div class="demo-controls">
+      <button class="demo-btn active" onclick="setNNk(1)">k = 1</button>
+      <button class="demo-btn" onclick="setNNk(3)">k = 3</button>
+      <button class="demo-btn" onclick="setNNk(5)">k = 5</button>
+      <button class="demo-btn" onclick="setNNk(7)">k = 7</button>
+      <div class="demo-slider-group">
+        <label>Points:</label>
+        <input type="range" min="20" max="100" value="40" oninput="setNNpoints(this.value)">
+      </div>
+      <button class="demo-btn" onclick="resetNN()">Regenerate</button>
+    </div>
+    <div class="demo-info">Click anywhere in the canvas to classify a new point. The background shows the decision boundary — how the space is divided between classes. Notice how k=1 creates jagged, overfitting boundaries while higher k values produce smoother regions.</div>
+  </div>
+
+  <h4>Why Nearest Neighbor Fails</h4>
+  <p>The nearest neighbor approach has fatal flaws for real images:</p>
+  <p><strong>Test time is O(n)</strong> — you must compare against every training image. With 1 million training images, that's impossibly slow.</p>
+  <p><strong>Pixel distance is meaningless</strong> — An image shifted by one pixel has a huge pixel distance but is semantically identical. Meanwhile, two very different images can have small pixel distances (imagine a white cat and a white dog).</p>
+  <p><strong>Curse of dimensionality</strong> — To densely cover the space of all possible images, you'd need exponentially more data as dimensions grow. A 256×256×3 image lives in a ~200,000-dimensional space. You'd need more training images than atoms in the universe to cover it.</p>
+
+  <div class="insight-box">
+    <div class="label">💡 The Lesson</div>
+    <p>Nearest neighbor teaches us the critical insight: <strong>we need to compare images in feature space, not pixel space</strong>. The job of a neural network is to learn a transformation from pixel space to a feature space where semantically similar images are close together and different images are far apart. This is the essence of representation learning.</p>
+  </div>
+
+  <div class="quiz-block" id="quiz-ch1">
+    <div class="quiz-q">Quick Check: Why does comparing raw pixel values fail for image classification?</div>
+    <button class="quiz-option" onclick="checkQuiz('quiz-ch1', this, false)">Because images have too many pixels to compare quickly</button>
+    <button class="quiz-option" onclick="checkQuiz('quiz-ch1', this, true)">Because pixel-level similarity doesn't capture semantic similarity</button>
+    <button class="quiz-option" onclick="checkQuiz('quiz-ch1', this, false)">Because computers can't store image data efficiently</button>
+    <button class="quiz-option" onclick="checkQuiz('quiz-ch1', this, false)">Because all images have the same average pixel value</button>
+    <div class="quiz-explanation">Pixel-level similarity is dominated by superficial features like brightness, color, and translation. Two images of the same object under different lighting can have enormous pixel distances, while images of different objects can be pixel-similar. We need to compare in a learned feature space where semantic meaning is captured.</div>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(0)">← The Big Picture</button>
+    <button onclick="goTo(2)">Next: Linear Classifiers →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 2: LINEAR CLASSIFIERS               -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch2">
+  <div class="chapter-label">Chapter 02</div>
+  <h2>Linear Classifiers</h2>
+  <p class="subtitle">The simplest parametric model — and the building block of every neural network.</p>
+
+  <h3>Why Linear Classifiers?</h3>
+  <p>Nearest neighbor stored all training data and compared at test time. That's a <strong>non-parametric</strong> approach — the "model" IS the data. A linear classifier takes the opposite approach: it <strong>compresses</strong> everything it learned into a small set of parameters (weights and biases). At test time, classification is a single matrix multiplication — blazingly fast.</p>
+
+  <div class="why-box">
+    <div class="label">🎯 If Linear Classifiers Didn't Exist</div>
+    <p>Without parametric models, you'd be stuck with methods that scale with your training set size. Nearest neighbor needs all data at test time. Decision trees grow with data complexity. Linear classifiers introduced the idea of learning a compact set of weights that summarize patterns — this principle extends to neural networks with millions of parameters that still make predictions in milliseconds.</p>
+  </div>
+
+  <h3>The Model: f(x, W) = Wx + b</h3>
+  <p>A linear classifier computes a score for each class as a <strong>linear function</strong> of the input pixels:</p>
+
+  <div class="math-block">f(x, W) = Wx + b
+
+x = input image, flattened to a vector (e.g., 32×32×3 = 3072 dimensions)
+W = weight matrix (num_classes × dimensions, e.g., 10 × 3072)
+b = bias vector (num_classes, e.g., 10)
+Output: one score per class</div>
+
+  <p>Each row of W is a <strong>template</strong> for one class. The dot product Wx measures how well the image matches each template. The class with the highest score wins.</p>
+
+  <h4>The Geometric View</h4>
+  <p>Each row of W defines a <strong>hyperplane</strong> in pixel space. The classifier draws linear decision boundaries between classes. Points on one side of a hyperplane are classified as one class; points on the other side are another class.</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: Linear Decision Boundaries in 2D</div>
+    <canvas class="demo-canvas" id="canvas-linear" width="780" height="400"></canvas>
+    <div class="demo-controls">
+      <button class="demo-btn active" onclick="setLinearMode('2class')">2 Classes</button>
+      <button class="demo-btn" onclick="setLinearMode('3class')">3 Classes</button>
+      <button class="demo-btn" onclick="setLinearMode('xor')">XOR Problem</button>
+      <div class="demo-slider-group">
+        <label>Rotate boundary:</label>
+        <input type="range" min="0" max="360" value="45" id="linear-angle" oninput="updateLinearBoundary()">
+      </div>
+    </div>
+    <div class="demo-info">Drag the slider to rotate the decision boundary. In "XOR Problem" mode, notice how NO linear boundary can separate the classes — this is a fundamental limitation that motivates neural networks.</div>
+  </div>
+
+  <h4>The Template View</h4>
+  <p>Each row of W can be reshaped back into an image. This "template" is what the classifier thinks each class looks like on average. For CIFAR-10, the learned templates show blurry, averaged versions of each category — a horse template shows a brownish blob facing both left and right because horses can face either direction. This averaging is a fundamental limitation: <strong>one template per class can't capture the diversity of real objects</strong>.</p>
+
+  <h3>Why Linear Classifiers Matter</h3>
+  <p>Despite their simplicity, linear classifiers are essential because:</p>
+  <p><strong>They're the building block of neural networks.</strong> Every layer of a neural network is a linear transformation followed by a nonlinearity. Understanding linear classifiers deeply is understanding the atom of deep learning.</p>
+  <p><strong>They're fast.</strong> Both training and inference are simple matrix operations. They set the baseline that more complex models must beat.</p>
+  <p><strong>They reveal limitations clearly.</strong> When a linear classifier fails (XOR, multi-modal distributions), it points exactly to why we need nonlinear models.</p>
+
+  <div class="insight-box">
+    <div class="label">💡 Key Insight</div>
+    <p>A neural network is just <strong>stacked linear classifiers with nonlinearities between them</strong>. The nonlinearities allow the network to learn non-linear decision boundaries. Remove the nonlinearities, and a 100-layer network collapses into a single linear classifier — the composition of linear functions is still linear.</p>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(1)">← Image Classification</button>
+    <button onclick="goTo(3)">Next: Loss Functions →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 3: LOSS FUNCTIONS                    -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch3">
+  <div class="chapter-label">Chapter 03</div>
+  <h2>Loss Functions</h2>
+  <p class="subtitle">How do we tell a model it's wrong — and by exactly how much?</p>
+
+  <h3>Why Do Loss Functions Exist?</h3>
+  <p>A model makes predictions. But how do we know if those predictions are <strong>good</strong>? We need a function that takes the model's output and the correct answer, and returns a single number indicating how badly the model is doing. This is the <strong>loss function</strong> (also called cost function or objective function).</p>
+
+  <p>Without a loss function, there's no way to train. The entire learning process is: <strong>make a prediction → compute the loss → adjust weights to reduce the loss → repeat</strong>. The loss function is the compass that guides learning.</p>
+
+  <div class="history-box">
+    <div class="label">📜 Origins</div>
+    <p>Loss functions come from statistics and optimization theory. The concept of "least squares" (minimizing squared errors) dates back to Gauss and Legendre in the early 1800s. Maximum likelihood estimation, which leads to cross-entropy loss, was formalized by R.A. Fisher in 1922. These mathematical tools are centuries old — deep learning repurposed them brilliantly.</p>
+  </div>
+
+  <h3>SVM Loss (Hinge Loss)</h3>
+  <p>The Support Vector Machine loss says: "The correct class score should be higher than every incorrect class score by at least a margin Δ (usually 1)."</p>
+
+  <div class="math-block">Lᵢ = Σⱼ≠yᵢ max(0, sⱼ - syᵢ + Δ)
+
+sⱼ = score for class j
+syᵢ = score for the correct class
+Δ = margin (typically 1)
+
+If correct class score beats all others by the margin → loss is 0
+Otherwise → loss is proportional to the violation</div>
+
+  <p>Think of it as: "I'm happy when the correct class wins by a comfortable margin. I'm unhappy proportionally to how much any wrong class comes close or exceeds the correct class."</p>
+
+  <h3>Softmax / Cross-Entropy Loss</h3>
+  <p>While SVM loss only cares about margins between scores, the Softmax classifier interprets scores as (unnormalized) log-probabilities and wants to <strong>maximize the probability of the correct class</strong>.</p>
+
+  <div class="math-block">P(Y = k | X = xᵢ) = eˢᵏ / Σⱼ eˢⱼ        ← softmax function
+
+Lᵢ = -log P(Y = yᵢ | X = xᵢ)              ← cross-entropy loss
+   = -log(eˢʸⁱ / Σⱼ eˢⱼ)
+
+This loss is 0 when P(correct class) = 1 (perfect confidence)
+and increases toward infinity as confidence in the correct class → 0</div>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: SVM vs Softmax Loss</div>
+    <canvas class="demo-canvas" id="canvas-loss" width="780" height="350"></canvas>
+    <div class="demo-controls">
+      <div class="demo-slider-group">
+        <label>Score (correct class):</label>
+        <input type="range" min="-5" max="10" value="3" step="0.1" id="loss-correct" oninput="updateLossDemo()">
+        <span id="loss-correct-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent);min-width:30px">3.0</span>
+      </div>
+      <div class="demo-slider-group">
+        <label>Score (wrong class):</label>
+        <input type="range" min="-5" max="10" value="1" step="0.1" id="loss-wrong" oninput="updateLossDemo()">
+        <span id="loss-wrong-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent4);min-width:30px">1.0</span>
+      </div>
+    </div>
+    <div class="demo-info">Adjust the scores to see how SVM (hinge) and Softmax (cross-entropy) losses respond differently. SVM loss reaches zero once the margin is met and doesn't care about increasing the gap further. Softmax loss always pushes for higher confidence — it never reaches exactly zero.</div>
+  </div>
+
+  <div class="comparison-grid">
+    <div class="comparison-card">
+      <h5>SVM Loss</h5>
+      <p><strong>Pros:</strong> Simple, interpretable margin. Once margin is satisfied, loss is exactly 0 — no further pressure.</p>
+      <p><strong>Cons:</strong> Scores aren't probabilities. Doesn't push for high-confidence predictions. Less smooth gradient landscape.</p>
+      <p><strong>Use when:</strong> You want binary-like decisions with a clear margin. Classic SVMs are mathematically elegant.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Softmax / Cross-Entropy</h5>
+      <p><strong>Pros:</strong> Outputs are probabilities (sum to 1). Always pushes for improvement. Smooth, well-behaved gradients.</p>
+      <p><strong>Cons:</strong> Never fully satisfied — always wants higher confidence. Can lead to overconfident predictions.</p>
+      <p><strong>Use when:</strong> You want probability outputs. This is the default for most modern deep networks.</p>
+    </div>
+  </div>
+
+  <h3>Regularization: The Weight Penalty</h3>
+  <p>The total loss isn't just the data loss — we add a <strong>regularization term</strong> that penalizes complex models:</p>
+
+  <div class="math-block">L = (1/N) Σᵢ Lᵢ(f(xᵢ, W), yᵢ) + λR(W)
+
+Data loss (fit the data) + Regularization (keep model simple)
+λ = regularization strength (hyperparameter)</div>
+
+  <p>Common regularization: <strong>L2 regularization</strong> R(W) = Σ W² spreads weights out evenly. <strong>L1 regularization</strong> R(W) = Σ |W| promotes sparsity (many weights become exactly zero). We'll explore this in depth in Chapter 11.</p>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(2)">← Linear Classifiers</button>
+    <button onclick="goTo(4)">Next: Optimization →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 4: OPTIMIZATION                      -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch4">
+  <div class="chapter-label">Chapter 04</div>
+  <h2>Optimization</h2>
+  <p class="subtitle">How to find the best weights — navigating a landscape you can't see, one step at a time.</p>
+
+  <h3>Why Optimization Exists</h3>
+  <p>You have a loss function that measures how bad your model is. You have weights that control the model's behavior. <strong>Optimization is the process of finding weights that minimize the loss.</strong> Without optimization, you have a model that can't learn — it's just a random function.</p>
+
+  <p>Think of it as hiking in fog: you're on a mountain (the loss landscape) and want to reach the lowest valley. You can't see the landscape, but you can feel the slope under your feet. Optimization is the strategy for taking steps downhill.</p>
+
+  <h3>Strategy 1: Random Search (Terrible)</h3>
+  <p>Generate random weight matrices, compute the loss for each, keep the best one. This sounds absurd — and it is — but it establishes a baseline. On CIFAR-10 with 10 classes, random chance gives ~10% accuracy. Random search achieves ~15.5%. We can do much better.</p>
+
+  <h3>Strategy 2: Follow the Gradient</h3>
+  <p>The <strong>gradient</strong> of the loss with respect to the weights tells you the direction of steepest increase. Go in the <strong>opposite direction</strong> to decrease the loss. This is <strong>gradient descent</strong>.</p>
+
+  <div class="math-block">W_new = W_old - learning_rate × ∇L(W)
+
+∇L(W) = gradient of loss with respect to W
+learning_rate (α) = step size (how far to go in each step)
+
+Too small α → painfully slow convergence
+Too large α → overshoot and diverge
+Just right α → smooth convergence to a minimum</div>
+
+  <h4>Stochastic Gradient Descent (SGD)</h4>
+  <p>Computing the gradient over the entire dataset (millions of images) is expensive. Instead, SGD approximates the gradient using a small random <strong>minibatch</strong> (32, 64, 128 images). The gradient estimate is noisy but unbiased, and the noise actually helps escape local minima.</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: Gradient Descent on a 2D Loss Landscape</div>
+    <canvas class="demo-canvas" id="canvas-gd" width="780" height="400"></canvas>
+    <div class="demo-controls">
+      <div class="demo-slider-group">
+        <label>Learning rate:</label>
+        <input type="range" min="1" max="50" value="10" id="gd-lr" oninput="updateGDlr()">
+        <span id="gd-lr-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent)">0.01</span>
+      </div>
+      <button class="demo-btn" onclick="stepGD()">Step</button>
+      <button class="demo-btn" onclick="runGD()">Run 50 Steps</button>
+      <button class="demo-btn" onclick="resetGD()">Reset</button>
+      <div class="demo-slider-group">
+        <label>Momentum:</label>
+        <input type="range" min="0" max="99" value="0" id="gd-momentum" oninput="updateGDmomentum()">
+        <span id="gd-mom-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent2)">0.00</span>
+      </div>
+    </div>
+    <div class="demo-info">Click anywhere to set the starting position. Watch how different learning rates affect convergence. Enable momentum to see how it helps navigate ravines and flat regions.</div>
+  </div>
+
+  <h3>Beyond Vanilla SGD</h3>
+
+  <h4>SGD + Momentum</h4>
+  <p>Add a "velocity" term that accumulates past gradients. Like a ball rolling downhill, momentum carries you through flat regions and dampens oscillations in ravines.</p>
+  <div class="math-block">v = μ × v - lr × ∇L(W)     ← update velocity (μ ~ 0.9)
+W = W + v                    ← update weights using velocity</div>
+
+  <h4>Adam (Adaptive Moment Estimation)</h4>
+  <p>The most popular optimizer in deep learning. It combines momentum with <strong>per-parameter adaptive learning rates</strong>. Parameters that have had large gradients get smaller steps; parameters with small gradients get larger steps.</p>
+  <div class="math-block">m = β₁ × m + (1-β₁) × ∇L     ← first moment (mean of gradients)
+v = β₂ × v + (1-β₂) × (∇L)²  ← second moment (mean of squared gradients)
+W = W - lr × m̂ / (√v̂ + ε)     ← adaptive update
+
+β₁ = 0.9, β₂ = 0.999, ε = 1e-8 (defaults that work almost everywhere)</div>
+
+  <div class="insight-box">
+    <div class="label">💡 Which Optimizer Should You Use?</div>
+    <p><strong>Start with Adam</strong> (lr=3e-4 for most tasks). It's robust and works well out of the box. If you need the absolute best performance and can afford hyperparameter tuning, <strong>SGD + Momentum</strong> often achieves slightly better final accuracy but requires careful learning rate scheduling. In practice, Adam gets you 95% of the way with 10% of the tuning effort.</p>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(3)">← Loss Functions</button>
+    <button onclick="goTo(5)">Next: Backpropagation →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 5: BACKPROPAGATION                  -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch5">
+  <div class="chapter-label">Chapter 05</div>
+  <h2>Backpropagation</h2>
+  <p class="subtitle">The engine of deep learning — how gradients flow backward through a computation graph.</p>
+
+  <h3>Why Backpropagation Exists</h3>
+  <p>Gradient descent needs gradients. For a linear classifier with 3,072 parameters, you could compute each gradient numerically (perturb each weight, measure change in loss). But a modern neural network has <strong>millions of parameters</strong>. Computing each gradient individually would be impossibly slow.</p>
+
+  <p>Backpropagation solves this by computing <strong>all gradients simultaneously</strong> using the chain rule of calculus. It's not a learning algorithm — it's a method for efficiently computing gradients. Combined with gradient descent, it enables training of deep networks.</p>
+
+  <div class="history-box">
+    <div class="label">📜 A Tumultuous History</div>
+    <p>The chain rule has been known since Leibniz (1600s). Backpropagation was independently discovered multiple times: by Linnainmaa (1970) for automatic differentiation, by Werbos (1974) in his PhD thesis, and popularized by Rumelhart, Hinton & Williams (1986) who showed it could train multi-layer networks. For decades, people thought it wouldn't work for deep networks. It took until 2006–2012, with better initializations, architectures, and GPUs, before deep backprop-trained networks finally succeeded.</p>
+  </div>
+
+  <h3>The Computation Graph</h3>
+  <p>Every mathematical computation can be broken into a graph of simple operations. Backpropagation works by:</p>
+  <p><strong>Forward pass:</strong> Compute the output, saving intermediate values at each node.</p>
+  <p><strong>Backward pass:</strong> Starting from the loss, propagate gradients backward through the graph using the chain rule.</p>
+
+  <div class="math-block">Chain rule: ∂L/∂x = (∂L/∂z) × (∂z/∂x)
+
+"The gradient of the loss with respect to x equals
+ the gradient of the loss with respect to z (the output)
+ times the local gradient of z with respect to x."
+
+Each node only needs to know:
+  1. Its local gradient (∂output/∂input)
+  2. The upstream gradient (∂L/∂output)
+Then it computes: downstream gradient = upstream × local</div>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: Backpropagation Through a Computation Graph</div>
+    <canvas class="demo-canvas" id="canvas-backprop" width="780" height="380"></canvas>
+    <div class="demo-controls">
+      <div class="demo-slider-group">
+        <label>x =</label>
+        <input type="range" min="-30" max="30" value="20" id="bp-x" oninput="updateBackprop()">
+        <span id="bp-x-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent)">2.0</span>
+      </div>
+      <div class="demo-slider-group">
+        <label>y =</label>
+        <input type="range" min="-30" max="30" value="-30" id="bp-y" oninput="updateBackprop()">
+        <span id="bp-y-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent2)">-3.0</span>
+      </div>
+      <div class="demo-slider-group">
+        <label>z =</label>
+        <input type="range" min="-30" max="30" value="10" id="bp-z" oninput="updateBackprop()">
+        <span id="bp-z-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent3)">1.0</span>
+      </div>
+    </div>
+    <div class="demo-info">Adjust x, y, z to see how gradients flow backward. The graph computes f = (x+y) × z. Green values show forward pass results; orange values show gradients flowing backward.</div>
+  </div>
+
+  <h3>Patterns in Gradient Flow</h3>
+  <p>As you work through many computation graphs, patterns emerge:</p>
+  <p><strong>Add gate:</strong> Distributes the gradient equally to both inputs. Both inputs get the same upstream gradient.</p>
+  <p><strong>Multiply gate:</strong> Swaps and scales. If z = x × y, then ∂z/∂x = y and ∂z/∂y = x. Each input's gradient is the upstream gradient scaled by the other input's value.</p>
+  <p><strong>Max gate:</strong> Routes the gradient. Only the input that "won" the max gets the gradient; the other gets zero.</p>
+  <p><strong>Sigmoid gate:</strong> Has a beautifully simple local gradient: σ(x)(1 - σ(x)). This becomes very small for large |x|, causing the "vanishing gradient" problem.</p>
+
+  <div class="insight-box">
+    <div class="label">💡 The Big Picture</div>
+    <p>Backpropagation is just organized application of the chain rule. Modern deep learning frameworks (PyTorch, TensorFlow) build computation graphs automatically and handle backpropagation for you. But understanding it deeply is essential because: (1) you'll debug gradient issues (vanishing/exploding), (2) you'll understand why certain architectures work, and (3) you'll know what's happening under the hood when you call <code>loss.backward()</code>.</p>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(4)">← Optimization</button>
+    <button onclick="goTo(6)">Next: Neural Networks →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 6: NEURAL NETWORKS                   -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch6">
+  <div class="chapter-label">Chapter 06</div>
+  <h2>Neural Networks</h2>
+  <p class="subtitle">Stacking linear classifiers with nonlinearities to learn any function.</p>
+
+  <h3>Why Do Neural Networks Exist?</h3>
+  <p>Linear classifiers can only draw straight lines (hyperplanes) between classes. Real-world data is almost never linearly separable. You need curves, loops, and complex boundaries. Neural networks exist because <strong>stacking linear transformations with nonlinear activation functions creates a model that can approximate any continuous function</strong> — the Universal Approximation Theorem.</p>
+
+  <div class="why-box">
+    <div class="label">🎯 What Would You Use Instead?</div>
+    <p>Before neural networks dominated, people used: kernel SVMs (transform data to high-dimensional space where it's linearly separable), Random Forests (ensemble of decision trees), and Boosting (sequentially correcting weak learners). These methods still work well for small datasets and tabular data. But for images, audio, and text at scale, neural networks are overwhelmingly superior because they learn features automatically while other methods require hand-crafted features.</p>
+  </div>
+
+  <h3>From Linear to Multi-Layer</h3>
+  <p>A <strong>2-layer neural network</strong>:</p>
+  <div class="math-block">Hidden layer: h = f(W₁x + b₁)     ← linear transform + activation
+Output layer: s = W₂h + b₂          ← linear transform to class scores
+
+f = nonlinear activation function (ReLU, sigmoid, tanh)
+W₁ ∈ ℝ^(H×D), W₂ ∈ ℝ^(C×H)
+H = number of hidden neurons (width of the network)</div>
+
+  <p>The magic is in the activation function f. Without it, W₂(W₁x) = (W₂W₁)x = W'x — just another linear classifier. The nonlinearity between layers lets each layer learn progressively more abstract features.</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: Neural Network Decision Boundaries</div>
+    <canvas class="demo-canvas" id="canvas-nn-boundary" width="780" height="400"></canvas>
+    <div class="demo-controls">
+      <button class="demo-btn active" onclick="setNNdemo('circle')">Circle Data</button>
+      <button class="demo-btn" onclick="setNNdemo('spiral')">Spiral Data</button>
+      <button class="demo-btn" onclick="setNNdemo('xor')">XOR Data</button>
+      <div class="demo-slider-group">
+        <label>Hidden neurons:</label>
+        <input type="range" min="2" max="20" value="6" id="nn-neurons" oninput="updateNNneurons()">
+        <span id="nn-neurons-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent)">6</span>
+      </div>
+      <button class="demo-btn" onclick="trainNNdemo()">Train (100 steps)</button>
+      <button class="demo-btn" onclick="resetNNdemo()">Reset</button>
+    </div>
+    <div class="demo-info">Watch a simple neural network learn to classify non-linear data. More hidden neurons = more flexible decision boundaries. Try the spiral pattern — it requires many neurons to learn!</div>
+  </div>
+
+  <h3>The Universal Approximation Theorem</h3>
+  <p>A neural network with a single hidden layer containing enough neurons can approximate <strong>any continuous function</strong> to arbitrary precision. This was proven independently by Cybenko (1989) and Hornik (1991). But there's a catch: "enough neurons" might mean an astronomically large number. In practice, <strong>deeper networks are exponentially more efficient</strong> than wide shallow ones — they can represent the same functions with far fewer parameters. This is why we use deep learning, not wide learning.</p>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(5)">← Backpropagation</button>
+    <button onclick="goTo(7)">Next: Activation Functions →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 7: ACTIVATION FUNCTIONS              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch7">
+  <div class="chapter-label">Chapter 07</div>
+  <h2>Activation Functions</h2>
+  <p class="subtitle">The nonlinear spark that gives neural networks their power.</p>
+
+  <h3>Why Activation Functions?</h3>
+  <p>Without activation functions, a neural network is just matrix multiplication — a linear model no matter how many layers. Activation functions introduce <strong>nonlinearity</strong>, enabling the network to learn curved decision boundaries and complex representations.</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: Activation Function Explorer</div>
+    <canvas class="demo-canvas" id="canvas-activations" width="780" height="350"></canvas>
+    <div class="demo-controls">
+      <button class="demo-btn active" onclick="setActivation('relu')">ReLU</button>
+      <button class="demo-btn" onclick="setActivation('sigmoid')">Sigmoid</button>
+      <button class="demo-btn" onclick="setActivation('tanh')">Tanh</button>
+      <button class="demo-btn" onclick="setActivation('leaky')">Leaky ReLU</button>
+    </div>
+    <div class="demo-info">Each activation function and its derivative (gradient). The derivative determines how well gradients flow during backpropagation. Notice sigmoid's gradient vanishes for large |x| — the "vanishing gradient" problem.</div>
+  </div>
+
+  <div class="comparison-grid">
+    <div class="comparison-card">
+      <h5>Sigmoid: σ(x) = 1/(1+e⁻ˣ)</h5>
+      <p>Squashes input to (0, 1). <strong>Historically important</strong> but largely abandoned because: (1) gradients vanish for large |x|, (2) outputs aren't zero-centered, causing zigzag gradient updates, (3) exp() is expensive.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>ReLU: f(x) = max(0, x)</h5>
+      <p>The modern default. Gradient is 1 for x > 0, 0 for x < 0. <strong>6× faster convergence</strong> than sigmoid. But "dead ReLU" problem: if a neuron's input is always negative, it permanently dies (gradient = 0 forever).</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Leaky ReLU: f(x) = max(0.01x, x)</h5>
+      <p>Fixes dead ReLU by allowing a small gradient (0.01) for negative values. The neuron never fully dies. Parametric ReLU (PReLU) learns the slope.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>GELU / Swish</h5>
+      <p>Modern smooth alternatives. GELU ≈ x × σ(1.702x). Used in Transformers and modern architectures. Slightly better performance in practice but more expensive to compute.</p>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <div class="label">💡 Practical Advice</div>
+    <p><strong>Use ReLU as your default.</strong> It's simple, fast, and works well. If you see dying neurons, switch to Leaky ReLU. For Transformers and modern architectures, GELU is standard. Don't use sigmoid or tanh in hidden layers — they cause vanishing gradients. Sigmoid is fine for the output layer when you need probabilities between 0 and 1.</p>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(6)">← Neural Networks</button>
+    <button onclick="goTo(8)">Next: Convolutions →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 8: CONVOLUTIONS                      -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch8">
+  <div class="chapter-label">Chapter 08</div>
+  <h2>Convolutional Neural Networks</h2>
+  <p class="subtitle">The architectural breakthrough inspired by neuroscience that made visual recognition work.</p>
+
+  <h3>Why Convolutions Exist</h3>
+  <p>A fully-connected layer on a 224×224×3 image needs 224×224×3 = 150,528 weights <strong>per neuron</strong>. With 1,000 neurons in the first hidden layer, that's 150 million parameters — just for one layer. This is absurd: most of those connections are useless (why should a neuron looking at the top-left corner care about pixel values in the bottom-right?), and with so many parameters, the model will catastrophically overfit.</p>
+
+  <p>Convolutions solve this by exploiting three key insights from biology and common sense:</p>
+
+  <div class="comparison-grid">
+    <div class="comparison-card">
+      <h5>Local Connectivity</h5>
+      <p>A neuron only looks at a small local region of the input (its <strong>receptive field</strong>), not the entire image. Edges, textures, and patterns are local phenomena.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Weight Sharing</h5>
+      <p>The same set of weights (the <strong>filter/kernel</strong>) is applied at every spatial position. An edge detector useful at position (10,10) is equally useful at position (200,200).</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Translation Equivariance</h5>
+      <p>If the input shifts, the output shifts by the same amount. The network detects features regardless of where they appear in the image.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Hierarchical Features</h5>
+      <p>Stack conv layers: first detects edges → second detects textures from edges → third detects parts from textures → deeper layers detect whole objects.</p>
+    </div>
+  </div>
+
+  <h3>How Convolution Works</h3>
+  <p>A convolutional filter is a small weight matrix (e.g., 3×3) that slides across the input image. At each position, it computes a <strong>dot product</strong> between the filter and the local image patch, producing one output value. Slide across the entire image to produce a 2D <strong>activation map</strong>. Different filters detect different patterns.</p>
+
+  <div class="math-block">Input: H × W × C (e.g., 32 × 32 × 3)
+Filter: F × F × C (e.g., 3 × 3 × 3 = 27 weights + 1 bias)
+Output: H' × W' × 1 (one activation map per filter)
+
+With K filters → output is H' × W' × K
+
+H' = (H - F + 2P) / S + 1
+W' = (W - F + 2P) / S + 1
+
+P = padding (typically P = F/2 to preserve spatial size)
+S = stride (step size; stride 2 → halve spatial dimensions)</div>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: Convolution Operation</div>
+    <canvas class="demo-canvas" id="canvas-conv" width="780" height="420"></canvas>
+    <div class="demo-controls">
+      <button class="demo-btn active" onclick="setConvFilter('edge-h')">Horizontal Edge</button>
+      <button class="demo-btn" onclick="setConvFilter('edge-v')">Vertical Edge</button>
+      <button class="demo-btn" onclick="setConvFilter('sharpen')">Sharpen</button>
+      <button class="demo-btn" onclick="setConvFilter('blur')">Blur</button>
+      <div class="demo-slider-group">
+        <label>Stride:</label>
+        <input type="range" min="1" max="3" value="1" id="conv-stride" oninput="updateConvStride()">
+        <span id="conv-stride-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent)">1</span>
+      </div>
+    </div>
+    <div class="demo-info">Watch the 3×3 filter slide across the input. Each position computes a dot product between the filter and the image patch. Different filters extract different features — edge detectors, blurring, sharpening.</div>
+  </div>
+
+  <h3>Pooling Layers</h3>
+  <p><strong>Max pooling</strong> reduces spatial dimensions by taking the maximum value in each local region (typically 2×2 with stride 2, halving the resolution). This provides a degree of translation invariance and reduces computation. <strong>Average pooling</strong> takes the mean instead. Modern architectures sometimes replace pooling with strided convolutions.</p>
+
+  <h3>A Typical CNN Architecture</h3>
+  <div class="math-block">INPUT → [CONV → RELU → CONV → RELU → POOL] × N → FC → FC → SOFTMAX
+
+Spatial resolution shrinks: 224 → 112 → 56 → 28 → 14 → 7
+Channel depth grows:       3  →  64 → 128 → 256 → 512
+Total parameters: ~millions (vs. billions for fully-connected)</div>
+
+  <div class="insight-box">
+    <div class="label">💡 Why CNNs Changed Everything</div>
+    <p>By baking in the assumptions of local connectivity and weight sharing, CNNs reduced parameter count by orders of magnitude compared to fully-connected networks. This made it possible to train deep networks on images without catastrophic overfitting. The hierarchy of learned features — edges → textures → parts → objects — mirrors how the biological visual cortex processes information. This isn't a coincidence: Hubel and Wiesel's discovery of simple and complex cells directly inspired this architecture.</p>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(7)">← Activation Functions</button>
+    <button onclick="goTo(9)">Next: CNN Architectures →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 9: CNN ARCHITECTURES                 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch9">
+  <div class="chapter-label">Chapter 09</div>
+  <h2>CNN Architectures</h2>
+  <p class="subtitle">The evolution from AlexNet to ResNet — how architecture design drove the deep learning revolution.</p>
+
+  <h3>The Architecture Timeline</h3>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-year">1998 — LeNet-5 (Yann LeCun)</div>
+      <p>5 layers, 60K parameters. Solved digit recognition (MNIST). Architecture: Conv → Pool → Conv → Pool → FC → FC → Output. Established the fundamental CNN pattern but was limited to small grayscale images.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2012 — AlexNet (Krizhevsky et al.)</div>
+      <p>8 layers, 60M parameters. Won ILSVRC 2012 by a landslide. Key innovations: ReLU activation (instead of sigmoid), dropout regularization, GPU training (two GTX 580s), data augmentation. This paper is the "Big Bang" of modern deep learning.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2014 — VGGNet (Simonyan & Zisserman)</div>
+      <p>16–19 layers, 138M parameters. Key insight: replace large filters (11×11, 5×5) with stacks of 3×3 filters. Three 3×3 layers have the same receptive field as one 7×7 layer but with more nonlinearities and fewer parameters. <strong>Simplicity wins.</strong></p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2014 — GoogLeNet / Inception (Szegedy et al.)</div>
+      <p>22 layers, only 5M parameters. Introduced the <strong>Inception module</strong>: process the input through multiple filter sizes (1×1, 3×3, 5×5) in parallel and concatenate results. 1×1 convolutions reduce channel depth before expensive operations (the "bottleneck" trick).</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2015 — ResNet (He et al.)</div>
+      <p>Up to 152 layers, yet easy to train. The breakthrough: <strong>skip connections</strong> (residual connections). Instead of learning f(x), learn f(x) = H(x) - x (the residual), so the output is x + f(x). This lets gradients flow directly through skip connections, solving the vanishing gradient problem in very deep networks.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-year">2020+ — Vision Transformers (ViT)</div>
+      <p>Apply the Transformer architecture (from NLP) directly to image patches. Split image into 16×16 patches, embed them as tokens, process with self-attention. With enough data, ViTs match or exceed CNN performance. Architectures like Swin Transformer add local window attention for efficiency.</p>
+    </div>
+  </div>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: ResNet Skip Connection</div>
+    <canvas class="demo-canvas" id="canvas-resnet" width="780" height="300"></canvas>
+    <div class="demo-controls">
+      <button class="demo-btn active" onclick="setResMode('plain')">Plain Network (no skip)</button>
+      <button class="demo-btn" onclick="setResMode('residual')">Residual Network (with skip)</button>
+    </div>
+    <div class="demo-info">Compare gradient flow in plain vs. residual networks. Without skip connections, gradients vanish exponentially with depth. With skip connections, gradients have a direct highway back to early layers.</div>
+  </div>
+
+  <div class="insight-box">
+    <div class="label">💡 Which Architecture Should You Use?</div>
+    <p>For most practical purposes: <strong>ResNet-50</strong> is the workhorse (great accuracy, reasonable compute). For mobile/edge: <strong>MobileNet</strong> or <strong>EfficientNet</strong>. For state-of-the-art: <strong>ConvNeXt</strong> (modernized CNN) or <strong>Swin Transformer</strong>. Always start with a pretrained model and fine-tune — training from scratch is rarely justified unless you have millions of images.</p>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(8)">← Convolutions</button>
+    <button onclick="goTo(10)">Next: Training Deep Nets →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 10: TRAINING DEEP NETWORKS           -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch10">
+  <div class="chapter-label">Chapter 10</div>
+  <h2>Training Deep Networks</h2>
+  <p class="subtitle">The dark arts of making deep networks actually learn — initialization, normalization, and hyperparameters.</p>
+
+  <h3>Why Training is Hard</h3>
+  <p>A neural network with random weights will produce random outputs. Training should gradually improve these outputs — but deep networks are notoriously finicky. Without careful setup, training can fail completely: losses explode to infinity, gradients vanish to zero, or the network learns nothing useful. This chapter covers the techniques that make training reliable.</p>
+
+  <h3>Weight Initialization</h3>
+  <p>If you initialize all weights to zero, every neuron computes the same thing — they all learn identical features forever (the <strong>symmetry problem</strong>). If you initialize with values too large, activations saturate and gradients vanish. Too small, and activations shrink to zero through layers.</p>
+
+  <h4>Xavier/Glorot Initialization (2010)</h4>
+  <div class="math-block">W ~ N(0, σ²)  where σ = √(2 / (nᵢₙ + nₒᵤₜ))
+
+Designed for sigmoid/tanh: maintains variance of activations
+across layers. If variance grows or shrinks, signals get
+amplified or attenuated, causing training to fail.</div>
+
+  <h4>He Initialization (2015)</h4>
+  <div class="math-block">W ~ N(0, σ²)  where σ = √(2 / nᵢₙ)
+
+Designed for ReLU: accounts for the fact that ReLU kills
+half the activations (negative values → 0), so we need
+2× the variance compared to Xavier.</div>
+
+  <h3>Batch Normalization</h3>
+  <p>Perhaps the most important training innovation after backpropagation itself. BatchNorm normalizes the activations of each layer to have zero mean and unit variance within each minibatch.</p>
+
+  <div class="math-block">Given a minibatch B = {x₁, ..., xₘ}:
+
+μ_B = (1/m) Σ xᵢ                          ← batch mean
+σ²_B = (1/m) Σ (xᵢ - μ_B)²               ← batch variance
+x̂ᵢ = (xᵢ - μ_B) / √(σ²_B + ε)           ← normalize
+yᵢ = γ × x̂ᵢ + β                           ← scale and shift (learned)
+
+γ and β are learnable parameters that allow the network
+to undo the normalization if that's optimal.</div>
+
+  <p><strong>Why it works:</strong> It reduces <strong>internal covariate shift</strong> — the distribution of each layer's inputs changes during training as the preceding layers change. BatchNorm stabilizes these distributions, allowing higher learning rates and faster convergence. It also acts as a mild regularizer because each example's normalization depends on the random minibatch.</p>
+
+  <h3>Learning Rate Scheduling</h3>
+  <p>Starting with a high learning rate and decaying it during training is critical for achieving best performance:</p>
+  <p><strong>Step decay:</strong> Reduce LR by a factor (0.1) at predetermined epochs (e.g., at epoch 30, 60, 90).</p>
+  <p><strong>Cosine annealing:</strong> Smoothly decay LR following a cosine curve from initial value to near zero.</p>
+  <p><strong>Warmup:</strong> Start with a very small LR and linearly increase it for the first few epochs, then apply decay. Essential for large batch training.</p>
+
+  <h3>Data Augmentation</h3>
+  <p>Artificially increase your training set by applying random transformations to images: horizontal flips, random crops, color jittering, rotation, scaling. This is essentially free regularization — it teaches the model invariance to these transformations without any additional real data.</p>
+
+  <div class="insight-box">
+    <div class="label">💡 Training Recipe Checklist</div>
+    <p>1. Use He initialization with ReLU. 2. Add BatchNorm after each conv/linear layer. 3. Start with Adam (lr=3e-4) or SGD+Momentum (lr=0.1) with cosine schedule. 4. Apply aggressive data augmentation. 5. Use a validation set to tune hyperparameters. 6. Train until validation loss stops improving (early stopping). 7. If overfitting, add more regularization (dropout, weight decay, more augmentation). If underfitting, increase model capacity.</p>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(9)">← CNN Architectures</button>
+    <button onclick="goTo(11)">Next: Regularization →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 11: REGULARIZATION                   -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch11">
+  <div class="chapter-label">Chapter 11</div>
+  <h2>Regularization</h2>
+  <p class="subtitle">Preventing overfitting — the art of helping your model generalize beyond the training data.</p>
+
+  <h3>Why Regularization Exists</h3>
+  <p>A sufficiently large neural network can memorize the entire training set — achieving 100% training accuracy — while performing terribly on new data. This is <strong>overfitting</strong>: the model has learned noise and idiosyncrasies of the training data rather than general patterns. Regularization is every technique that reduces overfitting and improves generalization.</p>
+
+  <div class="why-box">
+    <div class="label">🎯 The Bias-Variance Tradeoff</div>
+    <p><strong>Bias:</strong> Error from underfitting (model too simple). <strong>Variance:</strong> Error from overfitting (model too complex). Regularization adds bias (makes the model slightly simpler) to dramatically reduce variance. The sweet spot gives the lowest total error on unseen data.</p>
+  </div>
+
+  <h3>Weight Decay (L2 Regularization)</h3>
+  <p>Add the squared magnitude of weights to the loss: L_total = L_data + λ × Σ W². This penalizes large weights, pushing the model toward simpler, smoother functions. Equivalent to decaying weights toward zero at each update step (hence "weight decay"). Use λ between 1e-4 and 1e-2.</p>
+
+  <h3>Dropout</h3>
+  <p>During training, randomly set each neuron's activation to zero with probability p (typically 0.5 for FC layers, 0.1–0.3 for conv layers). This forces redundancy — no neuron can rely on any other specific neuron being present. At test time, use all neurons but scale activations by (1-p) to compensate (or use inverted dropout: scale by 1/(1-p) during training).</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: Dropout Visualization</div>
+    <canvas class="demo-canvas" id="canvas-dropout" width="780" height="300"></canvas>
+    <div class="demo-controls">
+      <div class="demo-slider-group">
+        <label>Dropout rate:</label>
+        <input type="range" min="0" max="80" value="50" id="dropout-rate" oninput="updateDropout()">
+        <span id="dropout-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent)">0.50</span>
+      </div>
+      <button class="demo-btn" onclick="resampleDropout()">Resample</button>
+    </div>
+    <div class="demo-info">Each resample randomly drops different neurons (shown as faded). This creates a different "sub-network" each time, effectively training an ensemble of networks.</div>
+  </div>
+
+  <h3>Other Regularization Techniques</h3>
+  <p><strong>Early stopping:</strong> Stop training when validation loss starts increasing. Simple and effective.</p>
+  <p><strong>Data augmentation:</strong> Artificial expansion of training data through transformations (flips, crops, color shifts, MixUp, CutOut, CutMix). Often the single most effective regularizer.</p>
+  <p><strong>Label smoothing:</strong> Instead of hard labels (1 for correct, 0 for incorrect), use soft labels (0.9 for correct, 0.1/K for incorrect). Prevents overconfident predictions.</p>
+  <p><strong>Stochastic depth:</strong> Randomly skip entire residual blocks during training. Training speedup + regularization.</p>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(10)">← Training Deep Nets</button>
+    <button onclick="goTo(12)">Next: Detection & Segmentation →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 12: DETECTION & SEGMENTATION         -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch12">
+  <div class="chapter-label">Chapter 12</div>
+  <h2>Object Detection &amp; Segmentation</h2>
+  <p class="subtitle">Beyond "what" — answering "where" and "which pixels" belong to each object.</p>
+
+  <h3>Why Detection Exists</h3>
+  <p>Classification tells you an image contains a dog. But where? How many dogs? What else is in the scene? <strong>Object detection</strong> draws bounding boxes around every object and labels each one. <strong>Semantic segmentation</strong> labels every pixel with its class. <strong>Instance segmentation</strong> does both — it labels each pixel AND distinguishes between different instances of the same class.</p>
+
+  <div class="comparison-grid">
+    <div class="comparison-card">
+      <h5>Object Detection</h5>
+      <p>Output: set of (class, x, y, width, height, confidence) tuples. "There's a dog at position (100, 200) of size 150×200 with 95% confidence."</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Semantic Segmentation</h5>
+      <p>Output: H×W label map. Every pixel gets a class: road, car, pedestrian, sky. No distinction between individual instances.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Instance Segmentation</h5>
+      <p>Output: per-pixel labels + instance IDs. "These pixels are car #1, these are car #2." Mask R-CNN is the landmark approach.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Panoptic Segmentation</h5>
+      <p>Unified: semantic labels for stuff (sky, road) + instance labels for things (cars, people). Complete scene understanding.</p>
+    </div>
+  </div>
+
+  <h3>Object Detection Approaches</h3>
+
+  <h4>Two-Stage Detectors: R-CNN Family</h4>
+  <p><strong>R-CNN</strong> (2014): Generate ~2,000 region proposals (selective search) → warp each to fixed size → classify with CNN. Slow (~47 seconds per image).</p>
+  <p><strong>Fast R-CNN</strong> (2015): Share CNN computation across proposals by processing the whole image once and extracting features for each region. ~0.3 sec/image.</p>
+  <p><strong>Faster R-CNN</strong> (2015): Replace selective search with a learned <strong>Region Proposal Network</strong> (RPN) that shares conv features with the detector. ~0.2 sec/image. The RPN uses <strong>anchor boxes</strong> — predefined shapes at each spatial position — and predicts which anchors contain objects and how to refine their coordinates.</p>
+
+  <h4>One-Stage Detectors: YOLO, SSD</h4>
+  <p><strong>YOLO</strong> ("You Only Look Once"): Divide image into grid, predict boxes and classes directly per cell. Much faster (~45 FPS) but initially less accurate. Modern versions (YOLOv5+) close the accuracy gap.</p>
+  <p><strong>SSD</strong> (Single Shot Detector): Detect at multiple scales using feature maps from different layers. Fast and accurate.</p>
+
+  <h3>Semantic Segmentation</h3>
+  <p>The key architecture is the <strong>Fully Convolutional Network (FCN)</strong>: replace the final FC layers of a classification CNN with conv layers, then upsample back to full resolution. The encoder (downsampling path) extracts features; the decoder (upsampling path) recovers spatial resolution.</p>
+  <p><strong>U-Net</strong> adds skip connections between encoder and decoder at matching resolutions, combining high-resolution spatial information with deep semantic features. Originally designed for biomedical image segmentation, U-Net is now ubiquitous.</p>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(11)">← Regularization</button>
+    <button onclick="goTo(13)">Next: Generative Models →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 13: GENERATIVE MODELS                -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch13">
+  <div class="chapter-label">Chapter 13</div>
+  <h2>Generative Models</h2>
+  <p class="subtitle">From recognizing images to creating them — learning the distribution of visual data.</p>
+
+  <h3>Why Generative Models?</h3>
+  <p>So far, everything has been <strong>discriminative</strong>: given an image, predict its class (P(y|x)). Generative models flip this: they learn the data distribution P(x) and can <strong>create new samples</strong>. Why care? Because (1) data augmentation: generate synthetic training data; (2) understanding: if you can generate realistic images, you deeply understand image structure; (3) creativity: art, design, content creation; (4) anomaly detection: detect when something doesn't fit the learned distribution.</p>
+
+  <h3>Generative Adversarial Networks (GANs)</h3>
+  <p>Invented by Ian Goodfellow in 2014. Two networks competing in a game:</p>
+  <p><strong>Generator G:</strong> Takes random noise z and produces a fake image G(z). Goal: fool the discriminator.</p>
+  <p><strong>Discriminator D:</strong> Takes an image and predicts whether it's real or fake. Goal: catch the generator.</p>
+
+  <div class="math-block">min_G max_D  E[log D(x)] + E[log(1 - D(G(z)))]
+
+The generator minimizes; the discriminator maximizes.
+At equilibrium: G produces perfect fakes, D can't tell
+real from fake (outputs 0.5 for everything).</div>
+
+  <p>GANs produce stunningly realistic images but are notoriously hard to train: mode collapse (generator produces only a few types of images), training instability, and no good way to measure quality.</p>
+
+  <h3>Variational Autoencoders (VAEs)</h3>
+  <p>Encode input image to a <strong>distribution</strong> in latent space (mean and variance), sample from that distribution, and decode back to an image. Trained to minimize reconstruction loss + KL divergence (keeping the latent distribution close to a standard Gaussian).</p>
+  <p>VAEs produce blurrier images than GANs but are more stable to train and give a meaningful latent space where you can interpolate between images.</p>
+
+  <h3>Diffusion Models</h3>
+  <p>The modern state-of-the-art (DALL-E 2, Stable Diffusion, Midjourney). The idea: gradually add noise to an image until it becomes pure Gaussian noise (forward process). Then train a network to reverse this process — to denoise step by step (reverse process). Generate new images by starting from pure noise and repeatedly denoising.</p>
+  <p>Diffusion models produce the highest quality images, are stable to train, and offer fine-grained control through text conditioning. They've largely superseded GANs for image generation.</p>
+
+  <div class="insight-box">
+    <div class="label">💡 The Generative Model Landscape</div>
+    <p><strong>GANs:</strong> Fast sampling, sharp images, but hard to train and no density estimation. <strong>VAEs:</strong> Stable training, meaningful latent space, but blurry outputs. <strong>Diffusion:</strong> Best quality, stable training, but slow sampling (many denoising steps). <strong>Flow models:</strong> Exact density estimation, but constrained architectures. In 2024+, diffusion models dominate, but the field moves fast.</p>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(12)">← Detection & Segmentation</button>
+    <button onclick="goTo(14)">Next: Recurrent Networks →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 14: RECURRENT NETWORKS               -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch14">
+  <div class="chapter-label">Chapter 14</div>
+  <h2>Recurrent Neural Networks</h2>
+  <p class="subtitle">Processing sequences — from image captioning to video understanding.</p>
+
+  <h3>Why RNNs Exist</h3>
+  <p>Everything so far processes fixed-size inputs and produces fixed-size outputs. But many tasks involve <strong>sequences</strong>: image captioning (image → sequence of words), video classification (sequence of frames → label), machine translation (sequence → sequence). RNNs handle variable-length sequences by maintaining a <strong>hidden state</strong> that carries information across time steps.</p>
+
+  <div class="math-block">hₜ = f(Wₓₕ × xₜ + Wₕₕ × hₜ₋₁ + b)
+
+hₜ = hidden state at time t
+xₜ = input at time t
+Wₓₕ = input-to-hidden weights (shared across all time steps)
+Wₕₕ = hidden-to-hidden weights (shared across all time steps)
+f = activation function (tanh)</div>
+
+  <h3>The Vanishing Gradient Problem</h3>
+  <p>RNNs struggle with long sequences. During backpropagation through time, gradients are multiplied by Wₕₕ at each step. If the largest eigenvalue of Wₕₕ is < 1, gradients shrink exponentially → the network forgets long-range dependencies. If > 1, gradients explode → training diverges.</p>
+
+  <h3>LSTM and GRU: Gated Architectures</h3>
+  <p><strong>Long Short-Term Memory (LSTM)</strong> solves vanishing gradients with a <strong>cell state</strong> and three gates: forget gate (what to discard), input gate (what to add), and output gate (what to output). The cell state acts like a highway, allowing gradients to flow unchanged across many time steps.</p>
+  <p><strong>Gated Recurrent Unit (GRU)</strong> is a simpler variant with two gates (reset and update) that performs comparably to LSTM with fewer parameters.</p>
+
+  <h3>Applications in Vision</h3>
+  <p><strong>Image Captioning:</strong> CNN encodes image → LSTM generates caption word by word, conditioned on the image features.</p>
+  <p><strong>Visual Question Answering:</strong> CNN encodes image, RNN encodes question → combined to produce an answer.</p>
+  <p><strong>Video Understanding:</strong> Process sequences of CNN features with RNNs to classify actions or predict future frames.</p>
+
+  <div class="insight-box">
+    <div class="label">💡 Are RNNs Still Relevant?</div>
+    <p>Transformers have largely replaced RNNs for most sequence tasks due to their ability to process all positions in parallel (vs. RNN's sequential processing) and better long-range dependency modeling through attention. However, understanding RNNs is still valuable: they're simpler to grasp, computationally efficient for short sequences, and the gating ideas (LSTM, GRU) influenced Transformer design. Some modern architectures (state space models like Mamba) revive RNN-like ideas with better parallelism.</p>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(13)">← Generative Models</button>
+    <button onclick="goTo(15)">Next: Attention & Transformers →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 15: ATTENTION & TRANSFORMERS          -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch15">
+  <div class="chapter-label">Chapter 15</div>
+  <h2>Attention &amp; Transformers</h2>
+  <p class="subtitle">The architecture that unified NLP and vision — attending to what matters.</p>
+
+  <h3>Why Attention Exists</h3>
+  <p>In an RNN-based encoder-decoder (e.g., for translation), the entire input sequence must be compressed into a single fixed-size vector. This is a <strong>bottleneck</strong> — long sequences lose information. Attention (Bahdanau et al., 2015) solves this by letting the decoder <strong>look back at all encoder states</strong> and attend to the most relevant ones at each decoding step.</p>
+
+  <h3>Self-Attention</h3>
+  <p>The Transformer (Vaswani et al., 2017, "Attention Is All You Need") uses <strong>self-attention</strong>: each position in a sequence attends to all other positions, computing a weighted sum based on relevance.</p>
+
+  <div class="math-block">Attention(Q, K, V) = softmax(QKᵀ / √dₖ) × V
+
+Q = queries (what am I looking for?)
+K = keys (what do I contain?)
+V = values (what information do I carry?)
+
+Each position computes:
+1. Score = dot product of my query with every key
+2. Weight = softmax of scores (normalized attention)
+3. Output = weighted sum of values
+
+Multi-head attention: run h parallel attention operations
+with different learned Q, K, V projections, then concatenate.</div>
+
+  <h3>The Transformer Architecture</h3>
+  <p>Stack of identical blocks, each containing:</p>
+  <p><strong>1. Multi-head self-attention</strong> — each position attends to all others.</p>
+  <p><strong>2. Feed-forward network (FFN)</strong> — two linear layers with ReLU/GELU between them, applied independently to each position.</p>
+  <p><strong>3. Layer normalization</strong> and <strong>residual connections</strong> around each sub-layer.</p>
+  <p>No recurrence, no convolution — just attention and feed-forward layers. All positions are processed in parallel, making training much faster than RNNs.</p>
+
+  <h3>Vision Transformers (ViT)</h3>
+  <p>Dosovitskiy et al. (2020) applied Transformers directly to images: split image into 16×16 patches, flatten each patch into a vector, add positional embeddings, and process with a standard Transformer. With sufficient training data (JFT-300M or ImageNet-21K), ViT matches or exceeds CNNs.</p>
+  <p>Key insight: <strong>self-attention has global receptive field from layer 1</strong>, while CNNs build it gradually through layers of local convolutions. This allows ViT to capture long-range dependencies immediately but requires more data to learn the spatial structure that CNNs have built in.</p>
+
+  <div class="demo-container">
+    <div class="demo-title">Interactive: Self-Attention Visualization</div>
+    <canvas class="demo-canvas" id="canvas-attention" width="780" height="340"></canvas>
+    <div class="demo-controls">
+      <button class="demo-btn" onclick="randomizeAttention()">Randomize Attention</button>
+      <div class="demo-slider-group">
+        <label>Temperature:</label>
+        <input type="range" min="1" max="50" value="10" id="attn-temp" oninput="updateAttentionTemp()">
+        <span id="attn-temp-val" style="font-family:var(--mono);font-size:0.75rem;color:var(--accent)">1.0</span>
+      </div>
+    </div>
+    <div class="demo-info">Click on a "query" token to see its attention distribution across all "key" tokens. Lower temperature → sharper (more focused) attention. Higher temperature → softer (more uniform) attention.</div>
+  </div>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(14)">← Recurrent Networks</button>
+    <button onclick="goTo(16)">Next: Transfer Learning →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CHAPTER 16: TRANSFER LEARNING                -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="chapter" id="ch16">
+  <div class="chapter-label">Chapter 16</div>
+  <h2>Transfer Learning</h2>
+  <p class="subtitle">The most important practical technique — why you should almost never train from scratch.</p>
+
+  <h3>Why Transfer Learning Exists</h3>
+  <p>Training a deep network from scratch requires massive datasets (millions of images) and massive compute (hundreds of GPU-hours). Most real-world problems don't have millions of labeled images. Transfer learning solves this by <strong>reusing features learned on a large dataset</strong> (like ImageNet) and adapting them to your specific, smaller dataset.</p>
+
+  <div class="why-box">
+    <div class="label">🎯 The Core Idea</div>
+    <p>The early layers of a CNN learn generic, universal features: edges, textures, shapes, parts. These features are useful for <strong>almost any visual task</strong>. Only the final layers are task-specific (cat vs. dog, benign vs. malignant). So take a pretrained network, keep the early layers frozen, and only retrain the final layers on your data. This is transfer learning, and it works astonishingly well — even with only 100–1,000 training images.</p>
+  </div>
+
+  <h3>How to Transfer Learn</h3>
+  <h4>Strategy 1: Feature Extraction</h4>
+  <p>Freeze all conv layers. Remove the final FC layer. Replace it with a new FC layer matching your number of classes. Train only the new layer. Use when your dataset is very small and similar to ImageNet.</p>
+
+  <h4>Strategy 2: Fine-Tuning</h4>
+  <p>Start from pretrained weights. Replace the final layer. Train the entire network with a <strong>small learning rate</strong> (10–100× smaller than training from scratch). Optionally freeze early layers and only fine-tune later layers. Use when you have moderate data or your task differs from ImageNet.</p>
+
+  <h4>How Similar Is Your Data?</h4>
+  <div class="comparison-grid">
+    <div class="comparison-card">
+      <h5>Similar Data + Small Dataset</h5>
+      <p>Example: classifying dog breeds (ImageNet contains dogs). → Feature extraction only. Train a linear classifier on top of frozen features.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Similar Data + Large Dataset</h5>
+      <p>Example: object detection on everyday scenes. → Fine-tune the entire network with a small LR.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Different Data + Small Dataset</h5>
+      <p>Example: classifying medical X-rays (very different from ImageNet). → Feature extraction from earlier layers (more generic). Risky — consider data augmentation.</p>
+    </div>
+    <div class="comparison-card">
+      <h5>Different Data + Large Dataset</h5>
+      <p>Example: satellite imagery with millions of labeled patches. → Fine-tune entire network, possibly train from scratch if enough data.</p>
+    </div>
+  </div>
+
+  <h3>Modern Transfer: Foundation Models</h3>
+  <p>The latest paradigm goes beyond ImageNet pretraining. Models like <strong>CLIP</strong> (trained on 400M image-text pairs) learn visual concepts through natural language supervision. You can classify images with text descriptions, no training images needed ("zero-shot"). <strong>SAM</strong> (Segment Anything Model) segments any object in any image. These <strong>foundation models</strong> are pretrained on internet-scale data and can be adapted to virtually any visual task.</p>
+
+  <div class="insight-box">
+    <div class="label">💡 The #1 Practical Takeaway</div>
+    <p>Unless you have millions of labeled images AND significant compute budget AND your domain is very different from natural images, <strong>always start with a pretrained model</strong>. In PyTorch: <code>model = torchvision.models.resnet50(pretrained=True)</code>. Replace the last layer, fine-tune with a small learning rate. This simple recipe solves 90% of practical vision problems and is how virtually all real-world systems are built.</p>
+  </div>
+
+  <div class="code-block"><span class="cm"># Complete Transfer Learning Recipe in PyTorch</span>
+<span class="kw">import</span> torch
+<span class="kw">import</span> torchvision.models <span class="kw">as</span> models
+
+<span class="cm"># 1. Load pretrained model</span>
+model = models.<span class="fn">resnet50</span>(weights=<span class="st">'IMAGENET1K_V2'</span>)
+
+<span class="cm"># 2. Freeze all layers</span>
+<span class="kw">for</span> param <span class="kw">in</span> model.parameters():
+    param.requires_grad = <span class="num">False</span>
+
+<span class="cm"># 3. Replace final layer for your task</span>
+num_classes = <span class="num">5</span>  <span class="cm"># your number of classes</span>
+model.fc = torch.nn.<span class="fn">Linear</span>(model.fc.in_features, num_classes)
+
+<span class="cm"># 4. Only the new layer will be trained</span>
+optimizer = torch.optim.<span class="fn">Adam</span>(model.fc.parameters(), lr=<span class="num">1e-3</span>)
+
+<span class="cm"># 5. For fine-tuning everything: unfreeze + small LR</span>
+<span class="cm"># for param in model.parameters():</span>
+<span class="cm">#     param.requires_grad = True</span>
+<span class="cm"># optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)</span></div>
+
+  <h3>Congratulations!</h3>
+  <p>You've journeyed through the complete landscape of visual intelligence: from raw pixels and linear classifiers, through the architecture of convolutional and recurrent networks, to the frontiers of generative models and transformers. The key ideas to carry forward:</p>
+
+  <p><strong>1. Representation learning is everything.</strong> The magic of deep learning is learning useful features from data, not hand-engineering them.</p>
+  <p><strong>2. Architecture encodes assumptions.</strong> CNNs assume local patterns and translation invariance. Transformers assume global dependencies. Choose the architecture whose assumptions match your data.</p>
+  <p><strong>3. Always transfer learn.</strong> The practical secret weapon. Standing on the shoulders of models trained on billions of images.</p>
+  <p><strong>4. The field moves incredibly fast.</strong> The principles in this course are timeless, but specific architectures and techniques evolve monthly. Stay curious, read papers, run experiments.</p>
+
+  <div class="chapter-nav">
+    <button onclick="goTo(15)">← Attention & Transformers</button>
+    <button disabled>You've completed CS231N! 🎓</button>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+const chapters = document.querySelectorAll('.chapter');
+const navLinks = document.querySelectorAll('.nav-link');
+let currentChapter = 0;
+
+function goTo(idx) {
+  chapters[currentChapter].classList.remove('active');
+  navLinks[currentChapter].classList.remove('active');
+  currentChapter = idx;
+  chapters[idx].classList.add('active');
+  navLinks[idx].classList.add('active');
+  window.scrollTo(0, 0);
+  document.getElementById('progress-fill').style.width = ((idx / (chapters.length - 1)) * 100) + '%';
+  document.getElementById('sidebar').classList.remove('open');
+  // Init demos for this chapter
+  initDemos(idx);
+}
+
+// ═══════════════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════════════
+function checkQuiz(quizId, btn, correct) {
+  const block = document.getElementById(quizId);
+  const opts = block.querySelectorAll('.quiz-option');
+  opts.forEach(o => { o.disabled = true; o.classList.remove('correct','wrong'); });
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) opts.forEach(o => { if (!o.classList.contains('wrong')) { /* find correct */ } });
+  block.querySelector('.quiz-explanation').classList.add('show');
+}
+
+// ═══════════════════════════════════════════
+// CHAPTER 0: HIERARCHY DEMO
+// ═══════════════════════════════════════════
+function drawHierarchy(layer) {
+  const c = document.getElementById('canvas-hierarchy');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const btns = c.parentElement.querySelectorAll('.demo-btn');
+  btns.forEach((b,i) => b.classList.toggle('active', i === layer));
+
+  const labels = ['Layer 1: Edges', 'Layer 2: Textures', 'Layer 3: Parts', 'Layer 4: Objects'];
+  const colors = ['#60a5fa','#a78bfa','#34d399','#fb923c'];
+
+  // Draw 4 columns representing layers
+  for (let l = 0; l < 4; l++) {
+    const x = 40 + l * 185;
+    const isActive = l <= layer;
+    ctx.globalAlpha = isActive ? 1 : 0.2;
+
+    // Layer box
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = colors[l];
+    ctx.lineWidth = isActive ? 2 : 1;
+    roundRect(ctx, x, 30, 160, 240, 10);
+    ctx.fill(); ctx.stroke();
+
+    // Label
+    ctx.fillStyle = colors[l];
+    ctx.font = '600 12px "JetBrains Mono"';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[l], x + 80, 22);
+
+    // Draw feature visualizations
+    ctx.save();
+    ctx.translate(x + 20, 50);
+    if (l === 0) drawEdges(ctx, isActive);
+    else if (l === 1) drawTextures(ctx, isActive);
+    else if (l === 2) drawParts(ctx, isActive);
+    else drawObjects(ctx, isActive);
+    ctx.restore();
+  }
+
+  // Draw arrows between layers
+  ctx.globalAlpha = 1;
+  for (let l = 0; l < 3; l++) {
+    const x1 = 40 + l * 185 + 160;
+    const x2 = 40 + (l+1) * 185;
+    const y = 150;
+    ctx.strokeStyle = l < layer ? colors[l+1] : '#334155';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x1 + 2, y);
+    ctx.lineTo(x2 - 2, y);
+    ctx.stroke();
+    // arrowhead
+    ctx.beginPath();
+    ctx.moveTo(x2 - 2, y);
+    ctx.lineTo(x2 - 10, y - 5);
+    ctx.lineTo(x2 - 10, y + 5);
+    ctx.closePath();
+    ctx.fillStyle = l < layer ? colors[l+1] : '#334155';
+    ctx.fill();
+  }
+}
+
+function drawEdges(ctx, active) {
+  const patterns = [
+    [[1,0,0],[1,0,0],[1,0,0]], // vertical
+    [[1,1,1],[0,0,0],[0,0,0]], // horizontal
+    [[1,0,0],[0,1,0],[0,0,1]], // diagonal
+    [[0,0,1],[0,1,0],[1,0,0]], // anti-diagonal
+  ];
+  patterns.forEach((p, pi) => {
+    const ox = (pi % 2) * 65;
+    const oy = Math.floor(pi / 2) * 100;
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+      ctx.fillStyle = p[r][c] ? (active ? '#60a5fa' : '#60a5fa') : '#0a0e17';
+      ctx.fillRect(ox + c * 18, oy + r * 18, 16, 16);
+    }
+  });
+}
+
+function drawTextures(ctx, active) {
+  for (let i = 0; i < 4; i++) {
+    const ox = (i % 2) * 65;
+    const oy = Math.floor(i / 2) * 100;
+    ctx.fillStyle = '#0a0e17';
+    ctx.fillRect(ox, oy, 54, 54);
+    ctx.strokeStyle = active ? '#a78bfa' : '#334155';
+    ctx.lineWidth = 1;
+    for (let j = 0; j < 6; j++) {
+      ctx.beginPath();
+      if (i === 0) { ctx.moveTo(ox + j*10, oy); ctx.lineTo(ox + j*10, oy + 54); }
+      else if (i === 1) { ctx.moveTo(ox, oy + j*10); ctx.lineTo(ox + 54, oy + j*10); }
+      else if (i === 2) { ctx.moveTo(ox + j*10, oy); ctx.lineTo(ox + j*10 + 20, oy + 54); }
+      else { ctx.arc(ox + 27, oy + 27, 5 + j*5, 0, Math.PI*2); }
+      ctx.stroke();
+    }
+  }
+}
+
+function drawParts(ctx, active) {
+  const col = active ? '#34d399' : '#334155';
+  // Eye
+  ctx.strokeStyle = col; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(30, 35, 25, 15, 0, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(30, 35, 8, 0, Math.PI*2); ctx.fillStyle = col; ctx.fill();
+  // Wheel
+  ctx.beginPath(); ctx.arc(95, 35, 20, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(95, 35, 5, 0, Math.PI*2); ctx.fill();
+  for (let a = 0; a < 6; a++) { ctx.beginPath(); ctx.moveTo(95, 35); ctx.lineTo(95 + 20*Math.cos(a), 35 + 20*Math.sin(a)); ctx.stroke(); }
+  // Nose/snout
+  ctx.beginPath(); ctx.moveTo(15, 130); ctx.quadraticCurveTo(40, 100, 65, 130); ctx.quadraticCurveTo(40, 145, 15, 130); ctx.stroke();
+  // Wing
+  ctx.beginPath(); ctx.moveTo(80, 130); ctx.quadraticCurveTo(120, 100, 115, 130); ctx.quadraticCurveTo(120, 150, 80, 130); ctx.stroke();
+}
+
+function drawObjects(ctx, active) {
+  const col = active ? '#fb923c' : '#334155';
+  ctx.strokeStyle = col; ctx.lineWidth = 2;
+  // Simple cat outline
+  ctx.beginPath();
+  ctx.moveTo(20, 80); ctx.lineTo(30, 40); ctx.lineTo(45, 65); ctx.lineTo(60, 40); ctx.lineTo(70, 80);
+  ctx.quadraticCurveTo(45, 100, 20, 80);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(37, 70, 3, 0, Math.PI*2); ctx.fillStyle = col; ctx.fill();
+  ctx.beginPath(); ctx.arc(53, 70, 3, 0, Math.PI*2); ctx.fill();
+
+  // Simple car
+  ctx.beginPath();
+  ctx.moveTo(80, 180); ctx.lineTo(80, 160); ctx.lineTo(95, 145); ctx.lineTo(115, 145); ctx.lineTo(125, 160); ctx.lineTo(125, 180);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(90, 182, 7, 0, Math.PI*2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(115, 182, 7, 0, Math.PI*2); ctx.stroke();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+// ═══════════════════════════════════════════
+// CHAPTER 1: NN CLASSIFIER DEMO
+// ═══════════════════════════════════════════
+let nnK = 1, nnPoints = 40, nnData = [];
+function generateNNdata() {
+  nnData = [];
+  for (let i = 0; i < nnPoints; i++) {
+    nnData.push({
+      x: Math.random() * 700 + 40,
+      y: Math.random() * 340 + 30,
+      c: Math.random() > 0.5 ? 0 : 1
+    });
+  }
+  drawNN();
+}
+
+function drawNN() {
+  const c = document.getElementById('canvas-nn');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+
+  // Draw decision regions
+  const imgData = ctx.createImageData(W, H);
+  const colors = [[96,165,250],[251,146,60]];
+  for (let py = 0; py < H; py++) {
+    for (let px = 0; px < W; px++) {
+      // Find k nearest neighbors
+      let dists = nnData.map(p => ({ d: Math.hypot(p.x - px, p.y - py), c: p.c }));
+      dists.sort((a, b) => a.d - b.d);
+      let votes = [0, 0];
+      for (let i = 0; i < Math.min(nnK, dists.length); i++) votes[dists[i].c]++;
+      const winner = votes[0] >= votes[1] ? 0 : 1;
+      const idx = (py * W + px) * 4;
+      imgData.data[idx] = colors[winner][0];
+      imgData.data[idx+1] = colors[winner][1];
+      imgData.data[idx+2] = colors[winner][2];
+      imgData.data[idx+3] = 40;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  // Draw points
+  nnData.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = p.c === 0 ? '#60a5fa' : '#fb923c';
+    ctx.fill();
+    ctx.strokeStyle = '#0a0e17';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+
+function setNNk(k) {
+  nnK = k;
+  const btns = document.getElementById('canvas-nn').parentElement.querySelectorAll('.demo-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  btns[k === 1 ? 0 : k === 3 ? 1 : k === 5 ? 2 : 3].classList.add('active');
+  drawNN();
+}
+function setNNpoints(v) { nnPoints = parseInt(v); generateNNdata(); }
+function resetNN() { generateNNdata(); }
+
+// Click to classify
+document.getElementById('canvas-nn')?.addEventListener('click', function(e) {
+  const rect = this.getBoundingClientRect();
+  const sx = this.width / rect.width;
+  const x = (e.clientX - rect.left) * sx;
+  const y = (e.clientY - rect.top) * sx;
+  let dists = nnData.map(p => ({ d: Math.hypot(p.x - x, p.y - y), c: p.c }));
+  dists.sort((a, b) => a.d - b.d);
+  let votes = [0, 0];
+  for (let i = 0; i < Math.min(nnK, dists.length); i++) votes[dists[i].c]++;
+  const winner = votes[0] >= votes[1] ? 0 : 1;
+  nnData.push({ x, y, c: winner });
+  drawNN();
+});
+
+// ═══════════════════════════════════════════
+// CHAPTER 2: LINEAR BOUNDARY DEMO
+// ═══════════════════════════════════════════
+let linearMode = '2class', linearAngle = 45;
+function setLinearMode(m) {
+  linearMode = m;
+  const btns = document.getElementById('canvas-linear').parentElement.querySelectorAll('.demo-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  if (m === '2class') btns[0].classList.add('active');
+  else if (m === '3class') btns[1].classList.add('active');
+  else btns[2].classList.add('active');
+  drawLinear();
+}
+function updateLinearBoundary() {
+  linearAngle = parseInt(document.getElementById('linear-angle').value);
+  drawLinear();
+}
+
+function drawLinear() {
+  const c = document.getElementById('canvas-linear');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const cx = W / 2, cy = H / 2;
+  const rad = linearAngle * Math.PI / 180;
+
+  if (linearMode === 'xor') {
+    // Draw XOR data
+    const xorPts = [
+      { x: cx-100, y: cy-100, c: 0 }, { x: cx+100, y: cy+100, c: 0 },
+      { x: cx+100, y: cy-100, c: 1 }, { x: cx-100, y: cy+100, c: 1 }
+    ];
+    // Add some noise points
+    for (let i = 0; i < 30; i++) {
+      xorPts.push({
+        x: cx + (Math.random()>0.5?1:-1) * (60 + Math.random()*60),
+        y: cy + (Math.random()>0.5?1:-1) * (60 + Math.random()*60),
+        c: ((Math.random()>0.5?1:0) + (Math.random()>0.5?1:0)) % 2
+      });
+    }
+    // Color regions
+    const imgData = ctx.createImageData(W, H);
+    for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+      const nx = (px - cx) * Math.cos(rad) + (py - cy) * Math.sin(rad);
+      const side = nx > 0 ? 0 : 1;
+      const idx = (py * W + px) * 4;
+      const cols = [[96,165,250],[251,146,60]];
+      imgData.data[idx] = cols[side][0];
+      imgData.data[idx+1] = cols[side][1];
+      imgData.data[idx+2] = cols[side][2];
+      imgData.data[idx+3] = 30;
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    // Draw line
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(cx - 400 * Math.cos(rad + Math.PI/2), cy - 400 * Math.sin(rad + Math.PI/2));
+    ctx.lineTo(cx + 400 * Math.cos(rad + Math.PI/2), cy + 400 * Math.sin(rad + Math.PI/2));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw points
+    xorPts.forEach(p => {
+      ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI*2);
+      ctx.fillStyle = p.c === 0 ? '#60a5fa' : '#fb923c';
+      ctx.fill();
+      ctx.strokeStyle = '#0a0e17'; ctx.lineWidth = 2; ctx.stroke();
+    });
+
+    // "Can't separate!" label
+    ctx.fillStyle = '#ef4444';
+    ctx.font = '600 14px "DM Sans"';
+    ctx.textAlign = 'center';
+    ctx.fillText('No linear boundary can separate XOR data!', cx, 30);
+  } else {
+    // 2 or 3 class
+    const nClasses = linearMode === '3class' ? 3 : 2;
+    const cols = [[96,165,250],[251,146,60],[52,211,153]];
+
+    if (nClasses === 2) {
+      const imgData = ctx.createImageData(W, H);
+      for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+        const nx = (px - cx) * Math.cos(rad) + (py - cy) * Math.sin(rad);
+        const side = nx > 0 ? 0 : 1;
+        const idx = (py * W + px) * 4;
+        imgData.data[idx] = cols[side][0];
+        imgData.data[idx+1] = cols[side][1];
+        imgData.data[idx+2] = cols[side][2];
+        imgData.data[idx+3] = 30;
+      }
+      ctx.putImageData(imgData, 0, 0);
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 400*Math.cos(rad+Math.PI/2), cy - 400*Math.sin(rad+Math.PI/2));
+      ctx.lineTo(cx + 400*Math.cos(rad+Math.PI/2), cy + 400*Math.sin(rad+Math.PI/2));
+      ctx.stroke();
+    } else {
+      // 3 class: three lines at 120 degrees apart
+      const imgData = ctx.createImageData(W, H);
+      for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+        const dx = px - cx, dy = py - cy;
+        const angle = (Math.atan2(dy, dx) + Math.PI * 2 + rad) % (Math.PI * 2);
+        const cls = Math.floor(angle / (Math.PI * 2 / 3)) % 3;
+        const idx = (py * W + px) * 4;
+        imgData.data[idx] = cols[cls][0];
+        imgData.data[idx+1] = cols[cls][1];
+        imgData.data[idx+2] = cols[cls][2];
+        imgData.data[idx+3] = 30;
+      }
+      ctx.putImageData(imgData, 0, 0);
+      for (let i = 0; i < 3; i++) {
+        const a = rad + i * (Math.PI * 2 / 3);
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + 400*Math.cos(a), cy + 400*Math.sin(a));
+        ctx.stroke();
+      }
+    }
+
+    // Points
+    for (let i = 0; i < 40; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = 50 + Math.random() * 120;
+      const px = cx + r * Math.cos(angle);
+      const py = cy + r * Math.sin(angle);
+      const normAngle = (angle + Math.PI * 2 + rad) % (Math.PI * 2);
+      const cls = nClasses === 2
+        ? (((px - cx) * Math.cos(rad) + (py - cy) * Math.sin(rad)) > 0 ? 0 : 1)
+        : Math.floor(normAngle / (Math.PI * 2 / 3)) % 3;
+      ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2);
+      ctx.fillStyle = `rgb(${cols[cls].join(',')})`;
+      ctx.fill();
+      ctx.strokeStyle = '#0a0e17'; ctx.lineWidth = 2; ctx.stroke();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════
+// CHAPTER 3: LOSS FUNCTION DEMO
+// ═══════════════════════════════════════════
+function updateLossDemo() {
+  const c = document.getElementById('canvas-loss');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const sCorrect = parseFloat(document.getElementById('loss-correct').value);
+  const sWrong = parseFloat(document.getElementById('loss-wrong').value);
+  document.getElementById('loss-correct-val').textContent = sCorrect.toFixed(1);
+  document.getElementById('loss-wrong-val').textContent = sWrong.toFixed(1);
+
+  // Compute losses
+  const svmLoss = Math.max(0, sWrong - sCorrect + 1);
+  const expC = Math.exp(sCorrect);
+  const expW = Math.exp(sWrong);
+  const softmaxLoss = -Math.log(expC / (expC + expW));
+
+  // Draw bar chart comparison
+  const barW = 120, maxBarH = 200;
+  const maxLoss = Math.max(svmLoss, softmaxLoss, 3);
+
+  // SVM bar
+  const svmH = Math.min((svmLoss / maxLoss) * maxBarH, maxBarH);
+  const bx1 = W/2 - 140;
+  ctx.fillStyle = 'rgba(96,165,250,0.3)';
+  ctx.fillRect(bx1, H - 60 - svmH, barW, svmH);
+  ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2;
+  ctx.strokeRect(bx1, H - 60 - svmH, barW, svmH);
+  ctx.fillStyle = '#60a5fa';
+  ctx.font = '600 14px "DM Sans"';
+  ctx.textAlign = 'center';
+  ctx.fillText('SVM Loss', bx1 + barW/2, H - 35);
+  ctx.font = '700 20px "JetBrains Mono"';
+  ctx.fillText(svmLoss.toFixed(2), bx1 + barW/2, H - 65 - svmH);
+
+  // Softmax bar
+  const smH = Math.min((softmaxLoss / maxLoss) * maxBarH, maxBarH);
+  const bx2 = W/2 + 20;
+  ctx.fillStyle = 'rgba(167,139,250,0.3)';
+  ctx.fillRect(bx2, H - 60 - smH, barW, smH);
+  ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 2;
+  ctx.strokeRect(bx2, H - 60 - smH, barW, smH);
+  ctx.fillStyle = '#a78bfa';
+  ctx.font = '600 14px "DM Sans"';
+  ctx.fillText('Softmax Loss', bx2 + barW/2, H - 35);
+  ctx.font = '700 20px "JetBrains Mono"';
+  ctx.fillText(softmaxLoss.toFixed(2), bx2 + barW/2, H - 65 - smH);
+
+  // Score display
+  ctx.font = '500 13px "JetBrains Mono"';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#60a5fa';
+  ctx.fillText(`Correct class score: ${sCorrect.toFixed(1)}`, 30, 30);
+  ctx.fillStyle = '#fb923c';
+  ctx.fillText(`Wrong class score: ${sWrong.toFixed(1)}`, 30, 52);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText(`Margin: ${(sCorrect - sWrong).toFixed(1)}`, 30, 74);
+
+  // Softmax probability
+  const prob = expC / (expC + expW);
+  ctx.fillStyle = '#a78bfa';
+  ctx.fillText(`P(correct) = ${(prob * 100).toFixed(1)}%`, 30, 96);
+}
+
+// ═══════════════════════════════════════════
+// CHAPTER 4: GRADIENT DESCENT DEMO
+// ═══════════════════════════════════════════
+let gdX = 3, gdY = 3, gdVx = 0, gdVy = 0, gdPath = [], gdLR = 0.01, gdMomentum = 0;
+
+function lossFunc(x, y) {
+  return 0.5 * x * x + 2.5 * y * y + 0.5 * Math.sin(x*2) * Math.cos(y*2);
+}
+function lossGrad(x, y) {
+  return [x + Math.cos(x*2) * Math.cos(y*2), 5*y - 0.5*Math.sin(x*2)*Math.sin(y*2)*2];
+}
+
+function drawGDlandscape() {
+  const c = document.getElementById('canvas-gd');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+
+  // Draw contours
+  const imgData = ctx.createImageData(W, H);
+  let minL = Infinity, maxL = -Infinity;
+  const vals = new Float32Array(W * H);
+  for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+    const x = (px / W - 0.5) * 8;
+    const y = (py / H - 0.5) * 8;
+    const v = lossFunc(x, y);
+    vals[py*W+px] = v;
+    if (v < minL) minL = v;
+    if (v > maxL) maxL = v;
+  }
+  for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+    const v = (vals[py*W+px] - minL) / (maxL - minL);
+    const idx = (py * W + px) * 4;
+    // Dark blue to bright
+    imgData.data[idx] = Math.floor(10 + v * 40);
+    imgData.data[idx+1] = Math.floor(14 + v * 50);
+    imgData.data[idx+2] = Math.floor(23 + v * 80);
+    imgData.data[idx+3] = 255;
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  // Draw contour lines
+  ctx.strokeStyle = 'rgba(96,165,250,0.15)';
+  ctx.lineWidth = 1;
+  for (let level = 0; level < 20; level++) {
+    const threshold = minL + (level/20) * (maxL - minL);
+    for (let py = 1; py < H-1; py += 3) for (let px = 1; px < W-1; px += 3) {
+      const v = vals[py*W+px];
+      const vr = vals[py*W+px+1];
+      const vd = vals[(py+1)*W+px];
+      if ((v < threshold) !== (vr < threshold) || (v < threshold) !== (vd < threshold)) {
+        ctx.fillStyle = 'rgba(96,165,250,0.15)';
+        ctx.fillRect(px, py, 1, 1);
+      }
+    }
+  }
+
+  // Draw path
+  if (gdPath.length > 1) {
+    ctx.strokeStyle = '#fb923c';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < gdPath.length; i++) {
+      const px = (gdPath[i][0] / 8 + 0.5) * W;
+      const py = (gdPath[i][1] / 8 + 0.5) * H;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    // Draw dots
+    gdPath.forEach((p, i) => {
+      const px = (p[0] / 8 + 0.5) * W;
+      const py = (p[1] / 8 + 0.5) * H;
+      ctx.beginPath();
+      ctx.arc(px, py, i === gdPath.length - 1 ? 6 : 3, 0, Math.PI*2);
+      ctx.fillStyle = i === gdPath.length - 1 ? '#fb923c' : 'rgba(251,146,60,0.5)';
+      ctx.fill();
+    });
+  }
+
+  // Current position marker
+  const cpx = (gdX / 8 + 0.5) * W;
+  const cpy = (gdY / 8 + 0.5) * H;
+  ctx.beginPath(); ctx.arc(cpx, cpy, 8, 0, Math.PI*2);
+  ctx.fillStyle = '#ef4444';
+  ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Info
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '500 12px "JetBrains Mono"';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Loss: ${lossFunc(gdX, gdY).toFixed(4)}  Pos: (${gdX.toFixed(2)}, ${gdY.toFixed(2)})`, 10, 20);
+}
+
+function stepGD() {
+  const [gx, gy] = lossGrad(gdX, gdY);
+  gdVx = gdMomentum * gdVx - gdLR * gx;
+  gdVy = gdMomentum * gdVy - gdLR * gy;
+  gdX += gdVx;
+  gdY += gdVy;
+  gdX = Math.max(-4, Math.min(4, gdX));
+  gdY = Math.max(-4, Math.min(4, gdY));
+  gdPath.push([gdX, gdY]);
+  drawGDlandscape();
+}
+
+function runGD() {
+  let i = 0;
+  const run = () => { if (i++ < 50) { stepGD(); setTimeout(run, 50); } };
+  run();
+}
+
+function resetGD() {
+  gdX = 3; gdY = 3; gdVx = 0; gdVy = 0; gdPath = [[3, 3]];
+  drawGDlandscape();
+}
+
+function updateGDlr() {
+  const v = parseInt(document.getElementById('gd-lr').value);
+  gdLR = v / 1000;
+  document.getElementById('gd-lr-val').textContent = gdLR.toFixed(3);
+}
+
+function updateGDmomentum() {
+  const v = parseInt(document.getElementById('gd-momentum').value);
+  gdMomentum = v / 100;
+  document.getElementById('gd-mom-val').textContent = gdMomentum.toFixed(2);
+}
+
+document.getElementById('canvas-gd')?.addEventListener('click', function(e) {
+  const rect = this.getBoundingClientRect();
+  const sx = this.width / rect.width;
+  gdX = ((e.clientX - rect.left) * sx / this.width - 0.5) * 8;
+  gdY = ((e.clientY - rect.top) * sx / this.height - 0.5) * 8;
+  gdVx = 0; gdVy = 0;
+  gdPath = [[gdX, gdY]];
+  drawGDlandscape();
+});
+
+// ═══════════════════════════════════════════
+// CHAPTER 5: BACKPROP DEMO
+// ═══════════════════════════════════════════
+function updateBackprop() {
+  const c = document.getElementById('canvas-backprop');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const x = parseInt(document.getElementById('bp-x').value) / 10;
+  const y = parseInt(document.getElementById('bp-y').value) / 10;
+  const z = parseInt(document.getElementById('bp-z').value) / 10;
+  document.getElementById('bp-x-val').textContent = x.toFixed(1);
+  document.getElementById('bp-y-val').textContent = y.toFixed(1);
+  document.getElementById('bp-z-val').textContent = z.toFixed(1);
+
+  // Forward: q = x + y, f = q * z
+  const q = x + y;
+  const f = q * z;
+  // Backward: df/df = 1, df/dq = z, df/dz = q, dq/dx = 1, dq/dy = 1
+  const df_df = 1;
+  const df_dq = z;
+  const df_dz = q;
+  const df_dx = z * 1; // chain rule
+  const df_dy = z * 1;
+
+  // Draw nodes
+  const nodes = [
+    { label: 'x', val: x, grad: df_dx, x: 80, y: 100, color: '#60a5fa' },
+    { label: 'y', val: y, grad: df_dy, x: 80, y: 250, color: '#a78bfa' },
+    { label: '+', val: q, grad: df_dq, x: 300, y: 175, color: '#e2e8f0' },
+    { label: 'z', val: z, grad: df_dz, x: 300, y: 60, color: '#34d399' },
+    { label: '×', val: f, grad: df_df, x: 540, y: 120, color: '#e2e8f0' },
+    { label: 'f', val: f, grad: df_df, x: 700, y: 120, color: '#fb923c' },
+  ];
+
+  // Draw edges
+  const edges = [[0,2],[1,2],[2,4],[3,4],[4,5]];
+  edges.forEach(([a,b]) => {
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(nodes[a].x + 30, nodes[a].y);
+    ctx.lineTo(nodes[b].x - 30, nodes[b].y);
+    ctx.stroke();
+  });
+
+  // Draw nodes
+  nodes.forEach(n => {
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, 28, 0, Math.PI*2);
+    ctx.fillStyle = '#1e293b';
+    ctx.fill();
+    ctx.strokeStyle = n.color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = n.color;
+    ctx.font = '700 16px "JetBrains Mono"';
+    ctx.textAlign = 'center';
+    ctx.fillText(n.label, n.x, n.y + 5);
+
+    // Forward value (green)
+    ctx.fillStyle = '#34d399';
+    ctx.font = '500 12px "JetBrains Mono"';
+    ctx.fillText(n.val.toFixed(1), n.x, n.y - 38);
+    ctx.font = '500 9px "JetBrains Mono"';
+    ctx.fillStyle = '#1a6b4a';
+    ctx.fillText('value', n.x, n.y - 50);
+
+    // Backward gradient (orange)
+    ctx.fillStyle = '#fb923c';
+    ctx.font = '500 12px "JetBrains Mono"';
+    ctx.fillText(n.grad.toFixed(1), n.x, n.y + 48);
+    ctx.font = '500 9px "JetBrains Mono"';
+    ctx.fillStyle = '#925a20';
+    ctx.fillText('grad', n.x, n.y + 60);
+  });
+
+  // Title labels
+  ctx.fillStyle = '#34d399';
+  ctx.font = '600 11px "JetBrains Mono"';
+  ctx.textAlign = 'left';
+  ctx.fillText('→ FORWARD PASS (green values)', 20, 340);
+  ctx.fillStyle = '#fb923c';
+  ctx.fillText('← BACKWARD PASS (orange gradients)', 20, 360);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '400 11px "JetBrains Mono"';
+  ctx.fillText(`f = (x + y) × z = (${x.toFixed(1)} + ${y.toFixed(1)}) × ${z.toFixed(1)} = ${f.toFixed(1)}`, 400, 340);
+}
+
+// ═══════════════════════════════════════════
+// CHAPTER 6: NN BOUNDARY DEMO
+// ═══════════════════════════════════════════
+let nnDemoData = [], nnDemoWeights = null, nnDemoMode = 'circle', nnDemoNeurons = 6;
+
+function generateNNdemoData() {
+  nnDemoData = [];
+  const n = 80;
+  if (nnDemoMode === 'circle') {
+    for (let i = 0; i < n; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * 0.4;
+      nnDemoData.push({ x: 0.5 + r * Math.cos(angle), y: 0.5 + r * Math.sin(angle), c: 0 });
+    }
+    for (let i = 0; i < n; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = 0.6 + Math.random() * 0.35;
+      const x = 0.5 + r * Math.cos(angle);
+      const y = 0.5 + r * Math.sin(angle);
+      if (x > 0 && x < 1 && y > 0 && y < 1) nnDemoData.push({ x, y, c: 1 });
+    }
+  } else if (nnDemoMode === 'spiral') {
+    for (let i = 0; i < n; i++) {
+      const t = i / n * 3 * Math.PI;
+      const r = t / (3 * Math.PI) * 0.4;
+      nnDemoData.push({ x: 0.5 + r*Math.cos(t) + (Math.random()-0.5)*0.05, y: 0.5 + r*Math.sin(t) + (Math.random()-0.5)*0.05, c: 0 });
+      nnDemoData.push({ x: 0.5 - r*Math.cos(t) + (Math.random()-0.5)*0.05, y: 0.5 - r*Math.sin(t) + (Math.random()-0.5)*0.05, c: 1 });
+    }
+  } else { // xor
+    for (let i = 0; i < n/2; i++) {
+      nnDemoData.push({ x: 0.2 + Math.random()*0.25, y: 0.2 + Math.random()*0.25, c: 0 });
+      nnDemoData.push({ x: 0.55 + Math.random()*0.25, y: 0.55 + Math.random()*0.25, c: 0 });
+      nnDemoData.push({ x: 0.55 + Math.random()*0.25, y: 0.2 + Math.random()*0.25, c: 1 });
+      nnDemoData.push({ x: 0.2 + Math.random()*0.25, y: 0.55 + Math.random()*0.25, c: 1 });
+    }
+  }
+  initNNweights();
+}
+
+function initNNweights() {
+  const H = nnDemoNeurons;
+  nnDemoWeights = {
+    W1: Array.from({length: H}, () => [(Math.random()-0.5)*2, (Math.random()-0.5)*2]),
+    b1: Array.from({length: H}, () => (Math.random()-0.5)*0.5),
+    W2: Array.from({length: H}, () => (Math.random()-0.5)*2),
+    b2: (Math.random()-0.5)*0.5
+  };
+}
+
+function nnPredict(x, y) {
+  const w = nnDemoWeights;
+  const H = w.W1.length;
+  const hidden = [];
+  for (let i = 0; i < H; i++) {
+    hidden.push(Math.max(0, w.W1[i][0]*x + w.W1[i][1]*y + w.b1[i])); // ReLU
+  }
+  let out = w.b2;
+  for (let i = 0; i < H; i++) out += w.W2[i] * hidden[i];
+  return 1 / (1 + Math.exp(-out)); // sigmoid
+}
+
+function trainNNstep() {
+  const lr = 0.5;
+  const w = nnDemoWeights;
+  const H = w.W1.length;
+
+  for (let iter = 0; iter < 10; iter++) {
+    // Pick random sample
+    const p = nnDemoData[Math.floor(Math.random() * nnDemoData.length)];
+    // Forward
+    const hidden = [], preact = [];
+    for (let i = 0; i < H; i++) {
+      preact.push(w.W1[i][0]*p.x + w.W1[i][1]*p.y + w.b1[i]);
+      hidden.push(Math.max(0, preact[i]));
+    }
+    let logit = w.b2;
+    for (let i = 0; i < H; i++) logit += w.W2[i] * hidden[i];
+    const pred = 1 / (1 + Math.exp(-logit));
+    const dloss = pred - p.c; // d(BCE)/d(logit)
+
+    // Backward
+    w.b2 -= lr * dloss;
+    for (let i = 0; i < H; i++) {
+      const dh = dloss * w.W2[i] * (preact[i] > 0 ? 1 : 0);
+      w.W2[i] -= lr * dloss * hidden[i];
+      w.W1[i][0] -= lr * dh * p.x;
+      w.W1[i][1] -= lr * dh * p.y;
+      w.b1[i] -= lr * dh;
+    }
+  }
+}
+
+function drawNNdemo() {
+  const c = document.getElementById('canvas-nn-boundary');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+
+  // Decision boundary
+  const res = 4;
+  const imgData = ctx.createImageData(W, H);
+  for (let py = 0; py < H; py += res) for (let px = 0; px < W; px += res) {
+    const nx = px / W, ny = py / H;
+    const pred = nnPredict(nx, ny);
+    const r = Math.floor(96 * (1-pred) + 251 * pred);
+    const g = Math.floor(165 * (1-pred) + 146 * pred);
+    const b = Math.floor(250 * (1-pred) + 60 * pred);
+    for (let dy = 0; dy < res && py+dy < H; dy++) {
+      for (let dx = 0; dx < res && px+dx < W; dx++) {
+        const idx = ((py+dy)*W + (px+dx)) * 4;
+        imgData.data[idx] = r; imgData.data[idx+1] = g;
+        imgData.data[idx+2] = b; imgData.data[idx+3] = 40;
+      }
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  // Points
+  nnDemoData.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x * W, p.y * H, 4, 0, Math.PI*2);
+    ctx.fillStyle = p.c === 0 ? '#60a5fa' : '#fb923c';
+    ctx.fill();
+    ctx.strokeStyle = '#0a0e17'; ctx.lineWidth = 1; ctx.stroke();
+  });
+}
+
+function setNNdemo(mode) {
+  nnDemoMode = mode;
+  const btns = document.getElementById('canvas-nn-boundary').parentElement.querySelectorAll('.demo-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  if (mode === 'circle') btns[0].classList.add('active');
+  else if (mode === 'spiral') btns[1].classList.add('active');
+  else btns[2].classList.add('active');
+  generateNNdemoData();
+  drawNNdemo();
+}
+
+function updateNNneurons() {
+  nnDemoNeurons = parseInt(document.getElementById('nn-neurons').value);
+  document.getElementById('nn-neurons-val').textContent = nnDemoNeurons;
+  initNNweights();
+  drawNNdemo();
+}
+
+function trainNNdemo() {
+  let i = 0;
+  const run = () => {
+    if (i++ < 100) {
+      trainNNstep();
+      drawNNdemo();
+      requestAnimationFrame(run);
+    }
+  };
+  run();
+}
+
+function resetNNdemo() {
+  generateNNdemoData();
+  drawNNdemo();
+}
+
+// ═══════════════════════════════════════════
+// CHAPTER 7: ACTIVATIONS DEMO
+// ═══════════════════════════════════════════
+let currentActivation = 'relu';
+
+function setActivation(name) {
+  currentActivation = name;
+  const btns = document.getElementById('canvas-activations').parentElement.querySelectorAll('.demo-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  if (name === 'relu') btns[0].classList.add('active');
+  else if (name === 'sigmoid') btns[1].classList.add('active');
+  else if (name === 'tanh') btns[2].classList.add('active');
+  else btns[3].classList.add('active');
+  drawActivations();
+}
+
+function actFn(x, name) {
+  switch(name) {
+    case 'relu': return Math.max(0, x);
+    case 'sigmoid': return 1 / (1 + Math.exp(-x));
+    case 'tanh': return Math.tanh(x);
+    case 'leaky': return x > 0 ? x : 0.1 * x;
+  }
+}
+
+function actDeriv(x, name) {
+  switch(name) {
+    case 'relu': return x > 0 ? 1 : 0;
+    case 'sigmoid': { const s = 1/(1+Math.exp(-x)); return s*(1-s); }
+    case 'tanh': { const t = Math.tanh(x); return 1 - t*t; }
+    case 'leaky': return x > 0 ? 1 : 0.1;
+  }
+}
+
+function drawActivations() {
+  const c = document.getElementById('canvas-activations');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const halfW = W / 2 - 30;
+
+  // Left: activation function
+  drawFunctionPlot(ctx, 30, 20, halfW, H - 60, currentActivation, false);
+  // Right: derivative
+  drawFunctionPlot(ctx, W/2 + 20, 20, halfW, H - 60, currentActivation, true);
+
+  // Labels
+  ctx.fillStyle = '#60a5fa';
+  ctx.font = '600 13px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  const names = { relu: 'ReLU', sigmoid: 'Sigmoid σ(x)', tanh: 'Tanh', leaky: 'Leaky ReLU' };
+  ctx.fillText(names[currentActivation] + ' — Function', 30 + halfW/2, 16);
+  ctx.fillStyle = '#fb923c';
+  ctx.fillText(names[currentActivation] + ' — Derivative', W/2 + 20 + halfW/2, 16);
+}
+
+function drawFunctionPlot(ctx, ox, oy, w, h, name, isDeriv) {
+  // Axes
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 1;
+  const midX = ox + w/2, midY = oy + h/2;
+  ctx.beginPath(); ctx.moveTo(ox, midY); ctx.lineTo(ox+w, midY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(midX, oy); ctx.lineTo(midX, oy+h); ctx.stroke();
+
+  // Grid
+  ctx.strokeStyle = '#1e293b';
+  for (let i = -4; i <= 4; i++) {
+    const px = midX + (i/5) * (w/2);
+    ctx.beginPath(); ctx.moveTo(px, oy); ctx.lineTo(px, oy+h); ctx.stroke();
+  }
+
+  // Plot
+  ctx.strokeStyle = isDeriv ? '#fb923c' : '#60a5fa';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let px = 0; px < w; px++) {
+    const x = (px / w - 0.5) * 10; // -5 to 5
+    const y = isDeriv ? actDeriv(x, name) : actFn(x, name);
+    const py = midY - y * (h / 4);
+    if (px === 0) ctx.moveTo(ox + px, Math.max(oy, Math.min(oy+h, py)));
+    else ctx.lineTo(ox + px, Math.max(oy, Math.min(oy+h, py)));
+  }
+  ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '400 10px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.fillText('-5', ox, midY + 14);
+  ctx.fillText('5', ox + w, midY + 14);
+  ctx.fillText('0', midX + 8, midY + 14);
+}
+
+// ═══════════════════════════════════════════
+// CHAPTER 8: CONVOLUTION DEMO
+// ═══════════════════════════════════════════
+let convFilter = 'edge-h', convStride = 1, convStep = 0, convAnimId = null;
+const convFilters = {
+  'edge-h': [[-1,-1,-1],[0,0,0],[1,1,1]],
+  'edge-v': [[-1,0,1],[-1,0,1],[-1,0,1]],
+  'sharpen': [[0,-1,0],[-1,5,-1],[0,-1,0]],
+  'blur': [[1,1,1],[1,1,1],[1,1,1]],
+};
+
+function setConvFilter(f) {
+  convFilter = f;
+  convStep = 0;
+  const btns = document.getElementById('canvas-conv').parentElement.querySelectorAll('.demo-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  if (f === 'edge-h') btns[0].classList.add('active');
+  else if (f === 'edge-v') btns[1].classList.add('active');
+  else if (f === 'sharpen') btns[2].classList.add('active');
+  else btns[3].classList.add('active');
+  animateConv();
+}
+
+function updateConvStride() {
+  convStride = parseInt(document.getElementById('conv-stride').value);
+  document.getElementById('conv-stride-val').textContent = convStride;
+  convStep = 0;
+  drawConv();
+}
+
+// Generate a simple 8x8 "image"
+const convImage = [];
+for (let r = 0; r < 8; r++) {
+  convImage[r] = [];
+  for (let c = 0; c < 8; c++) {
+    convImage[r][c] = Math.floor(Math.random() * 200 + 50);
+    // Add a bright cross pattern
+    if (r === 3 || r === 4 || c === 3 || c === 4) convImage[r][c] = Math.min(255, convImage[r][c] + 100);
+  }
+}
+
+function drawConv() {
+  const c = document.getElementById('canvas-conv');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const cellSize = 40;
+  const imgOx = 30, imgOy = 60;
+  const filterOx = 400, filterOy = 60;
+  const outOx = 400, outOy = 250;
+  const filter = convFilters[convFilter];
+
+  // Calculate output size
+  const outSize = Math.floor((8 - 3) / convStride) + 1;
+  const totalSteps = outSize * outSize;
+  const step = convStep % totalSteps;
+  const outR = Math.floor(step / outSize);
+  const outC = step % outSize;
+  const inR = outR * convStride;
+  const inC = outC * convStride;
+
+  // Draw input image
+  ctx.fillStyle = '#60a5fa';
+  ctx.font = '600 11px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.fillText('Input (8×8)', imgOx + 4*cellSize, imgOy - 10);
+
+  for (let r = 0; r < 8; r++) for (let co = 0; co < 8; co++) {
+    const v = convImage[r][co];
+    const isHighlight = r >= inR && r < inR+3 && co >= inC && co < inC+3;
+    ctx.fillStyle = isHighlight
+      ? `rgba(96,165,250,${0.3 + v/400})`
+      : `rgba(${v},${v},${v},0.3)`;
+    ctx.fillRect(imgOx + co*cellSize, imgOy + r*cellSize, cellSize-2, cellSize-2);
+    ctx.fillStyle = isHighlight ? '#fff' : '#94a3b8';
+    ctx.font = '500 10px "JetBrains Mono"';
+    ctx.fillText(v, imgOx + co*cellSize + cellSize/2 - 1, imgOy + r*cellSize + cellSize/2 + 3);
+  }
+
+  // Draw filter
+  ctx.fillStyle = '#a78bfa';
+  ctx.font = '600 11px "JetBrains Mono"';
+  ctx.fillText('Filter (3×3)', filterOx + 1.5*cellSize, filterOy - 10);
+
+  for (let r = 0; r < 3; r++) for (let co = 0; co < 3; co++) {
+    const v = filter[r][co];
+    ctx.fillStyle = v > 0 ? `rgba(52,211,153,${Math.abs(v)/5+0.2})` : v < 0 ? `rgba(239,68,68,${Math.abs(v)/5+0.2})` : 'rgba(100,100,100,0.2)';
+    ctx.fillRect(filterOx + co*cellSize, filterOy + r*cellSize, cellSize-2, cellSize-2);
+    ctx.fillStyle = '#fff';
+    ctx.font = '600 12px "JetBrains Mono"';
+    ctx.fillText(v, filterOx + co*cellSize + cellSize/2 - 1, filterOy + r*cellSize + cellSize/2 + 4);
+  }
+
+  // Compute and show output
+  ctx.fillStyle = '#fb923c';
+  ctx.font = '600 11px "JetBrains Mono"';
+  ctx.fillText(`Output (${outSize}×${outSize})`, outOx + outSize*cellSize/2, outOy - 10);
+
+  for (let r = 0; r < outSize; r++) for (let co = 0; co < outSize; co++) {
+    let val = 0;
+    for (let fr = 0; fr < 3; fr++) for (let fc = 0; fc < 3; fc++) {
+      val += convImage[r*convStride+fr][co*convStride+fc] * filter[fr][fc];
+    }
+    const norm = convFilter === 'blur' ? val / 9 : val;
+    const isCurrent = r === outR && co === outC;
+    ctx.fillStyle = isCurrent
+      ? 'rgba(251,146,60,0.5)'
+      : (r < outR || (r === outR && co < outC))
+        ? `rgba(251,146,60,${Math.min(1, Math.abs(norm)/500 + 0.1)})`
+        : 'rgba(50,50,50,0.2)';
+    ctx.fillRect(outOx + co*cellSize, outOy + r*cellSize, cellSize-2, cellSize-2);
+    if (r < outR || (r === outR && co <= outC)) {
+      ctx.fillStyle = '#fff';
+      ctx.font = '500 9px "JetBrains Mono"';
+      ctx.fillText(Math.round(norm), outOx + co*cellSize + cellSize/2 - 1, outOy + r*cellSize + cellSize/2 + 3);
+    }
+  }
+
+  // Show dot product computation
+  let dotStr = '';
+  let dotVal = 0;
+  for (let fr = 0; fr < 3; fr++) for (let fc = 0; fc < 3; fc++) {
+    const iv = convImage[inR+fr][inC+fc];
+    const fv = filter[fr][fc];
+    dotVal += iv * fv;
+  }
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '500 11px "JetBrains Mono"';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Dot product at (${outR},${outC}): ${Math.round(dotVal)}`, 30, H - 15);
+}
+
+function animateConv() {
+  if (convAnimId) cancelAnimationFrame(convAnimId);
+  const outSize = Math.floor((8 - 3) / convStride) + 1;
+  const total = outSize * outSize;
+  convStep = 0;
+  function step() {
+    drawConv();
+    convStep++;
+    if (convStep < total) {
+      convAnimId = setTimeout(step, 200);
+    }
+  }
+  step();
+}
+
+// ═══════════════════════════════════════════
+// CHAPTER 9: RESNET DEMO
+// ═══════════════════════════════════════════
+let resMode = 'plain';
+function setResMode(m) {
+  resMode = m;
+  const btns = document.getElementById('canvas-resnet').parentElement.querySelectorAll('.demo-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  btns[m === 'plain' ? 0 : 1].classList.add('active');
+  drawResNet();
+}
+
+function drawResNet() {
+  const c = document.getElementById('canvas-resnet');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const nLayers = 6;
+  const layerW = 80, layerH = 45;
+  const gap = (W - nLayers * layerW) / (nLayers + 1);
+
+  // Gradient values (simulated)
+  const gradPlain = [1, 0.5, 0.25, 0.12, 0.06, 0.03];
+  const gradRes = [1, 0.95, 0.9, 0.85, 0.8, 0.75];
+  const grads = resMode === 'plain' ? gradPlain : gradRes;
+
+  for (let i = 0; i < nLayers; i++) {
+    const x = gap + i * (layerW + gap);
+    const y = H / 2 - layerH / 2;
+
+    // Layer block
+    const alpha = 0.3 + grads[nLayers - 1 - i] * 0.7;
+    ctx.fillStyle = `rgba(96,165,250,${alpha})`;
+    roundRect(ctx, x, y, layerW, layerH, 6);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(96,165,250,${alpha})`;
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, x, y, layerW, layerH, 6);
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '600 11px "JetBrains Mono"';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Layer ${i+1}`, x + layerW/2, y + layerH/2 + 4);
+
+    // Gradient value
+    ctx.fillStyle = '#fb923c';
+    ctx.font = '500 10px "JetBrains Mono"';
+    ctx.fillText(`grad: ${grads[nLayers-1-i].toFixed(2)}`, x + layerW/2, y + layerH + 18);
+
+    // Forward arrow
+    if (i < nLayers - 1) {
+      const ax1 = x + layerW;
+      const ax2 = ax1 + gap;
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(ax1, H/2);
+      ctx.lineTo(ax2, H/2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(ax2, H/2);
+      ctx.lineTo(ax2-6, H/2-4);
+      ctx.lineTo(ax2-6, H/2+4);
+      ctx.closePath();
+      ctx.fillStyle = '#334155';
+      ctx.fill();
+    }
+
+    // Skip connections (residual mode)
+    if (resMode === 'residual' && i < nLayers - 1 && i % 2 === 0) {
+      const x1 = x + layerW / 2;
+      const x2 = x + layerW + gap + layerW + gap + layerW/2;
+      if (i + 2 < nLayers) {
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.quadraticCurveTo((x1+x2)/2, y - 40, Math.min(x2, gap + (i+2)*(layerW+gap) + layerW/2), y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        // Plus sign at end
+        const ex = Math.min(x2, gap + (i+2)*(layerW+gap) + layerW/2);
+        ctx.fillStyle = '#34d399';
+        ctx.font = '700 16px "JetBrains Mono"';
+        ctx.fillText('+', ex, y - 5);
+      }
+    }
+  }
+
+  // Title
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = '600 13px "DM Sans"';
+  ctx.textAlign = 'center';
+  ctx.fillText(resMode === 'plain' ? 'Plain Network — Gradients Vanish with Depth' : 'Residual Network — Skip Connections Preserve Gradients', W/2, 25);
+
+  // Backward arrow
+  ctx.fillStyle = '#fb923c';
+  ctx.font = '500 11px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.fillText('← Gradient flows backward (from loss)', W/2, H - 15);
+}
+
+// ═══════════════════════════════════════════
+// CHAPTER 11: DROPOUT DEMO
+// ═══════════════════════════════════════════
+let dropoutRate = 0.5, dropoutMask = [];
+
+function initDropoutMask() {
+  dropoutMask = [];
+  const layers = [4, 8, 8, 4];
+  for (let l = 0; l < layers.length; l++) {
+    dropoutMask[l] = [];
+    for (let n = 0; n < layers[l]; n++) {
+      dropoutMask[l][n] = l === 0 || l === layers.length-1 ? 1 : (Math.random() > dropoutRate ? 1 : 0);
+    }
+  }
+}
+
+function updateDropout() {
+  dropoutRate = parseInt(document.getElementById('dropout-rate').value) / 100;
+  document.getElementById('dropout-val').textContent = dropoutRate.toFixed(2);
+  initDropoutMask();
+  drawDropout();
+}
+
+function resampleDropout() {
+  initDropoutMask();
+  drawDropout();
+}
+
+function drawDropout() {
+  const c = document.getElementById('canvas-dropout');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const layers = [4, 8, 8, 4];
+  const layerX = [];
+  const gapX = W / (layers.length + 1);
+  for (let l = 0; l < layers.length; l++) layerX.push(gapX * (l + 1));
+
+  // Draw connections first
+  for (let l = 0; l < layers.length - 1; l++) {
+    for (let n1 = 0; n1 < layers[l]; n1++) {
+      for (let n2 = 0; n2 < layers[l+1]; n2++) {
+        const active = dropoutMask[l][n1] && dropoutMask[l+1][n2];
+        const y1 = (H / (layers[l] + 1)) * (n1 + 1);
+        const y2 = (H / (layers[l+1] + 1)) * (n2 + 1);
+        ctx.strokeStyle = active ? 'rgba(96,165,250,0.2)' : 'rgba(100,100,100,0.05)';
+        ctx.lineWidth = active ? 1 : 0.5;
+        ctx.beginPath();
+        ctx.moveTo(layerX[l], y1);
+        ctx.lineTo(layerX[l+1], y2);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Draw neurons
+  for (let l = 0; l < layers.length; l++) {
+    for (let n = 0; n < layers[l]; n++) {
+      const y = (H / (layers[l] + 1)) * (n + 1);
+      const active = dropoutMask[l][n];
+      ctx.beginPath();
+      ctx.arc(layerX[l], y, 14, 0, Math.PI*2);
+      ctx.fillStyle = active ? '#1e293b' : 'rgba(30,41,59,0.3)';
+      ctx.fill();
+      ctx.strokeStyle = active ? '#60a5fa' : 'rgba(96,165,250,0.15)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      if (!active) {
+        ctx.strokeStyle = 'rgba(239,68,68,0.6)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(layerX[l]-8, y-8);
+        ctx.lineTo(layerX[l]+8, y+8);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(layerX[l]+8, y-8);
+        ctx.lineTo(layerX[l]-8, y+8);
+        ctx.stroke();
+      }
+    }
+    // Layer labels
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '500 10px "JetBrains Mono"';
+    ctx.textAlign = 'center';
+    const lbls = ['Input', 'Hidden 1', 'Hidden 2', 'Output'];
+    ctx.fillText(lbls[l], layerX[l], H - 8);
+  }
+}
+
+// ═══════════════════════════════════════════
+// CHAPTER 15: ATTENTION DEMO
+// ═══════════════════════════════════════════
+let attnWeights = [], attnSelected = 0, attnTemp = 1.0;
+const attnTokens = ['The','cat','sat','on','the','mat','and','purred'];
+
+function initAttention() {
+  attnWeights = [];
+  for (let i = 0; i < attnTokens.length; i++) {
+    const raw = [];
+    for (let j = 0; j < attnTokens.length; j++) raw.push(Math.random() * 2 - 1);
+    attnWeights.push(raw);
+  }
+}
+
+function softmax(arr, temp) {
+  const max = Math.max(...arr);
+  const exps = arr.map(v => Math.exp((v - max) / temp));
+  const sum = exps.reduce((a, b) => a + b, 0);
+  return exps.map(v => v / sum);
+}
+
+function drawAttention() {
+  const c = document.getElementById('canvas-attention');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const n = attnTokens.length;
+  const tokW = 80, tokH = 36;
+  const startX = (W - n * tokW) / 2;
+  const queryY = 50, keyY = 220;
+
+  // Compute attention for selected query
+  const weights = softmax(attnWeights[attnSelected], attnTemp);
+
+  // Draw connections
+  for (let j = 0; j < n; j++) {
+    const w = weights[j];
+    const qx = startX + attnSelected * tokW + tokW/2;
+    const kx = startX + j * tokW + tokW/2;
+    ctx.strokeStyle = `rgba(96,165,250,${w})`;
+    ctx.lineWidth = 1 + w * 6;
+    ctx.beginPath();
+    ctx.moveTo(qx, queryY + tokH);
+    ctx.quadraticCurveTo((qx + kx)/2, (queryY + keyY)/2 + 20, kx, keyY);
+    ctx.stroke();
+  }
+
+  // Draw query tokens
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '600 10px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.fillText('QUERY (click to select)', W/2, queryY - 15);
+
+  for (let i = 0; i < n; i++) {
+    const x = startX + i * tokW;
+    const isSelected = i === attnSelected;
+    ctx.fillStyle = isSelected ? 'rgba(96,165,250,0.25)' : '#1e293b';
+    roundRect(ctx, x + 4, queryY, tokW - 8, tokH, 6);
+    ctx.fill();
+    ctx.strokeStyle = isSelected ? '#60a5fa' : '#334155';
+    ctx.lineWidth = isSelected ? 2 : 1;
+    roundRect(ctx, x + 4, queryY, tokW - 8, tokH, 6);
+    ctx.stroke();
+    ctx.fillStyle = isSelected ? '#60a5fa' : '#e2e8f0';
+    ctx.font = '500 12px "DM Sans"';
+    ctx.textAlign = 'center';
+    ctx.fillText(attnTokens[i], x + tokW/2, queryY + tokH/2 + 4);
+  }
+
+  // Draw key tokens with attention weight bars
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '600 10px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.fillText('KEYS (attention weights shown below)', W/2, keyY - 15);
+
+  for (let j = 0; j < n; j++) {
+    const x = startX + j * tokW;
+    const w = weights[j];
+    ctx.fillStyle = `rgba(96,165,250,${0.1 + w * 0.5})`;
+    roundRect(ctx, x + 4, keyY, tokW - 8, tokH, 6);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(96,165,250,${0.3 + w * 0.7})`;
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, x + 4, keyY, tokW - 8, tokH, 6);
+    ctx.stroke();
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '500 12px "DM Sans"';
+    ctx.fillText(attnTokens[j], x + tokW/2, keyY + tokH/2 + 4);
+
+    // Weight bar
+    const barMaxW = tokW - 12;
+    const barH = 10;
+    const barY = keyY + tokH + 8;
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(x + 6, barY, barMaxW, barH);
+    ctx.fillStyle = '#60a5fa';
+    ctx.fillRect(x + 6, barY, barMaxW * w, barH);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '400 9px "JetBrains Mono"';
+    ctx.fillText((w*100).toFixed(0) + '%', x + tokW/2, barY + barH + 12);
+  }
+}
+
+document.getElementById('canvas-attention')?.addEventListener('click', function(e) {
+  const rect = this.getBoundingClientRect();
+  const sx = this.width / rect.width;
+  const x = (e.clientX - rect.left) * sx;
+  const y = (e.clientY - rect.top) * sx;
+  const n = attnTokens.length;
+  const tokW = 80;
+  const startX = (this.width - n * tokW) / 2;
+  if (y >= 50 && y <= 86) {
+    const idx = Math.floor((x - startX) / tokW);
+    if (idx >= 0 && idx < n) {
+      attnSelected = idx;
+      drawAttention();
+    }
+  }
+});
+
+function randomizeAttention() { initAttention(); drawAttention(); }
+function updateAttentionTemp() {
+  attnTemp = parseInt(document.getElementById('attn-temp').value) / 10;
+  document.getElementById('attn-temp-val').textContent = attnTemp.toFixed(1);
+  drawAttention();
+}
+
+// ═══════════════════════════════════════════
+// INIT DEMOS PER CHAPTER
+// ═══════════════════════════════════════════
+function initDemos(ch) {
+  switch(ch) {
+    case 0: drawHierarchy(0); break;
+    case 1: generateNNdata(); break;
+    case 2: drawLinear(); break;
+    case 3: updateLossDemo(); break;
+    case 4: resetGD(); break;
+    case 5: updateBackprop(); break;
+    case 6: generateNNdemoData(); drawNNdemo(); break;
+    case 7: drawActivations(); break;
+    case 8: animateConv(); break;
+    case 9: drawResNet(); break;
+    case 10: break;
+    case 11: initDropoutMask(); drawDropout(); break;
+    case 15: initAttention(); drawAttention(); break;
+  }
+}
+
+// Handle HiDPI canvas
+function setupCanvas(id) {
+  const c = document.getElementById(id);
+  if (!c) return;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = c.getBoundingClientRect();
+  // Keep logical size as specified in HTML
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  initDemos(0);
+});
+</script>
+</body>
+</html>

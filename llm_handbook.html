@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Engineer's Handbook — Interactive Learning System</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0e14;--bg2:#0f1318;--bg3:#151a22;--bg4:#1a2130;
+--accent:#00e5a0;--accent2:#00b8d4;--accent3:#7c4dff;--accent4:#ff6d00;--accent5:#ff1744;
+--text:#e0e6ed;--text2:#8b99a8;--text3:#556677;
+--border:#1e2a3a;--border2:#2a3a4e;
+--glow:0 0 20px rgba(0,229,160,0.15);
+--card-bg:linear-gradient(135deg,#0f1318 0%,#141a24 100%);
+}
+html{scroll-behavior:smooth;font-size:15px}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;line-height:1.7;overflow-x:hidden}
+::selection{background:var(--accent);color:var(--bg)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ─── HEADER ─── */
+.site-header{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,14,20,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.85rem;color:var(--accent);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.logo .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.nav-tabs{display:flex;gap:2px;overflow-x:auto;max-width:70vw}
+.nav-tab{padding:6px 14px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--text2);cursor:pointer;border:none;background:none;white-space:nowrap;transition:all 0.2s;border-bottom:2px solid transparent;letter-spacing:0.5px}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ─── HERO ─── */
+.hero{margin-top:56px;padding:6rem 2rem 4rem;text-align:center;background:radial-gradient(ellipse at 50% 0%,rgba(0,229,160,0.06) 0%,transparent 60%);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(0,229,160,0.015) 40px,rgba(0,229,160,0.015) 41px);pointer-events:none}
+.hero h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem}
+.hero .subtitle{font-size:1.05rem;color:var(--text2);max-width:700px;margin:0 auto 2rem}
+.hero .meta-bar{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap}
+.meta-item{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text3);display:flex;align-items:center;gap:6px}
+.meta-item .val{color:var(--accent)}
+
+/* ─── PROGRESS BAR ─── */
+.progress-bar{position:fixed;top:56px;left:0;height:2px;background:var(--accent);z-index:999;transition:width 0.3s;box-shadow:0 0 10px var(--accent)}
+
+/* ─── MAIN CONTENT ─── */
+.content{max-width:1100px;margin:0 auto;padding:0 2rem 4rem}
+
+/* ─── CHAPTER ─── */
+.chapter{padding:3rem 0;border-bottom:1px solid var(--border);opacity:0;transform:translateY(20px);transition:all 0.5s}
+.chapter.visible{opacity:1;transform:translateY(0)}
+.chapter-header{display:flex;align-items:flex-start;gap:1.5rem;margin-bottom:2rem;cursor:pointer}
+.chapter-num{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--accent);background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.2);padding:6px 12px;border-radius:4px;min-width:60px;text-align:center;letter-spacing:1px}
+.chapter-title{font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:600;color:var(--text);line-height:1.3}
+.chapter-subtitle{font-size:0.88rem;color:var(--text2);margin-top:4px}
+
+/* ─── SECTIONS ─── */
+.section{margin:2rem 0;padding-left:0}
+.section-title{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:600;color:var(--accent2);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border)}
+.subsection-title{font-size:1rem;font-weight:600;color:var(--text);margin:1.5rem 0 0.8rem;padding-left:0}
+p{margin-bottom:1rem;color:var(--text2);line-height:1.75}
+strong{color:var(--text);font-weight:600}
+
+/* ─── CARDS ─── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin:1.5rem 0}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:1.25rem;transition:all 0.3s;position:relative;overflow:hidden}
+.card:hover{border-color:var(--accent);box-shadow:var(--glow);transform:translateY(-2px)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:opacity 0.3s}
+.card:hover::before{opacity:1}
+.card-label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:0.5rem}
+.card h4{font-size:0.95rem;color:var(--text);margin-bottom:0.5rem;font-weight:600}
+.card p{font-size:0.82rem;color:var(--text2);margin:0;line-height:1.6}
+
+/* ─── ORIGIN STORY BOXES ─── */
+.origin-box{background:linear-gradient(135deg,rgba(124,77,255,0.06),rgba(0,184,212,0.06));border:1px solid rgba(124,77,255,0.2);border-radius:8px;padding:1.5rem;margin:1.5rem 0}
+.origin-box .tag{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--accent3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:0.75rem}
+.origin-box h4{font-size:1rem;color:var(--text);margin-bottom:0.75rem}
+
+/* ─── COMPARISON TABLES ─── */
+.comparison{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.82rem}
+.comparison th{background:var(--bg3);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;padding:10px 14px;text-align:left;border-bottom:2px solid var(--accent)}
+.comparison td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
+.comparison tr:hover td{background:rgba(0,229,160,0.03)}
+
+/* ─── INTERACTIVE DIAGRAMS ─── */
+.diagram-container{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:2rem;margin:1.5rem 0;position:relative;overflow:hidden}
+.diagram-container::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(0,229,160,0.02) 60px,rgba(0,229,160,0.02) 61px);pointer-events:none}
+.diagram-title{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:1.5rem}
+.pipeline-flow{display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center}
+.pipeline-node{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:12px 18px;text-align:center;min-width:100px;transition:all 0.3s;cursor:pointer;position:relative}
+.pipeline-node:hover{border-color:var(--accent);box-shadow:var(--glow)}
+.pipeline-node.active{border-color:var(--accent);background:rgba(0,229,160,0.08)}
+.pipeline-node .node-label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--accent);letter-spacing:1px;text-transform:uppercase}
+.pipeline-node .node-text{font-size:0.78rem;color:var(--text);margin-top:4px}
+.pipeline-arrow{color:var(--accent);font-size:1.2rem;padding:0 8px;opacity:0.5}
+.node-detail{background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:1rem;margin-top:1rem;font-size:0.82rem;color:var(--text2);display:none;line-height:1.6}
+.node-detail.show{display:block;animation:fadeIn 0.3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── CODE BLOCKS ─── */
+.code-block{background:#0d1117;border:1px solid var(--border);border-radius:6px;padding:1rem 1.25rem;margin:1rem 0;font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#c9d1d9;overflow-x:auto;line-height:1.8;position:relative}
+.code-block .lang{position:absolute;top:8px;right:12px;font-size:0.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.kw{color:#ff7b72}.fn{color:#d2a8ff}.str{color:#a5d6ff}.cm{color:#8b949e}.num{color:#79c0ff}.op{color:#ff7b72}
+
+/* ─── INSIGHT BOXES ─── */
+.insight{background:linear-gradient(135deg,rgba(0,229,160,0.04),rgba(0,184,212,0.04));border-left:3px solid var(--accent);padding:1rem 1.25rem;margin:1.5rem 0;border-radius:0 6px 6px 0}
+.insight .label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:0.5rem}
+.insight p{margin:0;font-size:0.88rem;color:var(--text2)}
+
+.warning{background:linear-gradient(135deg,rgba(255,109,0,0.06),transparent);border-left:3px solid var(--accent4);padding:1rem 1.25rem;margin:1.5rem 0;border-radius:0 6px 6px 0}
+.warning .label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--accent4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:0.5rem}
+
+/* ─── INTERACTIVE TABS ─── */
+.tab-group{margin:1.5rem 0}
+.tab-buttons{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:1rem;overflow-x:auto}
+.tab-btn{padding:8px 16px;font-size:0.78rem;font-family:'JetBrains Mono',monospace;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
+.tab-btn:hover{color:var(--text2)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeIn 0.3s}
+
+/* ─── TIMELINE ─── */
+.timeline{position:relative;padding-left:2rem;margin:1.5rem 0}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:1px;background:var(--border2)}
+.timeline-item{position:relative;margin-bottom:1.5rem;padding-left:1rem}
+.timeline-item::before{content:'';position:absolute;left:-1.55rem;top:6px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--accent);z-index:1}
+.timeline-item .era{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--accent);letter-spacing:1px;text-transform:uppercase}
+.timeline-item h4{font-size:0.9rem;color:var(--text);margin:4px 0}
+.timeline-item p{font-size:0.82rem;color:var(--text2);margin:0}
+
+/* ─── EXPANDABLE ─── */
+.expandable{border:1px solid var(--border);border-radius:6px;margin:1rem 0;overflow:hidden}
+.expand-header{padding:12px 16px;background:var(--bg3);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:0.88rem;color:var(--text);transition:background 0.2s}
+.expand-header:hover{background:var(--bg4)}
+.expand-arrow{color:var(--accent);transition:transform 0.3s;font-size:0.8rem}
+.expand-header.open .expand-arrow{transform:rotate(90deg)}
+.expand-body{padding:1rem 1.25rem;display:none;font-size:0.85rem;color:var(--text2)}
+.expand-body.open{display:block;animation:fadeIn 0.3s}
+
+/* ─── QUIZ ─── */
+.quiz{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin:1.5rem 0}
+.quiz-q{font-size:0.92rem;color:var(--text);margin-bottom:1rem;font-weight:500}
+.quiz-options{display:flex;flex-direction:column;gap:0.5rem}
+.quiz-opt{padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-size:0.82rem;color:var(--text2);cursor:pointer;transition:all 0.2s;background:var(--bg3)}
+.quiz-opt:hover{border-color:var(--accent2);color:var(--text)}
+.quiz-opt.correct{border-color:var(--accent);background:rgba(0,229,160,0.1);color:var(--accent)}
+.quiz-opt.wrong{border-color:var(--accent5);background:rgba(255,23,68,0.08);color:var(--accent5)}
+.quiz-feedback{margin-top:0.75rem;font-size:0.82rem;color:var(--accent);display:none}
+
+/* ─── FOOTER ─── */
+.site-footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);font-size:0.78rem;color:var(--text3)}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:768px){
+  .nav-tabs{display:none}
+  .hero h1{font-size:1.8rem}
+  .card-grid{grid-template-columns:1fr}
+  .pipeline-flow{flex-direction:column}
+  .pipeline-arrow{transform:rotate(90deg)}
+}
+
+/* ─── CHAPTER TOGGLE ─── */
+.chapter-body{max-height:0;overflow:hidden;transition:max-height 0.5s ease}
+.chapter.expanded .chapter-body{max-height:none}
+.chapter-toggle{font-size:0.75rem;color:var(--accent);font-family:'JetBrains Mono',monospace;cursor:pointer;margin-top:0.5rem;opacity:0.7}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo"><span class="dot"></span>LLM ENGINEER'S HANDBOOK</div>
+  <nav class="nav-tabs" id="navTabs"></nav>
+</header>
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>LLM Engineer's Handbook</h1>
+  <p class="subtitle">An interactive learning system covering the complete lifecycle of building production-grade LLM applications — from data engineering to deployment and monitoring.</p>
+  <div class="meta-bar">
+    <div class="meta-item">AUTHORS <span class="val">Paul Iusztin & Maxime Labonne</span></div>
+    <div class="meta-item">CHAPTERS <span class="val">11</span></div>
+    <div class="meta-item">PROJECT <span class="val">LLM Twin</span></div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main class="content" id="mainContent"></main>
+
+<footer class="site-footer">
+  Interactive Learning System — Based on <em>LLM Engineer's Handbook</em> by Paul Iusztin & Maxime Labonne (Packt, 2024)
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CHAPTER DATA — All 11 chapters of the book
+// ═══════════════════════════════════════════════════════════════
+const chapters = [
+{
+  num:"01", title:"Understanding the LLM Twin Concept & Architecture",
+  subtitle:"Why ML systems fail, the FTI pipeline pattern, and designing production-grade LLM architectures",
+  content:`
+<div class="origin-box">
+<div class="tag">Why does this exist?</div>
+<h4>The Problem That Sparked Everything</h4>
+<p>Building a personal brand requires writing content across platforms (LinkedIn, Medium, X, Substack). But writing is time-consuming. What if an AI could write <em>in your voice</em>? Not generic ChatGPT output — but content that sounds like <strong>you</strong>. That's the LLM Twin: a fine-tuned LLM that incorporates your writing style, voice, and personality. It's style transfer applied to text, like applying Van Gogh's style to any image — but instead of a painter, it's your digital persona.</p>
+</div>
+
+<div class="section">
+<div class="section-title">Historical Context: Before LLM Twins</div>
+<div class="timeline">
+<div class="timeline-item"><span class="era">Pre-2017</span><h4>Rule-based NLP</h4><p>Template engines, Markov chains, n-gram models. Could generate text but no understanding of style or context.</p></div>
+<div class="timeline-item"><span class="era">2017-2020</span><h4>Transfer Learning Era</h4><p>BERT, GPT-2 showed language models could be fine-tuned. But personalization was limited to domain, not individual style.</p></div>
+<div class="timeline-item"><span class="era">2020-2023</span><h4>ChatGPT & Generic Assistants</h4><p>Powerful but impersonal. Everyone's output sounds the same — wordy, generic, unarticulated. No RAG, no personalization.</p></div>
+<div class="timeline-item"><span class="era">2024+</span><h4>LLM Twin — Personalized AI</h4><p>Combining fine-tuning on personal data with RAG for context retrieval. Your digital projection into an LLM, trained on <em>your</em> digital footprint.</p></div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Why Not Just Use ChatGPT?</div>
+<div class="card-grid">
+<div class="card"><div class="card-label">Problem</div><h4>Hallucination Risk</h4><p>ChatGPT invents facts. Manually checking every output is more work than writing from scratch.</p></div>
+<div class="card"><div class="card-label">Problem</div><h4>No Voice / Style</h4><p>Generic, formal, wordy output. Maintaining an original voice is critical for brand building — ChatGPT destroys that.</p></div>
+<div class="card"><div class="card-label">Problem</div><h4>Tedious Manual Prompting</h4><p>You must manually craft prompts, inject context, and repeat this every session. No automation, no consistency.</p></div>
+<div class="card"><div class="card-label">Solution</div><h4>The LLM Twin System</h4><p>Automates data collection, preprocessing, fine-tuning, RAG retrieval, and content generation. Your style baked in.</p></div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">The FTI Pipeline Architecture</div>
+<p>The biggest problem in ML engineering isn't training models — it's <strong>connecting all the pieces into a coherent system</strong>. Google Cloud's reference architecture has 20+ components. The FTI pattern simplifies this into 3 logical pipelines, similar to how web apps decompose into DB / Business Logic / UI.</p>
+
+<div class="diagram-container">
+<div class="diagram-title">Feature → Training → Inference Pipeline</div>
+<div class="pipeline-flow">
+<div class="pipeline-node" onclick="showDetail('fti','feature')"><div class="node-label">Feature</div><div class="node-text">Raw → Features</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node" onclick="showDetail('fti','training')"><div class="node-label">Training</div><div class="node-text">Features → Model</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node" onclick="showDetail('fti','inference')"><div class="node-label">Inference</div><div class="node-text">Model + Features → Predictions</div></div>
+</div>
+<div class="node-detail" id="fti-feature"><strong>Feature Pipeline:</strong> Takes raw data, processes it, outputs features/labels to a Feature Store. Versioned so training and inference features always match — solving the training-serving skew problem.</div>
+<div class="node-detail" id="fti-training"><strong>Training Pipeline:</strong> Reads features from Feature Store, trains model, outputs to Model Registry. Supports experiment tracking, hyperparameter tuning, and continuous training triggers.</div>
+<div class="node-detail" id="fti-inference"><strong>Inference Pipeline:</strong> Loads model from Registry + features from Store. Serves predictions via REST API (real-time) or batch. Each pipeline can be scaled independently with different hardware.</div>
+</div>
+
+<div class="insight">
+<div class="label">Key Insight</div>
+<p>Each pipeline is a separate component that can run on different hardware, use different tech stacks, and be developed by different teams. The feature store and model registry are the "contracts" between them. This is why the FTI pattern is so powerful — it gives you modularity at the architecture level.</p>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">LLM Twin Architecture — 4 Core Components</div>
+<div class="diagram-container">
+<div class="diagram-title">End-to-End System</div>
+<div class="pipeline-flow">
+<div class="pipeline-node" onclick="showDetail('arch','dc')"><div class="node-label">Data Collection</div><div class="node-text">ETL Pipeline</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node" onclick="showDetail('arch','fp')"><div class="node-label">Feature</div><div class="node-text">Clean → Chunk → Embed</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node" onclick="showDetail('arch','tp')"><div class="node-label">Training</div><div class="node-text">SFT + DPO</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node" onclick="showDetail('arch','ip')"><div class="node-label">Inference</div><div class="node-text">RAG + LLM API</div></div>
+</div>
+<div class="node-detail" id="arch-dc"><strong>Data Collection (ETL):</strong> Crawls Medium, Substack, LinkedIn, GitHub. Standardizes into 3 categories: Articles, Posts, Code. Stores in MongoDB (NoSQL data warehouse). Abstracts platform — only category matters.</div>
+<div class="node-detail" id="arch-fp"><strong>Feature Pipeline:</strong> Two data snapshots — (1) Cleaned data for fine-tuning, stored as artifacts (2) Chunked + embedded data for RAG, stored in Qdrant vector DB. This "logical feature store" avoids a dedicated feature store while preserving versioning.</div>
+<div class="node-detail" id="arch-tp"><strong>Training Pipeline:</strong> Consumes instruction datasets from feature store. Runs SFT (Chapter 5) then DPO alignment (Chapter 6). Experiment tracking via Comet ML. Model stored in Hugging Face registry.</div>
+<div class="node-detail" id="arch-ip"><strong>Inference Pipeline:</strong> REST API via FastAPI. Retrieves context from Qdrant (RAG). Calls fine-tuned LLM on SageMaker. Prompt monitoring via Opik. Autoscaling based on request volume.</div>
+</div>
+</div>
+
+<div class="quiz" data-answer="2">
+<div class="quiz-q">What does the FTI pattern solve that a monolithic batch pipeline doesn't?</div>
+<div class="quiz-options">
+<div class="quiz-opt" onclick="checkQuiz(this,false)">It makes training faster</div>
+<div class="quiz-opt" onclick="checkQuiz(this,true)">It separates concerns so each pipeline can be scaled, deployed, and developed independently</div>
+<div class="quiz-opt" onclick="checkQuiz(this,false)">It eliminates the need for GPUs</div>
+</div>
+<div class="quiz-feedback">Correct! The FTI pattern creates modularity at the architecture level. Each pipeline has clear interfaces through the feature store and model registry.</div>
+</div>
+`},
+
+{
+  num:"02", title:"Tooling and Installation",
+  subtitle:"The MLOps and LLMOps ecosystem — orchestrators, trackers, registries, and databases",
+  content:`
+<div class="origin-box">
+<div class="tag">Why These Tools?</div>
+<h4>From Jupyter Notebooks to Production Systems</h4>
+<p>Historically, ML practitioners worked in notebooks — great for exploration, terrible for production. The gap between "it works on my machine" and "it runs reliably in production" spawned an entire ecosystem of MLOps tools. Each tool solves a specific pain point in the ML lifecycle. Without them, you'd be writing custom scripts for versioning, deployment, monitoring — reinventing infrastructure that already exists.</p>
+</div>
+
+<div class="section">
+<div class="section-title">The Tool Stack at a Glance</div>
+<table class="comparison">
+<tr><th>Tool</th><th>Category</th><th>Why It Exists</th><th>Alternative If Missing</th></tr>
+<tr><td><strong>Poetry</strong></td><td>Dependency Management</td><td>Lock exact versions, avoid "works on my machine" issues</td><td>pip + requirements.txt (no lockfile), Conda</td></tr>
+<tr><td><strong>ZenML</strong></td><td>Orchestrator</td><td>Bridges ML and MLOps — manages pipeline execution, artifacts, metadata</td><td>Airflow (not ML-native), Kubeflow, custom scripts</td></tr>
+<tr><td><strong>Hugging Face</strong></td><td>Model Registry</td><td>Store, version, share models. The "GitHub for models"</td><td>MLflow registry, custom S3 storage</td></tr>
+<tr><td><strong>Comet ML</strong></td><td>Experiment Tracking</td><td>Log hyperparams, metrics, compare runs. Know what worked and why.</td><td>Weights & Biases, MLflow, TensorBoard</td></tr>
+<tr><td><strong>Opik</strong></td><td>Prompt Monitoring</td><td>Track LLM inputs/outputs in production, detect issues</td><td>LangSmith, custom logging</td></tr>
+<tr><td><strong>MongoDB</strong></td><td>NoSQL Database</td><td>Data warehouse for unstructured text data</td><td>PostgreSQL with JSONB, DynamoDB</td></tr>
+<tr><td><strong>Qdrant</strong></td><td>Vector Database</td><td>Store embeddings, perform similarity search for RAG</td><td>Pinecone, Weaviate, Milvus, ChromaDB</td></tr>
+<tr><td><strong>AWS SageMaker</strong></td><td>ML Compute Platform</td><td>GPU instances for training and inference endpoints</td><td>GCP Vertex AI, Lambda Labs, self-hosted</td></tr>
+</table>
+</div>
+
+<div class="section">
+<div class="section-title">ZenML Deep Dive — The Orchestrator</div>
+<p>An orchestrator is to ML pipelines what a conductor is to an orchestra — it coordinates execution, manages dependencies, and ensures everything runs in the right order. ZenML specifically bridges the gap between writing ML code and operationalizing it.</p>
+
+<div class="tab-group">
+<div class="tab-buttons">
+<button class="tab-btn active" onclick="switchTab(this,'zen-pipe')">Pipelines</button>
+<button class="tab-btn" onclick="switchTab(this,'zen-steps')">Steps</button>
+<button class="tab-btn" onclick="switchTab(this,'zen-art')">Artifacts</button>
+</div>
+<div class="tab-content active" id="zen-pipe">
+<p>A ZenML <strong>pipeline</strong> is a sequence of steps connected by data dependencies. Decorate a function with <code>@pipeline</code> to turn it into an orchestrated workflow. Pipelines can be run locally or on cloud infrastructure (SageMaker, Kubernetes) with zero code changes.</p>
+<div class="code-block"><span class="lang">python</span><span class="kw">from</span> zenml <span class="kw">import</span> pipeline
+
+<span class="kw">@pipeline</span>
+<span class="kw">def</span> <span class="fn">feature_engineering</span>(author_names: <span class="fn">list</span>[<span class="fn">str</span>]):
+    raw_docs <span class="op">=</span> query_data_warehouse(author_names)
+    cleaned <span class="op">=</span> clean_documents(raw_docs)
+    embedded <span class="op">=</span> chunk_and_embed(cleaned)
+    load_to_vector_db(embedded)</div>
+</div>
+<div class="tab-content" id="zen-steps">
+<p>A <strong>step</strong> is a single unit of work — a function decorated with <code>@step</code>. Whatever a step returns is automatically saved as a versioned artifact. Steps are cached by default, so re-running a pipeline skips steps whose inputs haven't changed.</p>
+<div class="code-block"><span class="lang">python</span><span class="kw">@step</span>
+<span class="kw">def</span> <span class="fn">clean_documents</span>(docs: <span class="fn">list</span>) <span class="op">-></span> <span class="fn">list</span>:
+    <span class="kw">return</span> [CleaningDispatcher.dispatch(d) <span class="kw">for</span> d <span class="kw">in</span> docs]</div>
+</div>
+<div class="tab-content" id="zen-art">
+<p><strong>Artifacts</strong> are versioned, tracked, shareable data objects. Every step output becomes an artifact. You can attach metadata (stats, schemas) to artifacts for monitoring and debugging. Think of them as "git for data" — you always know which dataset version trained which model.</p>
+</div>
+</div>
+</div>
+`},
+
+{
+  num:"03", title:"Data Engineering",
+  subtitle:"Building data collection ETL pipelines — crawling, standardizing, and storing raw data",
+  content:`
+<div class="origin-box">
+<div class="tag">Why Data Engineering First?</div>
+<h4>Models Are Only As Good As Their Data</h4>
+<p>Before transformers, before fine-tuning, before RAG — there's <strong>data</strong>. Most ML projects fail not because of bad models, but because of bad data pipelines. The LLM Twin needs to collect your digital footprint from multiple platforms, standardize it, and make it ready for processing. This is classic data engineering: Extract, Transform, Load (ETL).</p>
+</div>
+
+<div class="section">
+<div class="section-title">The Data Collection Pipeline Design</div>
+<p>Data comes from multiple heterogeneous sources (Medium, Substack, LinkedIn, GitHub) but must be normalized into a unified schema. The key design decision: <strong>abstract by data category, not by platform</strong>. An article from Medium and an article from Substack are both "articles" — the processing is the same regardless of source.</p>
+
+<div class="card-grid">
+<div class="card"><div class="card-label">Category</div><h4>Articles</h4><p>Long-form content from Medium, Substack, blogs. Rich with structure — headings, paragraphs, code blocks.</p></div>
+<div class="card"><div class="card-label">Category</div><h4>Posts</h4><p>Short-form content from LinkedIn, Twitter/X. Concise, opinionated, often with hashtags and mentions.</p></div>
+<div class="card"><div class="card-label">Category</div><h4>Code</h4><p>GitHub repositories. Structured differently — files, functions, docstrings. Requires specialized chunking.</p></div>
+</div>
+
+<div class="insight">
+<div class="label">Design Principle</div>
+<p>By grouping data by category (not platform), adding a new source is trivial — just write a new crawler and plug it in. The rest of the system (cleaning, chunking, embedding, fine-tuning) doesn't change. This is the Open/Closed Principle in action.</p>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Software Patterns Used</div>
+<div class="card-grid">
+<div class="card"><div class="card-label">Pattern</div><h4>ODM (Object-Document Mapping)</h4><p>Like an ORM but for NoSQL. Maps Python classes to MongoDB documents. Custom implementation using Pydantic for type validation + MongoDB operations.</p></div>
+<div class="card"><div class="card-label">Pattern</div><h4>Dispatcher + Factory</h4><p>Given a URL, the CrawlerDispatcher instantiates the correct crawler (GitHub, Medium, Custom) without if-else chains. Factory pattern creates the right handler; Strategy pattern encapsulates the crawling logic.</p></div>
+<div class="card"><div class="card-label">Pattern</div><h4>ETL Pipeline</h4><p>Extract (crawl websites), Transform (standardize schema, clean HTML), Load (insert into MongoDB). Orchestrated by ZenML on a schedule.</p></div>
+</div>
+</div>
+`},
+
+{
+  num:"04", title:"RAG Feature Pipeline",
+  subtitle:"Embeddings, vector databases, chunking strategies, and building the ingestion pipeline",
+  content:`
+<div class="origin-box">
+<div class="tag">Why RAG Exists</div>
+<h4>LLMs Have a Fundamental Limitation</h4>
+<p>LLMs are trained on a static dataset. After training, they know nothing about your private data, recent events, or domain-specific knowledge. They also hallucinate — confidently generating plausible but wrong information. <strong>RAG (Retrieval-Augmented Generation)</strong> was invented to solve both problems: give the LLM access to external, up-to-date, factual information at inference time.</p>
+<p>Before RAG existed (pre-2020), you had two options: (1) fine-tune the model on new data (expensive, doesn't scale), or (2) stuff everything into the prompt (limited by context window). RAG provides a third way: retrieve only the relevant pieces of information and inject them into the prompt.</p>
+</div>
+
+<div class="section">
+<div class="section-title">The Vanilla RAG Framework</div>
+<div class="diagram-container">
+<div class="diagram-title">RAG = Retrieve + Augment + Generate</div>
+<div class="pipeline-flow">
+<div class="pipeline-node" onclick="showDetail('rag','ingest')"><div class="node-label">Ingest</div><div class="node-text">Chunk → Embed → Store</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node" onclick="showDetail('rag','retrieve')"><div class="node-label">Retrieve</div><div class="node-text">Query → Similar Chunks</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node" onclick="showDetail('rag','generate')"><div class="node-label">Generate</div><div class="node-text">Prompt + Context → Answer</div></div>
+</div>
+<div class="node-detail" id="rag-ingest"><strong>Ingestion Pipeline:</strong> Documents are split into chunks, each chunk is passed through an embedding model to create a vector representation, and stored in a vector database with metadata. This happens offline, before any user queries.</div>
+<div class="node-detail" id="rag-retrieve"><strong>Retrieval Pipeline:</strong> The user's query is embedded using the same model. A similarity search (cosine distance, dot product) finds the K most similar chunks. These become the "context" for the LLM.</div>
+<div class="node-detail" id="rag-generate"><strong>Generation Pipeline:</strong> A prompt template combines the user's question with the retrieved context. The LLM generates an answer grounded in the provided information, reducing hallucination.</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">What Are Embeddings?</div>
+<p>An embedding is a dense vector representation of text in a high-dimensional space where <strong>semantic similarity corresponds to geometric proximity</strong>. If two sentences mean similar things, their embedding vectors will be close together.</p>
+
+<div class="card-grid">
+<div class="card"><div class="card-label">Historical</div><h4>Word2Vec (2013)</h4><p>First breakthrough — static word embeddings. "king - man + woman ≈ queen". But one vector per word regardless of context.</p></div>
+<div class="card"><div class="card-label">Historical</div><h4>GloVe (2014)</h4><p>Global Vectors — captures word co-occurrence statistics. Better at analogies but still context-free.</p></div>
+<div class="card"><div class="card-label">Evolution</div><h4>BERT / Sentence Transformers</h4><p>Contextual embeddings — the same word gets different vectors based on surrounding text. "bank" in "river bank" ≠ "bank" in "bank account".</p></div>
+<div class="card"><div class="card-label">Current</div><h4>Modern Embedding Models</h4><p>all-MiniLM-L6-v2, all-mpnet-base-v2, BGE, E5. Trained on millions of sentence pairs. Check the MTEB leaderboard on HuggingFace for the latest rankings.</p></div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Vector Databases — How They Work</div>
+<p>A vector DB stores embeddings and supports fast approximate nearest neighbor (ANN) search. Unlike SQL databases that search by exact column values, vector DBs search by geometric distance in embedding space.</p>
+
+<div class="tab-group">
+<div class="tab-buttons">
+<button class="tab-btn active" onclick="switchTab(this,'vdb-algo')">Index Algorithms</button>
+<button class="tab-btn" onclick="switchTab(this,'vdb-ops')">Operations</button>
+<button class="tab-btn" onclick="switchTab(this,'vdb-choice')">Choosing One</button>
+</div>
+<div class="tab-content active" id="vdb-algo">
+<p>Vector DBs use specialized index structures: <strong>HNSW</strong> (Hierarchical Navigable Small World) graphs are the most popular — they build a multi-layer graph where each layer is a "skip list" for efficient traversal. <strong>IVF</strong> (Inverted File Index) partitions vectors into clusters. <strong>PQ</strong> (Product Quantization) compresses vectors for memory efficiency. Qdrant (used in this book) uses HNSW by default.</p>
+</div>
+<div class="tab-content" id="vdb-ops">
+<p><strong>Insert:</strong> Add vector + metadata to a collection. <strong>Search:</strong> Given a query vector, find top-K nearest neighbors. <strong>Filter:</strong> Combine vector search with metadata filters (e.g., "author_id = X AND similarity > 0.8"). <strong>Upsert:</strong> Insert or update — prevents duplicates using document IDs.</p>
+</div>
+<div class="tab-content" id="vdb-choice">
+<p><strong>Qdrant</strong> — Rust-based, fast, good filtering. Used in this book. <strong>Pinecone</strong> — Fully managed, zero ops. <strong>Weaviate</strong> — GraphQL API, hybrid search. <strong>Milvus</strong> — Open-source, scalable. <strong>ChromaDB</strong> — Lightweight, great for prototyping.</p>
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Advanced RAG Optimizations</div>
+<table class="comparison">
+<tr><th>Stage</th><th>Technique</th><th>What It Does</th></tr>
+<tr><td><strong>Pre-retrieval</strong></td><td>Query Expansion</td><td>Generate N variations of the user's query to cover more of the embedding space</td></tr>
+<tr><td><strong>Pre-retrieval</strong></td><td>Self-Querying</td><td>Extract metadata filters from the query (e.g., author name) to narrow search</td></tr>
+<tr><td><strong>Retrieval</strong></td><td>Hybrid Search</td><td>Combine vector search (semantic) with keyword search (exact match)</td></tr>
+<tr><td><strong>Retrieval</strong></td><td>Filtered Vector Search</td><td>Apply metadata filters before/after vector search to reduce noise</td></tr>
+<tr><td><strong>Post-retrieval</strong></td><td>Reranking</td><td>Use a cross-encoder model to score query-chunk relevance. Keep only top-K.</td></tr>
+<tr><td><strong>Post-retrieval</strong></td><td>Prompt Compression</td><td>Remove redundant information from retrieved context to fit within token limits</td></tr>
+</table>
+</div>
+`},
+
+{
+  num:"05", title:"Supervised Fine-Tuning (SFT)",
+  subtitle:"Creating instruction datasets, LoRA/QLoRA, and fine-tuning Llama 3.1 8B",
+  content:`
+<div class="origin-box">
+<div class="tag">Why Fine-Tune?</div>
+<h4>From General-Purpose to Purpose-Built</h4>
+<p>A pre-trained LLM is like a brilliant polymath who speaks every language but has no idea how to follow your specific instructions. <strong>Pre-training</strong> teaches the model to predict the next token — it learns grammar, facts, reasoning. <strong>SFT</strong> teaches it to follow instructions by showing it examples of (instruction, answer) pairs. It's the difference between "knows how to write" and "knows how to write <em>what you want, how you want it</em>."</p>
+<p>Before fine-tuning existed, you were stuck with prompt engineering — trying to coerce a general model into specific behavior through clever prompts. Fine-tuning permanently bakes behavior into the model's weights.</p>
+</div>
+
+<div class="section">
+<div class="section-title">The Instruction Dataset Pipeline</div>
+<div class="diagram-container">
+<div class="diagram-title">From Raw Text to Training Data</div>
+<div class="pipeline-flow">
+<div class="pipeline-node"><div class="node-label">Curate</div><div class="node-text">Gather raw sources</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">Filter</div><div class="node-text">Dedup, decontaminate</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">Evaluate</div><div class="node-text">Score quality</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">Generate</div><div class="node-text">LLM-assisted pairs</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">Augment</div><div class="node-text">Add diversity</div></div>
+</div>
+</div>
+
+<p>Data quality matters more than quantity. Three dimensions define quality:</p>
+<div class="card-grid">
+<div class="card"><div class="card-label">Dimension</div><h4>Accuracy</h4><p>Factually correct, relevant answers. Wrong data teaches wrong behavior.</p></div>
+<div class="card"><div class="card-label">Dimension</div><h4>Diversity</h4><p>Wide range of topics, lengths, styles. Prevents overfitting to narrow patterns.</p></div>
+<div class="card"><div class="card-label">Dimension</div><h4>Complexity</h4><p>Multi-step reasoning, challenging tasks. Trivial samples teach nothing new.</p></div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Fine-Tuning Techniques Compared</div>
+<table class="comparison">
+<tr><th>Technique</th><th>Memory</th><th>Speed</th><th>Quality</th><th>When to Use</th></tr>
+<tr><td><strong>Full Fine-Tuning</strong></td><td>Very High (all params)</td><td>Slow</td><td>Highest</td><td>You have many GPUs and need maximum quality</td></tr>
+<tr><td><strong>LoRA</strong></td><td>Moderate (adapters)</td><td>Fast</td><td>High</td><td>Default choice — best quality/efficiency tradeoff</td></tr>
+<tr><td><strong>QLoRA</strong></td><td>Low (4-bit + adapters)</td><td>Moderate</td><td>Good</td><td>Limited VRAM — 7B model fits on consumer GPU</td></tr>
+</table>
+
+<div class="expandable">
+<div class="expand-header" onclick="toggleExpand(this)">How LoRA Works — The Intuition <span class="expand-arrow">▶</span></div>
+<div class="expand-body">
+<p>Full fine-tuning updates all ~8 billion parameters. LoRA's insight: <strong>the weight changes during fine-tuning are low-rank</strong> — they can be approximated by two small matrices (A and B) whose product is added to the original frozen weights.</p>
+<p>Instead of updating a 4096×4096 weight matrix (16M params), LoRA learns two matrices: A (4096×32) and B (32×4096) = only 262K params. That's a 60x reduction. The rank (r=32) controls the expressiveness — higher rank = more params = more capacity but more memory.</p>
+<p>Key parameters: <strong>rank (r)</strong> — 16 to 64 typical; <strong>alpha</strong> — scaling factor, often set equal to r; <strong>target_modules</strong> — which layers to apply LoRA to (q_proj, k_proj, v_proj, etc.).</p>
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Training Hyperparameters — What They Mean</div>
+<div class="card-grid">
+<div class="card"><h4>Learning Rate: 3e-4</h4><p>How big each weight update step is. Too high = unstable training. Too low = slow convergence. 1e-4 to 3e-4 is typical for LoRA.</p></div>
+<div class="card"><h4>Batch Size: 2 × 8 accum = 16</h4><p>Physical batch size limited by VRAM. Gradient accumulation simulates larger batches. Effective batch = per_device × accum_steps.</p></div>
+<div class="card"><h4>Epochs: 3</h4><p>How many times the model sees the entire dataset. 1-3 for fine-tuning. More risks overfitting — watch validation loss.</p></div>
+<div class="card"><h4>Max Seq Length: 2048</h4><p>Maximum number of tokens per sample. Longer = more context but more VRAM. Packing fills gaps by concatenating short samples.</p></div>
+</div>
+</div>
+`},
+
+{
+  num:"06", title:"Fine-Tuning with Preference Alignment",
+  subtitle:"DPO, RLHF, creating preference datasets, and aligning model behavior",
+  content:`
+<div class="origin-box">
+<div class="tag">Why Preference Alignment?</div>
+<h4>SFT Teaches What to Say — DPO Teaches What <em>Not</em> to Say</h4>
+<p>SFT alone can't capture the nuances of human preferences. Two answers might both be "correct" but one is clearly better — more natural, more concise, less formal. <strong>Preference alignment</strong> teaches the model to distinguish between better and worse responses. It was originally developed for safety (RLHF at OpenAI/Anthropic) but is equally powerful for style transfer, tone calibration, and quality improvement.</p>
+</div>
+
+<div class="section">
+<div class="section-title">From RLHF to DPO — Historical Evolution</div>
+<div class="timeline">
+<div class="timeline-item"><span class="era">2020</span><h4>RLHF (Reinforcement Learning from Human Feedback)</h4><p>OpenAI's InstructGPT: Train a reward model on human preferences, then optimize the LLM using PPO (reinforcement learning). Complex, unstable, expensive — requires 3 models in memory simultaneously.</p></div>
+<div class="timeline-item"><span class="era">2023</span><h4>DPO (Direct Preference Optimization)</h4><p>Stanford's breakthrough: Skip the reward model entirely. Directly optimize the LLM on preference pairs (chosen vs rejected). Same math, dramatically simpler implementation. Just a modified cross-entropy loss.</p></div>
+<div class="timeline-item"><span class="era">2024</span><h4>ORPO, SimPO, KTO</h4><p>Newer variants that simplify further or address specific weaknesses. ORPO combines SFT and alignment in one step. KTO works with binary feedback (good/bad) instead of pairwise preferences.</p></div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Preference Dataset Structure</div>
+<table class="comparison">
+<tr><th>Field</th><th>Content</th><th>Purpose</th></tr>
+<tr><td><strong>Instruction</strong></td><td>"Write about algorithm bias"</td><td>The prompt/question</td></tr>
+<tr><td><strong>Chosen</strong></td><td>Casual, authentic style (extracted from actual writing)</td><td>The response we WANT the model to generate</td></tr>
+<tr><td><strong>Rejected</strong></td><td>Formal, generic LLM-style response</td><td>The response we want the model to AVOID</td></tr>
+</table>
+<p>The LLM Twin's preference dataset uses a clever trick: <strong>chosen answers are real extracts from the author's writing</strong> (authentic style), while rejected answers are generated by GPT-4o-mini (generic style). This naturally creates the contrast needed for style transfer without manual annotation.</p>
+</div>
+
+<div class="section">
+<div class="section-title">DPO — How It Works</div>
+<p>DPO reformulates the RLHF objective into a simple classification loss. Given (prompt, chosen, rejected), the model learns to increase the probability of chosen responses relative to rejected ones, while staying close to the reference model (preventing catastrophic forgetting).</p>
+<div class="insight">
+<div class="label">Key Parameters</div>
+<p><strong>β (beta)</strong> controls how much the model can deviate from the reference. Higher β = more conservative (stays close to original). Lower β = more aggressive alignment. Typical range: 0.1 to 0.5. For style transfer, use moderate β to change style without losing knowledge.</p>
+</div>
+</div>
+`},
+
+{
+  num:"07", title:"Evaluating LLMs",
+  subtitle:"Benchmarks, LLM-as-judge, RAG evaluation, and custom task-specific metrics",
+  content:`
+<div class="origin-box">
+<div class="tag">Why Evaluation Is Hard</div>
+<h4>You Can't Improve What You Can't Measure</h4>
+<p>Unlike traditional ML where you have clear metrics (accuracy, F1, AUC), LLM output is open-ended text. "Is this a good response?" is fundamentally subjective. Before LLM evaluation frameworks existed, people eyeballed outputs — obviously unscalable. The field developed three approaches: standardized benchmarks, LLM-as-judge, and RAG-specific metrics.</p>
+</div>
+
+<div class="section">
+<div class="section-title">Three Layers of Evaluation</div>
+<div class="card-grid">
+<div class="card"><div class="card-label">Layer 1</div><h4>General-Purpose Benchmarks</h4><p><strong>MMLU</strong> (57 subjects, multiple-choice), <strong>HellaSwag</strong> (commonsense), <strong>HumanEval</strong> (code). Good for comparing base models, but don't tell you how the model will perform on YOUR task.</p></div>
+<div class="card"><div class="card-label">Layer 2</div><h4>Domain/Task-Specific Eval</h4><p>Custom benchmarks for your use case. For the LLM Twin: Does it match the author's style? Is the content accurate? Use <strong>LLM-as-a-judge</strong> with criteria like relevance, coherence, style.</p></div>
+<div class="card"><div class="card-label">Layer 3</div><h4>RAG System Evaluation</h4><p>Not just the LLM — evaluate the entire pipeline. <strong>Ragas</strong> framework measures: context relevance, answer faithfulness, answer relevance. <strong>ARES</strong> trains classifiers on synthetic data for automated evaluation.</p></div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">LLM-as-a-Judge — Practical Implementation</div>
+<p>Use a powerful LLM (GPT-4o) to evaluate responses from your fine-tuned model. Define criteria, create a structured prompt, parse scores. Cheaper and faster than human evaluation, but watch for biases: <strong>position bias</strong> (favors first answer), <strong>length bias</strong> (favors longer answers), <strong>family bias</strong> (favors its own outputs).</p>
+<div class="warning">
+<div class="label">Mitigation Strategies</div>
+<p>Randomize answer order to counter position bias. Provide few-shot examples showing that shorter answers can score higher. Use multiple judge models as a jury to balance individual biases.</p>
+</div>
+</div>
+`},
+
+{
+  num:"08", title:"Inference Optimization",
+  subtitle:"KV cache, continuous batching, speculative decoding, model parallelism, and quantization",
+  content:`
+<div class="origin-box">
+<div class="tag">Why Optimization Matters</div>
+<h4>The Bottleneck Is Autoregressive Generation</h4>
+<p>LLMs generate text one token at a time. Each token depends on all previous tokens. This is inherently sequential — and terrible for GPU utilization. A 7B parameter model in FP16 needs ~14GB just for weights, plus KV cache that grows with every token. Without optimization, latency is high, throughput is low, and GPU money burns. Inference optimization is the difference between a demo and a production system.</p>
+</div>
+
+<div class="section">
+<div class="section-title">Optimization Techniques</div>
+<div class="tab-group">
+<div class="tab-buttons">
+<button class="tab-btn active" onclick="switchTab(this,'opt-kv')">KV Cache</button>
+<button class="tab-btn" onclick="switchTab(this,'opt-batch')">Cont. Batching</button>
+<button class="tab-btn" onclick="switchTab(this,'opt-spec')">Speculative Decoding</button>
+<button class="tab-btn" onclick="switchTab(this,'opt-attn')">Attention</button>
+</div>
+<div class="tab-content active" id="opt-kv">
+<p><strong>Problem:</strong> To predict token 100, the model recomputes attention for tokens 1-99. Token 101 repeats for 1-100. Massive redundancy.</p>
+<p><strong>Solution:</strong> Cache the Key and Value tensors from attention layers. Only compute K,V for the new token. <strong>Static KV cache</strong> pre-allocates to max length, enabling torch.compile for up to 4x speedup.</p>
+<p><strong>Cost:</strong> KV cache size = 2 × n_layers × n_heads × dim_head × n_tokens × bytes_per_param. For a 7B model at FP16 with 2K tokens: ~2GB.</p>
+</div>
+<div class="tab-content" id="opt-batch">
+<p><strong>Problem:</strong> Traditional batching waits for the slowest request. GPU sits idle while a 500-token response finishes and a 20-token response completed long ago.</p>
+<p><strong>Solution:</strong> Continuous (in-flight) batching — evict completed requests immediately, replace with waiting ones. GPU always processes a full batch. Implemented in TGI, vLLM, TensorRT-LLM.</p>
+</div>
+<div class="tab-content" id="opt-spec">
+<p><strong>Problem:</strong> Token-by-token generation doesn't utilize GPU parallelism.</p>
+<p><strong>Solution:</strong> Use a small "draft" model to predict 5-10 tokens in parallel. Verify with the large model in a single forward pass. If 90% match, you get 3-4x speedup. Both models must share the same tokenizer. Prompt lookup decoding is a variant for summarization tasks.</p>
+</div>
+<div class="tab-content" id="opt-attn">
+<p><strong>FlashAttention-2:</strong> Tiles attention computation into blocks that fit in GPU SRAM (fast), avoiding slow HBM transfers. Uses online softmax for block-wise processing. Reduces memory from O(N²) to O(N).</p>
+<p><strong>PagedAttention:</strong> Partitions KV cache into non-contiguous blocks (like OS virtual memory paging). Eliminates memory fragmentation, enables memory sharing across beam search candidates. Used by vLLM.</p>
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Model Parallelism</div>
+<div class="card-grid">
+<div class="card"><div class="card-label">Type</div><h4>Data Parallelism</h4><p>Replicate entire model on each GPU, split data. Simple but wastes memory. Limited to models that fit on one GPU.</p></div>
+<div class="card"><div class="card-label">Type</div><h4>Pipeline Parallelism</h4><p>Split model layers across GPUs (layers 1-8 on GPU0, 9-16 on GPU1). Greatest memory reduction but "pipeline bubbles" cause idle time. Micro-batching helps.</p></div>
+<div class="card"><div class="card-label">Type</div><h4>Tensor Parallelism</h4><p>Split weight matrices within layers across GPUs. Each GPU computes a slice, results aggregated via all-reduce. Most efficient but needs fast interconnect (NVLink).</p></div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Quantization — Trading Precision for Speed</div>
+<table class="comparison">
+<tr><th>Format</th><th>Bits</th><th>Hardware</th><th>Library</th><th>Best For</th></tr>
+<tr><td><strong>GGUF</strong></td><td>1-8</td><td>CPU + GPU</td><td>llama.cpp</td><td>Running locally, broadest hardware support</td></tr>
+<tr><td><strong>GPTQ</strong></td><td>4</td><td>GPU only</td><td>auto-gptq</td><td>GPU inference with broad framework support</td></tr>
+<tr><td><strong>EXL2</strong></td><td>2-8 (mixed)</td><td>GPU only</td><td>ExLlamaV2</td><td>Highest throughput, mixed-precision per layer</td></tr>
+<tr><td><strong>AWQ</strong></td><td>4</td><td>GPU only</td><td>autoawq</td><td>Activation-aware, good quality preservation</td></tr>
+</table>
+</div>
+`},
+
+{
+  num:"09", title:"RAG Inference Pipeline",
+  subtitle:"Query expansion, self-querying, reranking, and building the retrieval module from scratch",
+  content:`
+<div class="origin-box">
+<div class="tag">Completing the RAG System</div>
+<h4>The Feature Pipeline Stored the Data — Now We Retrieve It</h4>
+<p>Chapter 4 built the ingestion pipeline (chunking, embedding, storing in Qdrant). This chapter builds the retrieval and generation pipeline — the runtime component that takes a user query, finds relevant context, and generates an answer. This is where advanced RAG techniques make the difference between "it kinda works" and "it's actually useful."</p>
+</div>
+
+<div class="section">
+<div class="section-title">The RAG Inference Flow</div>
+<div class="diagram-container">
+<div class="diagram-title">8-Step Retrieval Pipeline</div>
+<div class="pipeline-flow">
+<div class="pipeline-node"><div class="node-label">1</div><div class="node-text">User Query</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">2</div><div class="node-text">Query Expansion</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">3</div><div class="node-text">Self-Query</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">4</div><div class="node-text">Filtered Search</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">5</div><div class="node-text">Collect N×K</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">6</div><div class="node-text">Rerank</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">7</div><div class="node-text">Build Prompt</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">8</div><div class="node-text">LLM Answer</div></div>
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Key Implementation Details</div>
+<div class="expandable">
+<div class="expand-header" onclick="toggleExpand(this)">Query Expansion — Why One Query Isn't Enough <span class="expand-arrow">▶</span></div>
+<div class="expand-body"><p>A single query vector covers a tiny area of embedding space. Query expansion generates N variations using an LLM (e.g., GPT-4o-mini). Each variation captures a different facet of the question. N searches × K results = N×K candidates, giving broader coverage. The LLM prompt asks for "different versions of the question to retrieve relevant documents from a vector database."</p></div>
+</div>
+<div class="expandable">
+<div class="expand-header" onclick="toggleExpand(this)">Self-Querying — Extracting Metadata Filters <span class="expand-arrow">▶</span></div>
+<div class="expand-body"><p>If a user asks "What did Paul write about fine-tuning?", the author name "Paul" is metadata, not content to search. Self-querying uses an LLM to extract structured filters (author_id, platform, date) from natural language. These filters narrow the vector search space, improving both speed and relevance.</p></div>
+</div>
+<div class="expandable">
+<div class="expand-header" onclick="toggleExpand(this)">Reranking — The Precision Layer <span class="expand-arrow">▶</span></div>
+<div class="expand-body"><p>After collecting N×K candidates, many are redundant or only tangentially relevant. A cross-encoder reranker (e.g., ms-marco-MiniLM-L-4-v2) scores each (query, chunk) pair on a 0-1 scale. Unlike bi-encoders (used in vector search), cross-encoders attend to both query and chunk simultaneously, finding deeper semantic relationships. Sort by score, keep top K.</p></div>
+</div>
+</div>
+`},
+
+{
+  num:"10", title:"Inference Pipeline Deployment",
+  subtitle:"AWS SageMaker, FastAPI microservices, autoscaling, and deployment strategies",
+  content:`
+<div class="origin-box">
+<div class="tag">Why Deployment Architecture Matters</div>
+<h4>A Model in a Notebook Is Not a Product</h4>
+<p>Deployment transforms a trained model into a service that real users can access. The choices here (online vs batch, monolith vs microservices, GPU sizing) directly affect cost, latency, and reliability. Get it wrong, and you're burning money on idle GPUs or losing users to slow responses.</p>
+</div>
+
+<div class="section">
+<div class="section-title">Deployment Types</div>
+<div class="card-grid">
+<div class="card"><div class="card-label">Type</div><h4>Online Real-Time</h4><p>REST API, instant responses. For chatbots, code completion. Latency-sensitive, needs always-on infrastructure. Most expensive but best UX.</p></div>
+<div class="card"><div class="card-label">Type</div><h4>Asynchronous</h4><p>Accept request, process in background, notify when done. For document analysis, email generation. Decouples request from processing.</p></div>
+<div class="card"><div class="card-label">Type</div><h4>Offline Batch</h4><p>Process large datasets overnight. For analytics, bulk content generation. Cheapest per-token cost but no real-time interaction.</p></div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">Microservices Architecture</div>
+<p>The LLM Twin uses two microservices: (1) <strong>LLM Service</strong> on AWS SageMaker — hosts the fine-tuned model on GPU infrastructure. (2) <strong>Business Service</strong> on FastAPI — handles RAG logic, prompt building, and calls the LLM endpoint. This separation lets each service scale independently and use appropriate hardware.</p>
+
+<div class="insight">
+<div class="label">Why Split?</div>
+<p>GPU instances (ml.g5.2xlarge) cost ~$1.5/hr. You don't want RAG preprocessing (CPU-bound) wasting GPU time. The FastAPI service runs on cheap CPU instances, only calling the expensive GPU endpoint when needed. SageMaker autoscaling adds/removes GPU instances based on request volume.</p>
+</div>
+</div>
+`},
+
+{
+  num:"11", title:"MLOps and LLMOps",
+  subtitle:"DevOps roots, CI/CD/CT pipelines, prompt monitoring, Docker, and cloud deployment",
+  content:`
+<div class="origin-box">
+<div class="tag">The Full Picture</div>
+<h4>From DevOps → MLOps → LLMOps</h4>
+<p>LLMOps didn't appear from nowhere. It's the third generation of operational practices: <strong>DevOps</strong> (2008) automated software delivery. <strong>MLOps</strong> (2015) extended DevOps to handle models, data, and experiments. <strong>LLMOps</strong> (2023) adds LLM-specific concerns: prompt management, human feedback, guardrails, and token monitoring.</p>
+</div>
+
+<div class="section">
+<div class="section-title">Evolution of Ops</div>
+<div class="timeline">
+<div class="timeline-item"><span class="era">DevOps</span><h4>CI/CD for Code</h4><p>Automate build → test → deploy. Version code, infrastructure as code. Feedback loop: monitoring → alerts → fixes.</p></div>
+<div class="timeline-item"><span class="era">MLOps</span><h4>CI/CD + CT for Models</h4><p>Version data AND code. Experiment tracking. Continuous Training (CT) — retrain when data drifts. Model registry. Feature store.</p></div>
+<div class="timeline-item"><span class="era">LLMOps</span><h4>+ Prompts, Guardrails, Human Feedback</h4><p>Prompt versioning and monitoring. Guardrails (content filtering, hallucination detection). Human feedback loops. Token cost tracking.</p></div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">MLOps Principles (The Appendix)</div>
+<table class="comparison">
+<tr><th>#</th><th>Principle</th><th>What It Means</th></tr>
+<tr><td>1</td><td><strong>Automation</strong></td><td>Automate the entire ML lifecycle — data ingestion, training, evaluation, deployment. Zero manual steps in production.</td></tr>
+<tr><td>2</td><td><strong>Versioning</strong></td><td>Version EVERYTHING — code, data, models, configs, infrastructure. Reproducibility depends on knowing what was used.</td></tr>
+<tr><td>3</td><td><strong>Experiment Tracking</strong></td><td>Log every hyperparameter, metric, artifact for every training run. Compare runs side-by-side to make informed decisions.</td></tr>
+<tr><td>4</td><td><strong>Testing</strong></td><td>Unit tests, integration tests, data validation tests, model performance tests. Test data quality before it reaches the model.</td></tr>
+<tr><td>5</td><td><strong>Monitoring</strong></td><td>System metrics (CPU, GPU, latency), model metrics (accuracy, drift), prompt metrics (hallucination rate, token usage).</td></tr>
+<tr><td>6</td><td><strong>Reproducibility</strong></td><td>Any past result must be reproducible. Given the same data + code + config, you get the same model. Seeds, locked dependencies, versioned artifacts.</td></tr>
+</table>
+</div>
+
+<div class="section">
+<div class="section-title">CI/CD/CT Pipeline for LLM Twin</div>
+<div class="diagram-container">
+<div class="diagram-title">Automated Pipeline Flow</div>
+<div class="pipeline-flow">
+<div class="pipeline-node"><div class="node-label">CI</div><div class="node-text">Lint → Test → Build</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">CD</div><div class="node-text">Docker → Deploy to AWS</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">CT</div><div class="node-text">New Data → Retrain → Evaluate</div></div>
+<span class="pipeline-arrow">→</span>
+<div class="pipeline-node"><div class="node-label">Monitor</div><div class="node-text">Prompts → Alerts → Iterate</div></div>
+</div>
+</div>
+<p>GitHub Actions runs CI on every push. CD deploys to AWS when main branch passes CI. CT triggers when new instruction datasets are available in the feature store. Prompt monitoring via Opik tracks every LLM interaction, flagging hallucinations and style drift.</p>
+</div>
+`}
+];
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════
+const main = document.getElementById('mainContent');
+const navTabs = document.getElementById('navTabs');
+
+chapters.forEach((ch, i) => {
+  // Nav
+  const tab = document.createElement('button');
+  tab.className = 'nav-tab';
+  tab.textContent = `CH${ch.num}`;
+  tab.onclick = () => {
+    document.getElementById(`ch-${ch.num}`).scrollIntoView({behavior:'smooth',block:'start'});
+  };
+  navTabs.appendChild(tab);
+
+  // Chapter
+  const div = document.createElement('div');
+  div.className = 'chapter';
+  div.id = `ch-${ch.num}`;
+  div.innerHTML = `
+    <div class="chapter-header" onclick="this.parentElement.classList.toggle('expanded')">
+      <div class="chapter-num">CH ${ch.num}</div>
+      <div>
+        <div class="chapter-title">${ch.title}</div>
+        <div class="chapter-subtitle">${ch.subtitle}</div>
+        <div class="chapter-toggle">Click to expand ▾</div>
+      </div>
+    </div>
+    <div class="chapter-body">${ch.content}</div>
+  `;
+  main.appendChild(div);
+});
+
+// Auto-expand first chapter
+document.querySelector('.chapter').classList.add('expanded');
+
+// ═══════════════════════════════════════════════════════════════
+// INTERACTIONS
+// ═══════════════════════════════════════════════════════════════
+function showDetail(group, id) {
+  const el = document.getElementById(`${group}-${id}`);
+  document.querySelectorAll(`[id^="${group}-"]`).forEach(d => {
+    if (d !== el) { d.classList.remove('show'); }
+  });
+  el.classList.toggle('show');
+  // Highlight node
+  el.closest('.diagram-container').querySelectorAll('.pipeline-node').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+function switchTab(btn, tabId) {
+  const group = btn.closest('.tab-group');
+  group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  group.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+function toggleExpand(header) {
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+
+function checkQuiz(opt, correct) {
+  const quiz = opt.closest('.quiz');
+  if (quiz.classList.contains('answered')) return;
+  quiz.classList.add('answered');
+  opt.classList.add(correct ? 'correct' : 'wrong');
+  if (correct) {
+    quiz.querySelector('.quiz-feedback').style.display = 'block';
+  } else {
+    quiz.querySelectorAll('.quiz-opt').forEach(o => {
+      if (o.onclick.toString().includes('true')) o.classList.add('correct');
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCROLL EFFECTS
+// ═══════════════════════════════════════════════════════════════
+const progressBar = document.getElementById('progressBar');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.chapter').forEach(ch => observer.observe(ch));
+
+window.addEventListener('scroll', () => {
+  const scrollPct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+  progressBar.style.width = scrollPct + '%';
+  
+  // Highlight active nav tab
+  const chs = document.querySelectorAll('.chapter');
+  const tabs = document.querySelectorAll('.nav-tab');
+  chs.forEach((ch, i) => {
+    const rect = ch.getBoundingClientRect();
+    if (rect.top < 200 && rect.bottom > 200) {
+      tabs.forEach(t => t.classList.remove('active'));
+      tabs[i]?.classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>

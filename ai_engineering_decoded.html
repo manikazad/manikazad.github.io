@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Engineering — Interactive Field Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c10;
+  --surface: #12151c;
+  --surface2: #1a1e28;
+  --surface3: #222838;
+  --border: #2a3040;
+  --border-glow: #3a4a6a;
+  --text: #e0e4ec;
+  --text-dim: #8890a4;
+  --text-muted: #555e74;
+  --accent: #4ecdc4;
+  --accent2: #ff6b6b;
+  --accent3: #ffe66d;
+  --accent4: #a78bfa;
+  --accent5: #f472b6;
+  --accent6: #38bdf8;
+  --gradient1: linear-gradient(135deg, #4ecdc4, #44a08d);
+  --gradient2: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  --gradient3: linear-gradient(135deg, #a78bfa, #7c3aed);
+  --gradient4: linear-gradient(135deg, #38bdf8, #0284c7);
+  --gradient5: linear-gradient(135deg, #f472b6, #db2777);
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: 'Source Sans 3', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 48px rgba(0,0,0,0.6);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.7; overflow-x: hidden; }
+::selection { background: var(--accent); color: var(--bg); }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; position: relative; padding: 2rem; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 800px 600px at 30% 20%, rgba(78,205,196,0.08), transparent),
+    radial-gradient(ellipse 600px 400px at 70% 70%, rgba(167,139,250,0.06), transparent),
+    radial-gradient(ellipse 400px 300px at 50% 50%, rgba(255,107,107,0.04), transparent);
+  pointer-events: none;
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(78,205,196,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(78,205,196,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 70%);
+}
+.hero-label {
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem;
+  opacity: 0; animation: fadeUp 0.8s 0.3s forwards;
+}
+.hero h1 {
+  font-family: var(--serif); font-size: clamp(2.5rem, 7vw, 5.5rem); line-height: 1.1;
+  color: var(--text); max-width: 900px; opacity: 0; animation: fadeUp 0.8s 0.5s forwards;
+}
+.hero h1 em {
+  font-style: normal; background: var(--gradient1);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-sub {
+  font-size: 1.15rem; color: var(--text-dim); max-width: 600px;
+  margin-top: 1.5rem; font-weight: 300; opacity: 0; animation: fadeUp 0.8s 0.7s forwards;
+}
+.hero-meta {
+  display: flex; gap: 2rem; margin-top: 2.5rem; font-family: var(--mono);
+  font-size: 0.75rem; color: var(--text-muted); opacity: 0; animation: fadeUp 0.8s 0.9s forwards;
+}
+.hero-meta span { display: flex; align-items: center; gap: 0.4rem; }
+.hero-meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.hero-scroll {
+  position: absolute; bottom: 2rem; font-family: var(--mono); font-size: 0.65rem;
+  letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase;
+  opacity: 0; animation: fadeUp 0.8s 1.1s forwards, pulse 2s 2s infinite;
+}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+.nav-sticky {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,12,16,0.85); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border); padding: 0 1rem;
+}
+.nav-inner {
+  max-width: 1400px; margin: 0 auto; display: flex; align-items: center;
+  gap: 0.5rem; overflow-x: auto; scrollbar-width: none; padding: 0.6rem 0;
+}
+.nav-inner::-webkit-scrollbar { display: none; }
+.nav-btn {
+  flex-shrink: 0; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.05em;
+  padding: 0.4rem 0.75rem; border: 1px solid var(--border); border-radius: 4px;
+  background: transparent; color: var(--text-dim); cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.nav-btn:hover, .nav-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(78,205,196,0.06); }
+.nav-btn .ch-num { color: var(--text-muted); margin-right: 0.3rem; }
+
+.chapter-section {
+  max-width: 1100px; margin: 0 auto; padding: 5rem 1.5rem 4rem; display: none;
+}
+.chapter-section.visible { display: block; animation: fadeUp 0.5s forwards; }
+
+.ch-header { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+.ch-number { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 0.75rem; }
+.ch-header h2 { font-family: var(--serif); font-size: clamp(2rem, 4vw, 3rem); line-height: 1.2; margin-bottom: 1rem; }
+.ch-header .ch-tldr { font-size: 1.1rem; color: var(--text-dim); font-weight: 300; max-width: 750px; line-height: 1.8; }
+
+.concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; margin: 2rem 0; }
+.concept-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1.75rem; transition: all 0.3s; position: relative; overflow: hidden;
+}
+.concept-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.concept-card:hover { border-color: var(--border-glow); transform: translateY(-2px); box-shadow: var(--shadow); }
+.concept-card h4 { font-family: var(--mono); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+.concept-card p { font-size: 0.92rem; color: var(--text-dim); line-height: 1.7; }
+.concept-card .icon { font-size: 1.2rem; }
+.card-accent-1::before { background: var(--gradient1); }
+.card-accent-2::before { background: var(--gradient2); }
+.card-accent-3::before { background: var(--gradient3); }
+.card-accent-4::before { background: var(--gradient4); }
+.card-accent-5::before { background: var(--gradient5); }
+
+.insight-block {
+  background: var(--surface2); border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0; padding: 1.5rem 2rem; margin: 2rem 0;
+}
+.insight-block.warn { border-left-color: var(--accent3); }
+.insight-block.danger { border-left-color: var(--accent2); }
+.insight-block.purple { border-left-color: var(--accent4); }
+.insight-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.insight-block p { font-size: 0.95rem; color: var(--text-dim); }
+.insight-block p strong { color: var(--text); font-weight: 600; }
+
+.flow-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: 1.5rem 0; justify-content: center; }
+.flow-step {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  padding: 0.65rem 1.1rem; font-family: var(--mono); font-size: 0.78rem;
+  font-weight: 500; text-align: center; white-space: nowrap;
+}
+.flow-arrow { color: var(--accent); font-size: 1rem; flex-shrink: 0; }
+
+.section-title { font-family: var(--serif); font-size: 1.6rem; margin: 3rem 0 1.25rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.section-sub { font-family: var(--mono); font-size: 0.85rem; font-weight: 600; color: var(--accent); margin: 2rem 0 0.75rem; }
+.body-text { font-size: 0.95rem; color: var(--text-dim); line-height: 1.85; margin: 0.75rem 0; max-width: 800px; }
+.body-text strong { color: var(--text); }
+
+.comp-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.85rem; }
+.comp-table th {
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+  text-align: left; padding: 0.75rem 1rem; background: var(--surface2);
+  border-bottom: 2px solid var(--accent); color: var(--text);
+}
+.comp-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); color: var(--text-dim); }
+.comp-table tr:hover td { background: rgba(78,205,196,0.03); }
+
+.expand-block { border: 1px solid var(--border); border-radius: 8px; margin: 1rem 0; overflow: hidden; }
+.expand-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 1.25rem; cursor: pointer; background: var(--surface); transition: background 0.2s; user-select: none;
+}
+.expand-header:hover { background: var(--surface2); }
+.expand-header h5 { font-family: var(--mono); font-size: 0.82rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; }
+.expand-arrow { transition: transform 0.3s; color: var(--text-muted); font-size: 0.8rem; }
+.expand-block.open .expand-arrow { transform: rotate(180deg); }
+.expand-body { display: none; padding: 1.25rem; background: var(--surface2); border-top: 1px solid var(--border); }
+.expand-block.open .expand-body { display: block; animation: fadeUp 0.3s; }
+.expand-body p { font-size: 0.9rem; color: var(--text-dim); line-height: 1.8; margin-bottom: 0.75rem; }
+.expand-body p:last-child { margin-bottom: 0; }
+
+.takeaway-box {
+  background: linear-gradient(135deg, rgba(78,205,196,0.06), rgba(167,139,250,0.04));
+  border: 1px solid rgba(78,205,196,0.2); border-radius: 10px; padding: 2rem; margin: 2.5rem 0;
+}
+.takeaway-box h4 { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+.check-list { list-style: none; }
+.check-list li { display: flex; gap: 0.6rem; padding: 0.4rem 0; font-size: 0.9rem; color: var(--text-dim); line-height: 1.6; }
+.check-list li::before { content: '▸'; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+.badge {
+  display: inline-block; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+  padding: 0.2rem 0.5rem; border-radius: 3px; text-transform: uppercase; font-weight: 600;
+}
+.badge-teal { background: rgba(78,205,196,0.15); color: var(--accent); }
+.badge-red { background: rgba(255,107,107,0.15); color: var(--accent2); }
+.badge-purple { background: rgba(167,139,250,0.15); color: var(--accent4); }
+.badge-yellow { background: rgba(255,230,109,0.15); color: var(--accent3); }
+.badge-blue { background: rgba(56,189,248,0.15); color: var(--accent6); }
+.badge-pink { background: rgba(244,114,182,0.15); color: var(--accent5); }
+
+.dig-deeper {
+  background: var(--surface); border: 1px dashed var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0;
+}
+.dig-deeper h5 { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent4); margin-bottom: 0.75rem; }
+.dig-deeper ul { list-style: none; }
+.dig-deeper li { font-size: 0.88rem; color: var(--text-dim); padding: 0.35rem 0; padding-left: 1rem; position: relative; }
+.dig-deeper li::before { content: '\2192'; position: absolute; left: 0; color: var(--accent4); }
+
+@media (max-width: 768px) {
+  .concept-grid { grid-template-columns: 1fr; }
+  .flow-row { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  .hero-meta { flex-direction: column; gap: 0.75rem; }
+}
+</style>
+</head>
+<body>
+
+<section class="hero" id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-label">Interactive Field Guide &bull; Chip Huyen &bull; O'Reilly 2024</div>
+  <h1>AI <em>Engineering</em><br>Decoded</h1>
+  <p class="hero-sub">Every chapter of <strong>AI Engineering: Building Applications with Foundation Models</strong> &mdash; distilled into actionable mental models you can use at work, today.</p>
+  <div class="hero-meta">
+    <span><span class="dot"></span> 10 Chapters</span>
+    <span><span class="dot"></span> 535 Pages Distilled</span>
+    <span><span class="dot"></span> Ship-Ready Concepts</span>
+  </div>
+  <div class="hero-scroll">&darr; scroll or use nav &darr;</div>
+</section>
+
+<nav class="nav-sticky" id="mainNav">
+  <div class="nav-inner">
+    <button class="nav-btn active" data-ch="overview"><span class="ch-num">00</span>Overview</button>
+    <button class="nav-btn" data-ch="ch1"><span class="ch-num">01</span>Foundation Models</button>
+    <button class="nav-btn" data-ch="ch2"><span class="ch-num">02</span>Understanding FMs</button>
+    <button class="nav-btn" data-ch="ch3"><span class="ch-num">03</span>Eval Methodology</button>
+    <button class="nav-btn" data-ch="ch4"><span class="ch-num">04</span>Evaluate Systems</button>
+    <button class="nav-btn" data-ch="ch5"><span class="ch-num">05</span>Prompt Engineering</button>
+    <button class="nav-btn" data-ch="ch6"><span class="ch-num">06</span>RAG &amp; Agents</button>
+    <button class="nav-btn" data-ch="ch7"><span class="ch-num">07</span>Finetuning</button>
+    <button class="nav-btn" data-ch="ch8"><span class="ch-num">08</span>Dataset Engineering</button>
+    <button class="nav-btn" data-ch="ch9"><span class="ch-num">09</span>Inference Optim.</button>
+    <button class="nav-btn" data-ch="ch10"><span class="ch-num">10</span>Architecture</button>
+  </div>
+</nav>
+
+<!-- ═══ OVERVIEW ═══ -->
+<section class="chapter-section visible" id="overview">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent)">Book Overview</div>
+    <h2>The End-to-End Map</h2>
+    <p class="ch-tldr">This book gives you a framework for adapting foundation models to real-world problems &mdash; from picking the right model, through evaluation, prompt engineering, RAG, agents, finetuning, dataset engineering, inference optimization, to production architecture.</p>
+  </div>
+  <p class="body-text">The <strong>core philosophy</strong>: AI engineering is the discipline of building applications <em>on top of</em> readily available foundation models &mdash; not training from scratch. The book focuses on fundamentals that outlast any specific tool.</p>
+  <h3 class="section-title">The AI Engineering Pipeline</h3>
+  <div class="flow-row">
+    <div class="flow-step" style="border-color:var(--accent)">&oplus; Select Model</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent3)">&oplus; Evaluate</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent4)">&oplus; Prompt / RAG / Finetune</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent2)">&oplus; Optimize Inference</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent5)">&oplus; Deploy &amp; Iterate</div>
+  </div>
+  <h3 class="section-title">Three Core Adaptation Techniques</h3>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4><span class="icon">&#128172;</span> Prompt Engineering</h4><p>Craft instructions to steer model behavior without changing its weights. Cheapest and fastest. Always start here.</p></div>
+    <div class="concept-card card-accent-4"><h4><span class="icon">&#128269;</span> RAG</h4><p>Connect the model to external knowledge sources so it can answer with up-to-date, domain-specific information.</p></div>
+    <div class="concept-card card-accent-3"><h4><span class="icon">&#128295;</span> Finetuning</h4><p>Further train the model on your data to change its weights. Most expensive, but most powerful for behavior change.</p></div>
+  </div>
+  <div class="insight-block">
+    <div class="insight-label" style="color:var(--accent)">Key Mental Model</div>
+    <p><strong>Start simple, escalate as needed.</strong> Begin with prompt engineering. If the model lacks knowledge &rarr; add RAG. If the model lacks behavior &rarr; finetune. Real-world systems often combine all three.</p>
+  </div>
+  <h3 class="section-title">AI Engineering vs ML Engineering</h3>
+  <table class="comp-table">
+    <thead><tr><th>Dimension</th><th>Traditional ML Engineering</th><th>AI Engineering (Foundation Models)</th></tr></thead>
+    <tbody>
+      <tr><td>Starting point</td><td>Data &rarr; Model &rarr; Product</td><td>Product &rarr; Model &rarr; Data (iterate fast)</td></tr>
+      <tr><td>Model creation</td><td>Train from scratch</td><td>Adapt existing models</td></tr>
+      <tr><td>Data needs</td><td>Millions of labeled samples</td><td>Few examples to thousands</td></tr>
+      <tr><td>Key skills</td><td>ML theory, feature engineering</td><td>Prompt eng., system design, eval</td></tr>
+      <tr><td>Output type</td><td>Closed-ended (categories, scores)</td><td>Open-ended (text, code, images)</td></tr>
+      <tr><td>Evaluation</td><td>Compare against ground truth</td><td>Much harder &mdash; multiple valid outputs</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══ CH1 ═══ -->
+<section class="chapter-section" id="ch1">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent)">Chapter 01</div>
+    <h2>Introduction to Building AI Apps with Foundation Models</h2>
+    <p class="ch-tldr">How language models evolved into foundation models, what use cases they unlock, and the new AI engineering stack.</p>
+  </div>
+  <h3 class="section-title">The Evolution Chain</h3>
+  <div class="flow-row">
+    <div class="flow-step">Language Models<br><span class="badge badge-teal">1950s</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Self-Supervision<br><span class="badge badge-yellow">Scalable data</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Large Language Models<br><span class="badge badge-purple">GPT, BERT</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Foundation Models<br><span class="badge badge-red">Multimodal</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">AI Engineering<br><span class="badge badge-blue">Applications</span></div>
+  </div>
+  <h3 class="section-title">Key Concepts</h3>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>&#128289; Language Model</h4><p>Encodes statistical information about language. Predicts how likely a word is in context. Basic unit: <strong>token</strong> (character, word, or subword). Two types: <strong>masked</strong> (fills blanks, BERT) and <strong>autoregressive</strong> (predicts next, GPT).</p></div>
+    <div class="concept-card card-accent-4"><h4>&#128200; Self-Supervision</h4><p>Labels inferred from input data itself &mdash; no human labeling. A single sentence yields multiple training samples. This is what let LLMs scale to billions of parameters.</p></div>
+    <div class="concept-card card-accent-3"><h4>&#127760; Foundation Models</h4><p>Work across multiple modalities (text, image, video, audio). General-purpose and can be adapted via prompt engineering, RAG, or finetuning.</p></div>
+    <div class="concept-card card-accent-2"><h4>&#9889; Completion = Power</h4><p>An autoregressive model is a "completion machine." Translation, summarization, classification, coding &mdash; all frameable as completion tasks.</p></div>
+  </div>
+  <div class="insight-block warn">
+    <div class="insight-label" style="color:var(--accent3)">Why This Matters For You</div>
+    <p>You don't need to train from scratch. <strong>Model-as-a-service</strong> means you build on top. New workflow: <strong>build product first &rarr; invest in data/models only after promise</strong>. Iteration speed is your advantage.</p>
+  </div>
+  <h3 class="section-title">Use Cases</h3>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>&#128187; Coding</h4><p>Autocomplete, generation, debugging, documentation. GitHub Copilot pattern.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#127912; Image &amp; Video</h4><p>Marketing materials, art concepts, video editing. Stable Diffusion, DALL-E patterns.</p></div>
+    <div class="concept-card card-accent-3"><h4>&#9997; Writing</h4><p>Emails, reports, marketing copy, contract analysis. Human reviews and refines.</p></div>
+    <div class="concept-card card-accent-2"><h4>&#129302; Conversational Bots</h4><p>Customer support, internal assistants, tutoring. Most visible AI application pattern.</p></div>
+    <div class="concept-card card-accent-5"><h4>&#128203; Data Organization</h4><p>Classification, extraction, tagging, structuring unstructured data.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#9881; Workflow Automation</h4><p>Agents that chain tasks, call APIs, operate autonomously across multi-step processes.</p></div>
+  </div>
+  <div class="expand-block"><div class="expand-header"><h5>&#127919; Use Case Evaluation</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Before building, ask: <strong>Should I build this?</strong> Evaluate whether the use case has enough value, whether failure is tolerable, and whether existing non-AI solutions are sufficient.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#128208; Setting Expectations</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>AI outputs are probabilistic, not deterministic. A model right 90% of the time is wrong 10% of the time &mdash; at scale, that's a lot of errors. Set realistic expectations with stakeholders.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#128197; Milestone Planning</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Start with a demo/MVP using prompt engineering. Add RAG for domain knowledge. Evaluate if finetuning is needed. Plan for ongoing maintenance.</p></div></div>
+  <div class="takeaway-box"><h4>&#129504; Chapter 1 Retention Checklist</h4><ul class="check-list">
+    <li>Language models predict the next token. Self-supervision removed the data labeling bottleneck.</li>
+    <li>Foundation models are multimodal and general-purpose &mdash; not just text.</li>
+    <li>Completion is the fundamental primitive &mdash; nearly every task maps to it.</li>
+    <li>AI engineering = building on existing models, not training from scratch.</li>
+    <li>New workflow: Product &rarr; Model &rarr; Data (not the reverse).</li>
+  </ul></div>
+  <div class="dig-deeper"><h5>&#128300; Dig Deeper</h5><ul>
+    <li>Try the OpenAI tokenizer to see how different phrases get tokenized across languages</li>
+    <li>Study the Super-NaturalInstructions benchmark for the range of tasks FMs can perform</li>
+    <li>Read "The Rise of the AI Engineer" (swyx, 2023) for the cultural shift perspective</li>
+  </ul></div>
+</section>
+
+<!-- ═══ CH2 ═══ -->
+<section class="chapter-section" id="ch2">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent3)">Chapter 02</div>
+    <h2>Understanding Foundation Models</h2>
+    <p class="ch-tldr">How models are built: training data choices, the transformer architecture, model sizing, post-training alignment, and the crucial concept of sampling.</p>
+  </div>
+  <h3 class="section-title">Training Data &mdash; The Fuel</h3>
+  <p class="body-text">Most models rely on <strong>Common Crawl</strong> &mdash; web scrapes of 2-3B pages/month. English is ~46%; languages like Punjabi, Swahili, Bengali are &lt;0.1%. Models inherit web quality issues: clickbait, misinformation, language imbalance.</p>
+  <div class="insight-block warn"><div class="insight-label" style="color:var(--accent3)">Practical Impact</div><p>Non-English is <strong>slower, more expensive, less accurate</strong>. Burmese needs ~10x more tokens than English &rarr; 10x cost. Always benchmark in your target language.</p></div>
+  <h3 class="section-title">The Transformer Architecture</h3>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>&#127959; Why Transformer Won</h4><p>Replaced seq2seq/RNNs. <strong>(1)</strong> Attention lets model reference any input token. <strong>(2)</strong> Input tokens processed in parallel. Massively faster.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#128273; Attention Mechanism</h4><p>Query (Q), Key (K), Value (V) vectors. Q = "what am I looking for?" K = "what does each token offer?" V = "what info does it contain?" Score = relevance.</p></div>
+    <div class="concept-card card-accent-3"><h4>&#9889; Prefill vs Decode</h4><p><strong>Prefill:</strong> All input tokens in parallel &rarr; fast. <strong>Decode:</strong> One output token at a time &rarr; sequential bottleneck. Drives many optimization techniques.</p></div>
+  </div>
+  <h3 class="section-title">Model Size &amp; Scaling Laws</h3>
+  <p class="body-text">Three numbers define scale: <strong>parameters, training tokens, FLOPs</strong>. <strong>Chinchilla:</strong> tokens &asymp; 20&times; parameters. A 7B model should train on ~140B tokens.</p>
+  <h3 class="section-title">Post-Training &mdash; Making Models Usable</h3>
+  <div class="flow-row">
+    <div class="flow-step" style="border-color:var(--accent4)">Pre-trained Model<br><span class="badge badge-purple">Capable but raw</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent)">SFT<br><span class="badge badge-teal">Teach conversation</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent5)">RLHF / DPO<br><span class="badge badge-pink">Align with humans</span></div>
+  </div>
+  <h3 class="section-title">Sampling &mdash; The Underrated Game-Changer</h3>
+  <div class="insight-block purple"><div class="insight-label" style="color:var(--accent4)">Author's Favorite Section</div><p>Sampling is how a model <strong>chooses</strong> output from all possibilities. It explains hallucinations, inconsistency, and creativity. Right sampling strategy boosts performance with almost zero effort.</p></div>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>&#127777; Temperature</h4><p><strong>Low (0.0-0.3):</strong> Deterministic, safe. <strong>High (0.7-1.5):</strong> Creative, risky. Factual tasks &rarr; low. Creative &rarr; higher.</p></div>
+    <div class="concept-card card-accent-2"><h4>&#127919; Top-k &amp; Top-p</h4><p><strong>Top-k:</strong> Only k most likely tokens. <strong>Top-p:</strong> Smallest set whose cumulative probability &gt; p. Top-p adapts dynamically.</p></div>
+    <div class="concept-card card-accent-3"><h4>&#129514; Test-Time Compute</h4><p>Generate multiple candidates, select the best. Best-of-N, chain-of-thought, tree-of-thought. More compute at inference &rarr; better results.</p></div>
+  </div>
+  <div class="takeaway-box"><h4>&#129504; Chapter 2 Retention Checklist</h4><ul class="check-list">
+    <li>Training data distribution determines model capabilities and biases.</li>
+    <li>Transformer = attention + parallelism. Prefill (parallel) &rarr; Decode (sequential).</li>
+    <li>Scaling law: tokens &asymp; 20&times; parameters for compute-optimal training.</li>
+    <li>Post-training (SFT + RLHF/DPO) turns raw models into assistants.</li>
+    <li>Sampling controls creativity-accuracy tradeoff. AI is fundamentally probabilistic.</li>
+  </ul></div>
+  <div class="dig-deeper"><h5>&#128300; Dig Deeper</h5><ul>
+    <li>Vaswani et al., "Attention Is All You Need" (2017) &mdash; the transformer paper</li>
+    <li>Chinchilla paper &mdash; "Training Compute-Optimal Large Language Models"</li>
+    <li>Experiment with temperature and top-p on the same prompt to build intuition</li>
+    <li>Study MoE (Mixture of Experts) architecture &mdash; Mixtral, DeepSeek use it</li>
+  </ul></div>
+</section>
+
+<!-- ═══ CH3 ═══ -->
+<section class="chapter-section" id="ch3">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent2)">Chapter 03</div>
+    <h2>Evaluation Methodology</h2>
+    <p class="ch-tldr">The biggest hurdle to production AI. Covers language modeling metrics, exact evaluation, similarity measures, embeddings, and AI-as-a-judge.</p>
+  </div>
+  <h3 class="section-title">Why Evaluation Is Hard</h3>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-2"><h4>&#127891; Intelligence Paradox</h4><p>Smarter models = harder to evaluate. Few can tell if a PhD-level math solution is wrong.</p></div>
+    <div class="concept-card card-accent-3"><h4>&#127754; Open-Ended Outputs</h4><p>Many valid answers exist. Can't check against a single ground truth.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#11035; Black Box Models</h4><p>No access to internals. Can only observe outputs. Root cause analysis is extremely difficult.</p></div>
+    <div class="concept-card card-accent-1"><h4>&#128200; Benchmark Saturation</h4><p>GLUE saturated in 1 year. MMLU being replaced by MMLU-Pro. Always playing catch-up.</p></div>
+  </div>
+  <h3 class="section-title">Language Modeling Metrics</h3>
+  <table class="comp-table">
+    <thead><tr><th>Metric</th><th>What It Measures</th><th>Intuition</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Entropy</strong></td><td>Information per token on average</td><td>Higher = harder to predict</td></tr>
+      <tr><td><strong>Cross Entropy</strong></td><td>How hard it is for the model to predict next token</td><td>Lower = learned data better</td></tr>
+      <tr><td><strong>Perplexity</strong></td><td>2^(cross entropy)</td><td>PPL of 4 = choosing among 4 options</td></tr>
+      <tr><td><strong>BPC / BPB</strong></td><td>Bits per character or byte</td><td>Enables cross-model comparison</td></tr>
+    </tbody>
+  </table>
+  <h3 class="section-title">Evaluation Methods Spectrum</h3>
+  <div class="flow-row">
+    <div class="flow-step" style="border-color:var(--accent)">Exact Eval<br><span class="badge badge-teal">Objective</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent3)">Similarity-Based<br><span class="badge badge-purple">Semi-objective</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent5)">AI as Judge<br><span class="badge badge-pink">Subjective</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent2)">Human Eval<br><span class="badge badge-red">Gold standard</span></div>
+  </div>
+  <div class="expand-block"><div class="expand-header"><h5>&#9989; Exact Evaluation</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Works when there's a verifiable answer. <strong>Functional correctness</strong> &mdash; does code pass tests? Limitation: many real tasks don't have a single correct answer.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#128207; Similarity Measures (BLEU, ROUGE, BERTScore)</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p><strong>BLEU</strong> = n-gram precision (translation). <strong>ROUGE</strong> = n-gram recall (summarization). <strong>BERTScore</strong> = embedding similarity. Limitation: high similarity &ne; high quality.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#9878; AI as a Judge (LLM-as-Judge)</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Use a strong model to evaluate another. Growing fast because it's cheaper than human eval. <strong>Pitfalls:</strong> position bias, verbosity bias, self-enhancement bias. <strong>Best practice:</strong> multiple judges, randomize position, calibrate against humans.</p></div></div>
+  <div class="takeaway-box"><h4>&#129504; Chapter 3 Retention Checklist</h4><ul class="check-list">
+    <li>Perplexity = 2^(cross entropy). Lower = better language model.</li>
+    <li>Open-ended outputs make ground-truth comparison nearly impossible.</li>
+    <li>AI-as-judge is fast but biased &mdash; always calibrate against human eval.</li>
+    <li>Embeddings enable semantic similarity: compare meanings, not words.</li>
+    <li>No single metric captures everything. Use a portfolio of methods.</li>
+  </ul></div>
+</section>
+
+<!-- ═══ CH4 ═══ -->
+<section class="chapter-section" id="ch4">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent4)">Chapter 04</div>
+    <h2>Evaluate AI Systems</h2>
+    <p class="ch-tldr">From methods to practice: model selection, benchmark navigation, and building a rigorous evaluation pipeline.</p>
+  </div>
+  <h3 class="section-title">Evaluation Criteria</h3>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>&#127919; Domain Capability</h4><p>Can the model handle your domain? Medical, legal, financial tasks need domain knowledge.</p></div>
+    <div class="concept-card card-accent-3"><h4>&#128221; Generation Quality</h4><p>Coherence, factual accuracy, relevance, safety. Different apps weight these differently.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#128208; Instruction Following</h4><p>Does it follow format requirements? Output JSON? Stay in character? Most underrated criterion.</p></div>
+    <div class="concept-card card-accent-2"><h4>&#128176; Cost &amp; Latency</h4><p>A perfect model at $10/query or 30s is useless. Always evaluate cost-performance tradeoff.</p></div>
+  </div>
+  <h3 class="section-title">Model Selection Workflow</h3>
+  <div class="flow-row">
+    <div class="flow-step">Define Requirements</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Screen Benchmarks</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Run Custom Eval</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">A/B Test Finalists</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Select &amp; Monitor</div>
+  </div>
+  <div class="insight-block danger"><div class="insight-label" style="color:var(--accent2)">Warning: Benchmark Pitfalls</div><p>Public benchmarks are <strong>contaminated</strong> &mdash; models may have trained on test data. Leaderboards are gamed. Always run <strong>your own evaluation</strong> on data relevant to your use case.</p></div>
+  <h3 class="section-title">Design Your Evaluation Pipeline</h3>
+  <div class="expand-block"><div class="expand-header"><h5>Step 1: Evaluate ALL components, not just the model</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>A RAG system has a retriever AND generator. If retrieval fails, generator can't help. Evaluate each component independently AND end-to-end.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>Step 2: Create an evaluation guideline</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Write down what "good" looks like. Create rubrics with examples. Without this, evaluation is vibe-checking.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>Step 3: Define methods and data</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Choose methods for each criterion. Curate test sets representing real usage &mdash; easy, hard, and adversarial cases.</p></div></div>
+  <div class="takeaway-box"><h4>&#129504; Chapter 4 Retention Checklist</h4><ul class="check-list">
+    <li>Always evaluate on your own data &mdash; never trust benchmarks alone.</li>
+    <li>Evaluate components independently AND end-to-end.</li>
+    <li>Write evaluation guidelines before you start evaluating.</li>
+    <li>Cost and latency are evaluation criteria, not afterthoughts.</li>
+  </ul></div>
+</section>
+
+<!-- ═══ CH5 ═══ -->
+<section class="chapter-section" id="ch5">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent5)">Chapter 05</div>
+    <h2>Prompt Engineering</h2>
+    <p class="ch-tldr">The cheapest, fastest adaptation technique. In-context learning, system prompts, best practices, defensive prompting, and protection against jailbreaks.</p>
+  </div>
+  <p class="body-text">A prompt has: <strong>(1) Task instruction</strong> &mdash; what to do. <strong>(2) Context</strong> &mdash; background info. <strong>(3) Examples</strong> &mdash; few-shot demonstrations. <strong>(4) Output format</strong> &mdash; structure.</p>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>0&#65039;&#8419; Zero-Shot</h4><p>Just the instruction. Relies on pre-trained knowledge. Works for simple, common tasks.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#128290; Few-Shot</h4><p>Instruction + examples of input/output. Model learns the pattern. Dramatically improves structured tasks.</p></div>
+    <div class="concept-card card-accent-3"><h4>&#128421; System Prompt</h4><p>Sets persona, constraints, global behavior. Persists across conversation. Critical for production.</p></div>
+  </div>
+  <h3 class="section-title">Best Practices</h3>
+  <div class="expand-block"><div class="expand-header"><h5>&#9997; Write clear, explicit instructions</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Instead of "Summarize this," say "Write a 3-sentence summary for a non-technical audience focusing on business impact." Ambiguity is the enemy.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#128218; Provide sufficient context</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Don't assume the model knows your company, product, or domain. Include everything it needs or use RAG.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#129513; Break complex tasks into subtasks</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Chain simpler prompts: extract &rarr; classify &rarr; generate. Each step is easier to debug.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#129300; Give the model time to think</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Chain-of-thought: "think step by step." The model generates better answers when it works through steps first.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#128260; Iterate and version your prompts</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Treat prompts as code. Version control them. Test changes against eval suite. Keep a regression test set.</p></div></div>
+  <h3 class="section-title">Defensive Prompt Engineering</h3>
+  <div class="insight-block danger"><div class="insight-label" style="color:var(--accent2)">Security: The Two Threats</div><p><strong>Jailbreaking:</strong> Tricking a model into bypassing safety guardrails. <strong>Prompt Injection:</strong> Inserting malicious instructions into user input that override system prompt. This is the #1 security risk &mdash; treat all user input as untrusted.</p></div>
+  <div class="takeaway-box"><h4>&#129504; Chapter 5 Retention Checklist</h4><ul class="check-list">
+    <li>Start zero-shot. Add few-shot only if needed.</li>
+    <li>Be explicit, provide context, break into subtasks, let the model think.</li>
+    <li>System prompts set persistent behavior &mdash; invest time in them.</li>
+    <li>Version and test prompts like code.</li>
+    <li>Prompt injection is the SQL injection of AI &mdash; never trust user input.</li>
+  </ul></div>
+</section>
+
+<!-- ═══ CH6 ═══ -->
+<section class="chapter-section" id="ch6">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent6)">Chapter 06</div>
+    <h2>RAG and Agents</h2>
+    <p class="ch-tldr">Give models external knowledge (RAG) and external capabilities (Agents). The two most impactful production patterns.</p>
+  </div>
+  <h3 class="section-title">RAG Architecture</h3>
+  <div class="flow-row">
+    <div class="flow-step" style="border-color:var(--accent6)">User Query</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent)">Retriever<br><span class="badge badge-teal">Find docs</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent4)">Augment Prompt<br><span class="badge badge-purple">Add context</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent5)">Generator<br><span class="badge badge-pink">Generate</span></div>
+  </div>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>&#128209; Term-Based (BM25)</h4><p>Fast, no ML needed, great for exact matching. <strong>Always start here</strong> &mdash; baseline you must beat before embeddings.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#129518; Embedding-Based</h4><p>Convert text to vectors, nearest neighbors. Captures semantic similarity. Requires embedding model + vector DB.</p></div>
+    <div class="concept-card card-accent-3"><h4>&#128256; Hybrid Search</h4><p>Combine term + embedding results. Best of both. Most production RAG uses hybrid + reranker.</p></div>
+  </div>
+  <p class="body-text">Key optimizations: <strong>Chunking strategy</strong> (most impactful decision), <strong>query rewriting</strong>, <strong>reranking</strong> with cross-encoders, <strong>metadata filtering</strong>.</p>
+  <h3 class="section-title">Agents</h3>
+  <div class="insight-block"><div class="insight-label" style="color:var(--accent)">Definition</div><p>An <strong>agent</strong> perceives its environment and acts upon it. In AI: a model that uses <strong>tools</strong> (APIs, code, search) and does <strong>planning</strong> (break goals into steps) to accomplish tasks autonomously.</p></div>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-2"><h4>&#128295; Tools</h4><p>Functions the agent can call: search, code execution, APIs, databases. Turns text generator into an actor.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#128506; Planning</h4><p>Breaking goals into steps. <strong>ReAct</strong>, <strong>Plan-then-Execute</strong>, <strong>Reflection</strong>. Planning is where agents most often fail.</p></div>
+    <div class="concept-card card-accent-5"><h4>&#129504; Memory</h4><p><strong>Short-term:</strong> Current context (limited). <strong>Long-term:</strong> External persistent storage. Critical for multi-step tasks.</p></div>
+  </div>
+  <div class="takeaway-box"><h4>&#129504; Chapter 6 Retention Checklist</h4><ul class="check-list">
+    <li>RAG = Retriever + Generator. Start with BM25 before vector search.</li>
+    <li>Chunking strategy is the most impactful RAG design decision.</li>
+    <li>Hybrid search + reranking = production-grade retrieval.</li>
+    <li>Agents = model + tools + planning + memory.</li>
+    <li>Planning is the weakest link &mdash; evaluate and constrain carefully.</li>
+  </ul></div>
+  <div class="dig-deeper"><h5>&#128300; Dig Deeper</h5><ul>
+    <li>Build RAG with BM25 first, then add embeddings and measure improvement</li>
+    <li>Study the ReAct paper (Yao et al., 2022)</li>
+    <li>Experiment with different chunking strategies (fixed, semantic, recursive)</li>
+    <li>Explore vector DBs: Pinecone, Weaviate, Qdrant, Chroma, LanceDB</li>
+  </ul></div>
+</section>
+
+<!-- ═══ CH7 ═══ -->
+<section class="chapter-section" id="ch7">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent)">Chapter 07</div>
+    <h2>Finetuning</h2>
+    <p class="ch-tldr">When and how to further train a model. Memory math, quantization, LoRA, PEFT, model merging, and practical tactics.</p>
+  </div>
+  <h3 class="section-title">When to Finetune (and When Not To)</h3>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>&#9989; Reasons TO</h4><p>Improve task-specific quality. Structured output formats. Bias mitigation. Reduce latency (bake examples into weights). Model distillation.</p></div>
+    <div class="concept-card card-accent-2"><h4>&#10060; Reasons NOT To</h4><p>Degrades other tasks. Expensive (data, compute, talent). Better prompts or RAG may suffice. Don't own base model. Small improvements may not justify cost.</p></div>
+  </div>
+  <div class="insight-block"><div class="insight-label" style="color:var(--accent)">Decision Framework</div><p>Lacks <strong>knowledge</strong> &rarr; RAG. Lacks <strong>behavior</strong> &rarr; prompts first, then finetune. Too <strong>slow/expensive</strong> &rarr; distill into smaller finetuned model.</p></div>
+  <h3 class="section-title">LoRA &mdash; The King of PEFT</h3>
+  <div class="flow-row">
+    <div class="flow-step" style="border-color:var(--accent4)">Weight Matrix W<br><span class="badge badge-purple">n &times; m</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent)">Decompose A &times; B<br><span class="badge badge-teal">n&times;r, r&times;m</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent3)">Train only A, B<br><span class="badge badge-yellow">~0.01% params</span></div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent5)">Merge: W'=W+&alpha;AB<br><span class="badge badge-pink">No extra latency</span></div>
+  </div>
+  <div class="expand-block"><div class="expand-header"><h5>&#129300; Why does LoRA work?</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Pre-training compressed the model's "intrinsic dimension." Task-specific weight changes live in a much lower-dimensional subspace. LoRA exploits this. Analogy: pre-training builds highways; finetuning adds a few exits.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#9881; LoRA Config Tips</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p><strong>Rank:</strong> Start 8-16. Diminishing returns beyond 16. <strong>Matrices:</strong> All attention (Q,K,V,O) with lower rank beats fewer matrices with higher rank. Adding feedforward layers helps. <strong>QLoRA:</strong> LoRA + 4-bit quant. 65B on single 48GB GPU.</p></div></div>
+  <p class="body-text"><strong>Model Merging:</strong> Combine specialized finetuned models without additional training. SLERP, TIES, DARE methods. Combine a coding LoRA + writing LoRA into one multi-talented model.</p>
+  <div class="takeaway-box"><h4>&#129504; Chapter 7 Retention Checklist</h4><ul class="check-list">
+    <li>Try prompt engineering and RAG before finetuning.</li>
+    <li>LoRA decomposes weight updates &mdash; trains ~0.01% of parameters.</li>
+    <li>QLoRA = LoRA + 4-bit quantization. Large models on consumer hardware.</li>
+    <li>Finetuning on task A can degrade performance on tasks B, C, D.</li>
+    <li>Model merging combines specialized models without retraining.</li>
+  </ul></div>
+</section>
+
+<!-- ═══ CH8 ═══ -->
+<section class="chapter-section" id="ch8">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent3)">Chapter 08</div>
+    <h2>Dataset Engineering</h2>
+    <p class="ch-tldr">Data is the foundation. How to curate, acquire, augment, synthesize, and process datasets.</p>
+  </div>
+  <h3 class="section-title">The Golden Data Trio</h3>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>&#128142; Quality</h4><p><strong>10K crafted instructions beat 100K noisy ones.</strong> LIMA: 1,000 curated examples rival GPT-4 in 43% of cases. Quality &gt; quantity.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#127752; Coverage (Diversity)</h4><p>Represent full range of production inputs. Simple and complex, edge cases, different formats. Quality AND diversity together outperform either alone.</p></div>
+    <div class="concept-card card-accent-3"><h4>&#128200; Quantity</h4><p>Advanced base models need fewer examples. Plot a <strong>performance gain curve</strong> to estimate how many more examples you need.</p></div>
+  </div>
+  <h3 class="section-title">Data Synthesis with AI</h3>
+  <div class="expand-block"><div class="expand-header"><h5>&#129302; AI-Powered Synthesis Techniques</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body">
+    <p><strong>Direct generation:</strong> Prompt a strong model to create input/output pairs.</p>
+    <p><strong>Evol-Instruct:</strong> Iteratively make instructions more complex using AI.</p>
+    <p><strong>Self-Instruct:</strong> Generate instructions, inputs, outputs all from the model.</p>
+    <p><strong>Model Distillation:</strong> Train a small student model to mimic a large teacher. DistilBERT = 60% size, 97% performance.</p>
+  </div></div>
+  <div class="flow-row">
+    <div class="flow-step">Inspect</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Deduplicate</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Clean &amp; Filter</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Format</div>
+  </div>
+  <div class="insight-block warn"><div class="insight-label" style="color:var(--accent3)">Hard-Won Wisdom</div><p>Annotation guidelines are among the <strong>most challenging parts</strong> of the pipeline. Teams frequently abandon careful annotation halfway. Invest in clear guidelines upfront.</p></div>
+  <div class="takeaway-box"><h4>&#129504; Chapter 8 Retention Checklist</h4><ul class="check-list">
+    <li>Quality &gt; Quantity, but you need both quality AND diversity.</li>
+    <li>Production data is the best training data &mdash; if you can use it.</li>
+    <li>AI-powered synthesis enables bootstrapping without real data.</li>
+    <li>Model distillation: train small to mimic large.</li>
+    <li>Always deduplicate and inspect before training.</li>
+  </ul></div>
+</section>
+
+<!-- ═══ CH9 ═══ -->
+<section class="chapter-section" id="ch9">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent2)">Chapter 09</div>
+    <h2>Inference Optimization</h2>
+    <p class="ch-tldr">Making models faster and cheaper. Metrics, accelerators, model-level and service-level optimization.</p>
+  </div>
+  <h3 class="section-title">Key Metrics</h3>
+  <table class="comp-table">
+    <thead><tr><th>Metric</th><th>Measures</th><th>Why You Care</th></tr></thead>
+    <tbody>
+      <tr><td><strong>TTFT</strong></td><td>Time to first token</td><td>User perception of speed</td></tr>
+      <tr><td><strong>TPOT</strong></td><td>Time per output token</td><td>Streaming quality</td></tr>
+      <tr><td><strong>Throughput</strong></td><td>Tokens/second served</td><td>Capacity &amp; cost</td></tr>
+      <tr><td><strong>Utilization</strong></td><td>% GPU capacity used</td><td>Underutilized GPUs waste money</td></tr>
+    </tbody>
+  </table>
+  <h3 class="section-title">Optimization Techniques</h3>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>&#128230; Quantization</h4><p>FP32 &rarr; FP16 &rarr; INT8 &rarr; INT4. Each step halves memory, doubles speed. INT4 makes 70B fit on consumer GPUs.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#128273; KV Cache</h4><p>Store key-value pairs so they're not recomputed per token. Essential for autoregressive generation. Can become enormous for long sequences.</p></div>
+    <div class="concept-card card-accent-3"><h4>&#9889; Flash Attention</h4><p>Reorders attention to minimize GPU memory transfers. 2-4x faster, no approximation. Now standard.</p></div>
+    <div class="concept-card card-accent-2"><h4>&#129488; Continuous Batching</h4><p>Insert new requests as slots free up. Dramatically improves throughput vs static batching. Used by vLLM, TGI.</p></div>
+    <div class="concept-card card-accent-5"><h4>&#128302; Speculative Decoding</h4><p>Small draft model proposes tokens, large model verifies in parallel. 2-3x speedup, no quality loss.</p></div>
+    <div class="concept-card card-accent-4"><h4>&#9986; Model Distillation</h4><p>Train smaller model to mimic larger. Ultimate optimization: use a smaller model that's good enough.</p></div>
+  </div>
+  <div class="takeaway-box"><h4>&#129504; Chapter 9 Retention Checklist</h4><ul class="check-list">
+    <li>TTFT = user perception; throughput = cost.</li>
+    <li>Quantization is the single highest-impact optimization.</li>
+    <li>KV cache + Flash Attention + continuous batching = modern inference stack.</li>
+    <li>Speculative decoding: free speedup, no quality loss.</li>
+    <li>Ultimate optimization: distill to a smaller model that's good enough.</li>
+  </ul></div>
+</section>
+
+<!-- ═══ CH10 ═══ -->
+<section class="chapter-section" id="ch10">
+  <div class="ch-header">
+    <div class="ch-number" style="color:var(--accent4)">Chapter 10</div>
+    <h2>AI Engineering Architecture &amp; User Feedback</h2>
+    <p class="ch-tldr">The culmination: production architecture in 5 progressive steps, plus monitoring, orchestration, and feedback loops.</p>
+  </div>
+  <h3 class="section-title">The 5-Step Progressive Architecture</h3>
+  <div class="concept-grid">
+    <div class="concept-card card-accent-1"><h4>&oplus; Enhance Context</h4><p>Add RAG, tool use, file uploads. "Feature engineering for foundation models." Almost universally the first step.</p></div>
+    <div class="concept-card card-accent-2"><h4>&oplus; Put in Guardrails</h4><p><strong>Input:</strong> PII masking, prompt injection detection. <strong>Output:</strong> Hallucination catching, format validation, toxicity filtering.</p></div>
+    <div class="concept-card card-accent-4"><h4>&oplus; Router &amp; Gateway</h4><p><strong>Router:</strong> Different models for different query types. <strong>Gateway:</strong> Unified API across providers with load balancing, logging.</p></div>
+    <div class="concept-card card-accent-3"><h4>&oplus; Caches</h4><p><strong>Exact:</strong> Reuse for identical queries. <strong>Semantic:</strong> Reuse for similar queries. Cheapest latency optimization.</p></div>
+    <div class="concept-card card-accent-5"><h4>&oplus; Agent Patterns</h4><p>Multi-step reasoning, tool chaining, autonomous execution. Most powerful but most complex.</p></div>
+  </div>
+  <h3 class="section-title">Full Architecture Flow</h3>
+  <div class="flow-row">
+    <div class="flow-step" style="border-color:var(--accent2)">Input Guards</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent6)">Router</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent)">Cache</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent4)">Context/RAG</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent5)">Model(s)</div><div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:var(--accent2)">Output Guards</div>
+  </div>
+  <h3 class="section-title">User Feedback &mdash; The Growth Engine</h3>
+  <div class="expand-block"><div class="expand-header"><h5>&#128077; Explicit Feedback (Thumbs up/down)</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Direct but sparse. Most users don't bother. Those who do skew negative. Valuable signal, never rely on it alone.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#128260; Implicit Feedback (User behavior)</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>Did the user copy, edit heavily, regenerate, continue, or switch tools? More abundant and honest than ratings.</p></div></div>
+  <div class="expand-block"><div class="expand-header"><h5>&#9851; Feedback &rarr; Training Data Loop</h5><span class="expand-arrow">&#9660;</span></div><div class="expand-body"><p>The flywheel: positive interactions become training data. Negatives reveal failure modes. Your model improves at what your users care about. This is the moat.</p></div></div>
+  <div class="takeaway-box"><h4>&#129504; Chapter 10 Retention Checklist</h4><ul class="check-list">
+    <li>Build progressively: context &rarr; guardrails &rarr; routing &rarr; caching &rarr; agents.</li>
+    <li>Guardrails on BOTH input and output. PII masking for external APIs.</li>
+    <li>Routers save cost by sending simple queries to cheap models.</li>
+    <li>Semantic caching can dramatically reduce costs.</li>
+    <li>Monitor latency, cost, quality, and failures. Not optional.</li>
+    <li>Implicit user feedback is your most valuable data source.</li>
+  </ul></div>
+  <div class="dig-deeper"><h5>&#128300; Dig Deeper</h5><ul>
+    <li>Study gateways: LiteLLM, Portkey for multi-model orchestration</li>
+    <li>Implement a simple feedback loop: log user edits, use them to improve prompts</li>
+    <li>Explore guardrail frameworks: Guardrails AI, NeMo Guardrails, Lakera</li>
+    <li>Read about observability: LangSmith, Langfuse, Arize for tracing AI pipelines</li>
+  </ul></div>
+
+  <div style="margin-top:4rem;padding-top:2rem;border-top:2px solid var(--accent)">
+    <h3 class="section-title" style="border:none;padding:0;margin-top:0">The Complete Mental Model</h3>
+    <p class="body-text" style="font-size:1.05rem;color:var(--text)">Building production AI is iterative and progressive. Start with the simplest approach. Evaluate rigorously. Escalate complexity only when simpler approaches fail. Treat data, prompts, and evaluation as first-class engineering artifacts. Always close the feedback loop.</p>
+    <div class="flow-row" style="margin-top:2rem">
+      <div class="flow-step" style="border-color:var(--accent);padding:1rem 1.5rem;font-size:0.85rem"><strong>Understand</strong><br>Ch 1-2</div><div class="flow-arrow">&rarr;</div>
+      <div class="flow-step" style="border-color:var(--accent3);padding:1rem 1.5rem;font-size:0.85rem"><strong>Evaluate</strong><br>Ch 3-4</div><div class="flow-arrow">&rarr;</div>
+      <div class="flow-step" style="border-color:var(--accent4);padding:1rem 1.5rem;font-size:0.85rem"><strong>Adapt</strong><br>Ch 5-6-7-8</div><div class="flow-arrow">&rarr;</div>
+      <div class="flow-step" style="border-color:var(--accent2);padding:1rem 1.5rem;font-size:0.85rem"><strong>Optimize</strong><br>Ch 9</div><div class="flow-arrow">&rarr;</div>
+      <div class="flow-step" style="border-color:var(--accent5);padding:1rem 1.5rem;font-size:0.85rem"><strong>Deploy &amp; Iterate</strong><br>Ch 10</div>
+    </div>
+  </div>
+</section>
+
+<script>
+const navBtns=document.querySelectorAll('.nav-btn'),sections=document.querySelectorAll('.chapter-section');
+navBtns.forEach(b=>b.addEventListener('click',()=>{
+  const t=b.dataset.ch;
+  navBtns.forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  sections.forEach(s=>s.classList.remove('visible'));
+  document.getElementById(t).classList.add('visible');
+  window.scrollTo({top:document.getElementById('mainNav').offsetTop,behavior:'smooth'});
+}));
+document.querySelectorAll('.expand-header').forEach(h=>h.addEventListener('click',()=>h.parentElement.classList.toggle('open')));
+</script>
+</body>
+</html>

@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Designing ML Systems — Interactive Learning Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep: #0a0e17;
+  --bg-card: #111827;
+  --bg-card-hover: #1a2332;
+  --bg-surface: #0f1520;
+  --border: #1e293b;
+  --border-glow: #334155;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-cyan: #22d3ee;
+  --accent-blue: #3b82f6;
+  --accent-violet: #8b5cf6;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  --accent-orange: #f97316;
+  --accent-pink: #ec4899;
+  --gradient-1: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+  --gradient-2: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  --gradient-3: linear-gradient(135deg, #10b981 0%, #22d3ee 100%);
+  --font-display: 'Source Serif 4', Georgia, serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
+
+/* ── Grain overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Hero ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 70%);
+  top: -100px; right: -100px;
+  animation: float 15s ease-in-out infinite;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%);
+  bottom: -100px; left: -100px;
+  animation: float 20s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -30px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  background: rgba(34,211,238,0.08);
+  border: 1px solid rgba(34,211,238,0.2);
+  border-radius: 100px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--accent-cyan);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  max-width: 800px;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.hero h1 .gradient-text {
+  background: var(--gradient-1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin-bottom: 3rem;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-stats {
+  display: flex;
+  gap: 3rem;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.hero-stat {
+  text-align: center;
+}
+
+.hero-stat .num {
+  font-family: var(--font-mono);
+  font-size: 1.8rem;
+  font-weight: 600;
+  background: var(--gradient-1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-stat .label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  animation: bob 2s ease-in-out infinite, fadeInUp 0.8s ease-out 1s both;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scroll-hint svg { width: 20px; height: 20px; stroke: var(--text-muted); }
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+/* ── Navigation ── */
+.chapter-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10,14,23,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 0;
+  transition: box-shadow 0.3s;
+}
+
+.chapter-nav.scrolled { box-shadow: 0 4px 30px rgba(0,0,0,0.3); }
+
+.nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.nav-inner::-webkit-scrollbar { display: none; }
+
+.nav-logo {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+  padding-right: 1rem;
+  border-right: 1px solid var(--border);
+  letter-spacing: 0.05em;
+}
+
+.nav-link {
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+
+.nav-link.active {
+  color: var(--accent-cyan);
+  background: rgba(34,211,238,0.08);
+}
+
+/* ── Section container ── */
+.chapter-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.chapter-section:last-child { border-bottom: none; }
+
+/* ── Chapter header ── */
+.chapter-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.chapter-number {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--bg-deep);
+  background: var(--accent-cyan);
+  width: 36px; height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+  letter-spacing: 0.05em;
+}
+
+.chapter-header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.chapter-header h2 small {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.3rem;
+}
+
+/* ── Key Insight Box ── */
+.key-insight {
+  background: linear-gradient(135deg, rgba(34,211,238,0.06), rgba(59,130,246,0.04));
+  border: 1px solid rgba(34,211,238,0.15);
+  border-radius: 12px;
+  padding: 1.5rem 1.8rem;
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+.key-insight::before {
+  content: '💡';
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  font-size: 1.2rem;
+  background: var(--bg-deep);
+  padding: 0 0.4rem;
+}
+
+.key-insight .insight-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-cyan);
+  margin-bottom: 0.5rem;
+}
+
+.key-insight p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* ── Concept Cards Grid ── */
+.concepts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.2rem;
+  margin: 2rem 0;
+}
+
+.concept-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.concept-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: var(--card-accent, var(--gradient-1));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.concept-card:hover {
+  border-color: var(--border-glow);
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+
+.concept-card:hover::before { opacity: 1; }
+
+.concept-card .card-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.concept-card h4 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.concept-card .card-brief {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.8rem;
+}
+
+.concept-card .card-detail {
+  display: none;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.concept-card.expanded .card-detail { display: block; }
+
+.concept-card .expand-hint {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.concept-card.expanded .expand-hint .arrow { transform: rotate(180deg); }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Flow Diagram ── */
+.flow-diagram {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.6rem 1rem;
+  background: rgba(34,211,238,0.06);
+  border: 1px solid rgba(34,211,238,0.15);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.flow-step:hover {
+  background: rgba(34,211,238,0.12);
+  transform: scale(1.03);
+}
+
+.flow-step .step-icon { font-size: 1rem; }
+
+.flow-arrow {
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+/* ── Comparison Table ── */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.88rem;
+  background: var(--bg-card);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.comparison-table th {
+  background: rgba(34,211,238,0.08);
+  padding: 0.9rem 1.2rem;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-cyan);
+  border-bottom: 1px solid var(--border);
+}
+
+.comparison-table td {
+  padding: 0.9rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+
+.comparison-table tr:last-child td { border-bottom: none; }
+.comparison-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+/* ── Mnemonic Box ── */
+.mnemonic {
+  background: linear-gradient(135deg, rgba(139,92,246,0.06), rgba(236,72,153,0.04));
+  border: 1px solid rgba(139,92,246,0.15);
+  border-radius: 12px;
+  padding: 1.5rem 1.8rem;
+  margin: 1.5rem 0;
+}
+
+.mnemonic::before { content: none; }
+
+.mnemonic .mnemonic-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-violet);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mnemonic h4 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.mnemonic p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ── Deep Dive Accordion ── */
+.deep-dive {
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.deep-dive-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.deep-dive-header:hover { background: var(--bg-card-hover); }
+
+.deep-dive-header h4 {
+  font-size: 0.92rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.deep-dive-header .toggle {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  transition: transform 0.3s;
+}
+
+.deep-dive.open .deep-dive-header .toggle { transform: rotate(45deg); }
+
+.deep-dive-content {
+  display: none;
+  padding: 1.2rem 1.5rem;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.deep-dive.open .deep-dive-content { display: block; animation: slideDown 0.3s ease; }
+
+.deep-dive-content ul {
+  margin: 0.5rem 0 0.5rem 1.2rem;
+  list-style: none;
+}
+
+.deep-dive-content ul li {
+  position: relative;
+  padding-left: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.deep-dive-content ul li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--accent-cyan);
+}
+
+.deep-dive-content code {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  background: rgba(34,211,238,0.08);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  color: var(--accent-cyan);
+}
+
+/* ── Practical Example ── */
+.practical-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem 1.8rem;
+  margin: 1.5rem 0;
+  border-left: 3px solid var(--accent-emerald);
+}
+
+.practical-box .practical-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-emerald);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.practical-box h4 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.practical-box p, .practical-box ul {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.practical-box ul {
+  margin: 0.5rem 0 0 1.2rem;
+  list-style: none;
+}
+
+.practical-box ul li {
+  position: relative;
+  padding-left: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.practical-box ul li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--accent-emerald);
+}
+
+/* ── Tag Pills ── */
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 100px;
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.2);
+  color: var(--accent-blue);
+}
+
+.tag.green { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.2); color: var(--accent-emerald); }
+.tag.violet { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.2); color: var(--accent-violet); }
+.tag.amber { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2); color: var(--accent-amber); }
+.tag.rose { background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.2); color: var(--accent-rose); }
+
+/* ── Section Description ── */
+.section-desc {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 800px;
+  margin-bottom: 2rem;
+  line-height: 1.8;
+}
+
+.section-desc strong {
+  color: var(--text-primary);
+}
+
+/* ── Warning / Pitfall Box ── */
+.pitfall-box {
+  background: linear-gradient(135deg, rgba(244,63,94,0.06), rgba(249,115,22,0.04));
+  border: 1px solid rgba(244,63,94,0.15);
+  border-radius: 12px;
+  padding: 1.5rem 1.8rem;
+  margin: 1.5rem 0;
+}
+
+.pitfall-box .pitfall-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-rose);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pitfall-box p, .pitfall-box ul {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.pitfall-box ul {
+  margin: 0.5rem 0 0 1.2rem;
+  list-style: none;
+}
+
+.pitfall-box ul li {
+  position: relative;
+  padding-left: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.pitfall-box ul li::before {
+  content: '✗';
+  position: absolute;
+  left: 0;
+  color: var(--accent-rose);
+}
+
+/* ── Rule of Thumb ── */
+.rule-of-thumb {
+  background: linear-gradient(135deg, rgba(245,158,11,0.06), rgba(249,115,22,0.04));
+  border: 1px solid rgba(245,158,11,0.15);
+  border-radius: 12px;
+  padding: 1.5rem 1.8rem;
+  margin: 1.5rem 0;
+}
+
+.rule-of-thumb .rot-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-amber);
+  margin-bottom: 0.5rem;
+}
+
+.rule-of-thumb p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.rule-of-thumb strong { color: var(--text-primary); }
+
+/* ── Numbered Steps ── */
+.numbered-steps {
+  margin: 1.5rem 0;
+  counter-reset: step-counter;
+}
+
+.step-item {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  align-items: flex-start;
+}
+
+.step-num {
+  counter-increment: step-counter;
+  width: 32px; height: 32px;
+  background: rgba(34,211,238,0.1);
+  border: 1px solid rgba(34,211,238,0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  flex-shrink: 0;
+}
+
+.step-content h4 {
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.step-content p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+/* ── Chapter accent colors ── */
+.ch-1 .chapter-number { background: var(--accent-cyan); }
+.ch-2 .chapter-number { background: var(--accent-blue); }
+.ch-3 .chapter-number { background: var(--accent-violet); }
+.ch-4 .chapter-number { background: var(--accent-emerald); }
+.ch-5 .chapter-number { background: var(--accent-amber); }
+.ch-6 .chapter-number { background: var(--accent-rose); }
+.ch-7 .chapter-number { background: var(--accent-orange); }
+.ch-8 .chapter-number { background: var(--accent-pink); }
+.ch-9 .chapter-number { background: var(--accent-cyan); }
+.ch-10 .chapter-number { background: var(--accent-blue); }
+.ch-11 .chapter-number { background: var(--accent-violet); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .concepts-grid { grid-template-columns: 1fr; }
+  .hero-stats { gap: 1.5rem; flex-wrap: wrap; }
+  .chapter-section { padding: 3rem 1.2rem; }
+  .flow-diagram { flex-direction: column; align-items: stretch; }
+  .flow-arrow { transform: rotate(90deg); text-align: center; }
+  .comparison-table { font-size: 0.8rem; }
+  .comparison-table th, .comparison-table td { padding: 0.6rem; }
+}
+
+/* ── Footer ── */
+.site-footer {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.site-footer a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+}
+
+/* ── Scroll animations ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Mini-diagram (CSS-only) ── */
+.mini-arch {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.6rem;
+  margin: 1.5rem 0;
+}
+
+.mini-arch-box {
+  background: rgba(34,211,238,0.04);
+  border: 1px solid rgba(34,211,238,0.12);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.82rem;
+  transition: all 0.2s;
+}
+
+.mini-arch-box:hover {
+  background: rgba(34,211,238,0.08);
+  transform: translateY(-2px);
+}
+
+.mini-arch-box .box-icon { font-size: 1.3rem; margin-bottom: 0.3rem; }
+.mini-arch-box .box-label { font-weight: 500; font-size: 0.78rem; }
+
+/* ── Inline colored text helpers ── */
+.cyan { color: var(--accent-cyan); }
+.blue { color: var(--accent-blue); }
+.violet { color: var(--accent-violet); }
+.emerald { color: var(--accent-emerald); }
+.amber { color: var(--accent-amber); }
+.rose { color: var(--accent-rose); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero">
+  <div class="hero-badge">Interactive Learning Guide</div>
+  <h1>Designing <span class="gradient-text">Machine Learning</span> Systems</h1>
+  <p class="hero-sub">A comprehensive, visual guide to every concept you need to build production ML systems — from data pipelines to deployment, monitoring, and beyond.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">11</div><div class="label">Chapters</div></div>
+    <div class="hero-stat"><div class="num">80+</div><div class="label">Key Concepts</div></div>
+    <div class="hero-stat"><div class="num">∞</div><div class="label">Practical Tips</div></div>
+  </div>
+  <div class="scroll-hint">
+    Scroll to begin
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</section>
+
+<!-- ═══════════════════ STICKY NAV ═══════════════════ -->
+<nav class="chapter-nav" id="chapterNav">
+  <div class="nav-inner">
+    <div class="nav-logo">ML SYS</div>
+    <a href="#ch1" class="nav-link">1 Overview</a>
+    <a href="#ch2" class="nav-link">2 Objectives</a>
+    <a href="#ch3" class="nav-link">3 Data Eng</a>
+    <a href="#ch4" class="nav-link">4 Training Data</a>
+    <a href="#ch5" class="nav-link">5 Features</a>
+    <a href="#ch6" class="nav-link">6 Model Dev</a>
+    <a href="#ch7" class="nav-link">7 Deployment</a>
+    <a href="#ch8" class="nav-link">8 Distribution</a>
+    <a href="#ch9" class="nav-link">9 Continual</a>
+    <a href="#ch10" class="nav-link">10 Infra</a>
+    <a href="#ch11" class="nav-link">11 Human</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════ CH 1: OVERVIEW ═══════════════════ -->
+<section class="chapter-section ch-1 reveal" id="ch1">
+  <div class="chapter-header">
+    <div class="chapter-number">01</div>
+    <h2>
+      <small>Chapter 1</small>
+      Overview of ML Systems
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    Before building anything, understand <strong>what makes ML systems different</strong> from traditional software. ML systems aren't just models — they are complex, evolving systems where code is only a small fraction. The real challenge is everything around the model: data, infrastructure, monitoring, and people.
+  </p>
+
+  <div class="key-insight">
+    <div class="insight-label">Core Insight</div>
+    <p><strong>ML in production ≠ ML in research.</strong> Research optimizes for model performance on fixed benchmarks. Production optimizes for business value under constantly changing real-world conditions, latency constraints, and reliability requirements.</p>
+  </div>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🧩</div>
+      <h4>ML Systems vs Traditional Software</h4>
+      <p class="card-brief">ML systems are partly code, partly data, partly learned behavior — making them fundamentally different to reason about.</p>
+      <div class="card-detail">
+        <p>In traditional software, you write explicit rules. In ML, the "rules" are learned from data. This means:</p>
+        <ul><li>Bugs can be in your data, not just your code</li>
+        <li>Behavior changes when data changes — even without a code deploy</li>
+        <li>Testing is harder because you can't enumerate all possible inputs</li>
+        <li>Versioning must cover code, data, AND models</li></ul>
+        <p style="margin-top:0.8rem">Think of it as building a car where the engine redesigns itself every night based on the roads it drove on yesterday.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🎯</div>
+      <h4>When to Use ML</h4>
+      <p class="card-brief">ML is powerful but not always the right tool. Use it when the problem is learnable, has data, and patterns are too complex for explicit rules.</p>
+      <div class="card-detail">
+        <p><strong>ML is a good fit when:</strong></p>
+        <ul><li>The system needs to learn patterns (recommendations, NLP, vision)</li>
+        <li>Patterns are complex and can't be hand-coded</li>
+        <li>Data is available or can be collected</li>
+        <li>Predictions don't need to be 100% correct every time</li>
+        <li>Patterns change over time (fraud, user preferences)</li></ul>
+        <p style="margin-top:0.8rem"><strong>ML is NOT a good fit when:</strong> deterministic logic works, you have no data, errors are catastrophically expensive, or simple heuristics solve it.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">👥</div>
+      <h4>Stakeholders & Requirements</h4>
+      <p class="card-brief">ML systems have many stakeholders with competing requirements: ML engineers want accuracy, business wants ROI, users want speed.</p>
+      <div class="card-detail">
+        <p>Each stakeholder cares about different things:</p>
+        <ul><li><strong>ML Engineers</strong> — model performance, interesting problems</li>
+        <li><strong>Business/Product</strong> — revenue impact, cost, time to market</li>
+        <li><strong>Users</strong> — latency, relevance, fairness, privacy</li>
+        <li><strong>DevOps/Platform</strong> — reliability, scalability, maintainability</li></ul>
+        <p style="margin-top:0.8rem">Your job is to translate between these worlds. A 2% accuracy improvement means nothing if it doubles latency and costs $500K/year in compute.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">📊</div>
+      <h4>The Real ML System Breakdown</h4>
+      <p class="card-brief">Google's famous figure: ML code is just 5% of a real ML system. The rest is data, serving, monitoring, and infrastructure.</p>
+      <div class="card-detail">
+        <p>A production ML system includes:</p>
+        <ul>
+          <li><strong>Data collection & verification</strong></li>
+          <li><strong>Feature extraction & storage</strong></li>
+          <li><strong>Model training & validation</strong></li>
+          <li><strong>Serving infrastructure</strong></li>
+          <li><strong>Monitoring & alerting</strong></li>
+          <li><strong>Configuration & orchestration</strong></li>
+          <li><strong>Resource management</strong></li>
+        </ul>
+        <p style="margin-top:0.8rem">The model itself is a small box in a much larger architecture diagram. If you only focus on the model, you're missing 95% of the problem.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnemonic-label">🧠 Memory Anchor</div>
+    <h4>"ML System = Iceberg"</h4>
+    <p>The model is the tip above water. Below the surface: data pipelines, feature stores, serving infra, monitoring, retraining loops, config management. Most production incidents happen below the waterline.</p>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: ML System Failure Modes</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <p>Unlike traditional software bugs, ML system failures are often <strong>silent</strong>. The system continues to serve predictions, but they're wrong:</p>
+      <ul>
+        <li><strong>Data pipeline corruption</strong> — a column meaning changed upstream but nobody updated the feature</li>
+        <li><strong>Training-serving skew</strong> — features computed differently at training vs inference time</li>
+        <li><strong>Feedback loops</strong> — the model's predictions influence the data it later trains on, creating spirals</li>
+        <li><strong>Concept drift</strong> — the real-world patterns changed but the model didn't</li>
+        <li><strong>Undeclared consumers</strong> — someone built another system on your model's output and neither of you knew</li>
+      </ul>
+      <p style="margin-top:0.8rem"><strong>Explore further:</strong> Read Google's "Hidden Technical Debt in Machine Learning Systems" paper. Study how companies like Netflix and Uber structure their ML platform teams.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CH 2: ML SYSTEM DESIGN OBJECTIVES ═══════════════════ -->
+<section class="chapter-section ch-2 reveal" id="ch2">
+  <div class="chapter-header">
+    <div class="chapter-number">02</div>
+    <h2>
+      <small>Chapter 2</small>
+      ML System Design & Objectives
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    Designing an ML system starts with framing the problem correctly. The way you <strong>frame your ML objective</strong> determines everything downstream — what data you need, what model you choose, and how you measure success.
+  </p>
+
+  <div class="key-insight">
+    <div class="insight-label">Core Insight</div>
+    <p><strong>Business objectives ≠ ML objectives.</strong> The business wants "increase revenue." You need to translate that into "predict click-through probability" or "rank items by purchase likelihood." This translation is the hardest and most important step.</p>
+  </div>
+
+  <h3 style="font-family: var(--font-display); margin: 2rem 0 1rem; font-size: 1.2rem;">The Four Requirements of ML Systems</h3>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)" style="--card-accent: linear-gradient(135deg, #22d3ee, #3b82f6);">
+      <div class="card-icon">⚡</div>
+      <h4>1. Reliability</h4>
+      <p class="card-brief">The system performs correctly even when things go wrong — hardware failures, unexpected inputs, data corruption.</p>
+      <div class="card-detail">
+        <p>Reliability means the system continues to work correctly at the desired level of performance, even when things don't go as planned. For ML this specifically means:</p>
+        <ul><li>Graceful degradation under bad inputs</li>
+        <li>Fallback strategies when the model fails</li>
+        <li>No silent failures — monitor everything</li>
+        <li>The system should be wrong in predictable, bounded ways</li></ul>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)" style="--card-accent: linear-gradient(135deg, #10b981, #22d3ee);">
+      <div class="card-icon">📈</div>
+      <h4>2. Scalability</h4>
+      <p class="card-brief">Can handle growing complexity — more data, more models, more users — without proportional increase in effort.</p>
+      <div class="card-detail">
+        <p>Scalability isn't just about traffic. In ML, it also means scaling:</p>
+        <ul><li><strong>Data</strong> — from GBs to TBs of training data</li>
+        <li><strong>Model complexity</strong> — from logistic regression to ensembles to LLMs</li>
+        <li><strong>Artifact management</strong> — hundreds of models, experiments, feature versions</li>
+        <li><strong>Team</strong> — multiple teams shipping models independently</li></ul>
+        <p style="margin-top:0.8rem">Resource scaling: auto-scaling inference servers, distributed training, efficient feature stores.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)" style="--card-accent: linear-gradient(135deg, #f59e0b, #f97316);">
+      <div class="card-icon">🔧</div>
+      <h4>3. Maintainability</h4>
+      <p class="card-brief">Different contributors can work on the system productively. Code, data, and models are understandable and modifiable.</p>
+      <div class="card-detail">
+        <p>ML systems are notorious for becoming unmaintainable. Key practices:</p>
+        <ul><li><strong>Documentation</strong> — not just code, but data schemas, model cards, experiment logs</li>
+        <li><strong>Modularity</strong> — separate data processing, training, serving, monitoring</li>
+        <li><strong>Reproducibility</strong> — any past result should be reproducible</li>
+        <li><strong>Clear ownership</strong> — who owns the model? the data? the feature pipeline?</li></ul>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)" style="--card-accent: linear-gradient(135deg, #8b5cf6, #ec4899);">
+      <div class="card-icon">🔄</div>
+      <h4>4. Adaptability</h4>
+      <p class="card-brief">The system can adjust to changing data distributions and business requirements without a full redesign.</p>
+      <div class="card-detail">
+        <p>The world changes. Your ML system must change with it:</p>
+        <ul><li><strong>Data distribution shifts</strong> — user behavior evolves, seasonality, new markets</li>
+        <li><strong>Business pivots</strong> — the optimization target changes</li>
+        <li><strong>Regulatory changes</strong> — new fairness or privacy requirements</li></ul>
+        <p style="margin-top:0.8rem">Design for change from day one: parameterize what changes, automate retraining, use feature flags, A/B test everything.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnemonic-label">🧠 Memory Anchor — "RSMA"</div>
+    <h4>Reliable · Scalable · Maintainable · Adaptable</h4>
+    <p>Remember: <strong>"Real Systems Must Adapt"</strong> — The four pillars of production ML system design. Every architecture decision should be evaluated against these four dimensions.</p>
+  </div>
+
+  <h3 style="font-family: var(--font-display); margin: 2.5rem 0 1rem; font-size: 1.2rem;">Framing ML Problems</h3>
+
+  <div class="comparison-table">
+    <table style="width:100%">
+      <tr><th>Task Type</th><th>What It Does</th><th>Example</th><th>Output</th></tr>
+      <tr><td><strong>Classification</strong></td><td>Assigns input to a category</td><td>Spam/Not Spam</td><td>Discrete label</td></tr>
+      <tr><td><strong>Regression</strong></td><td>Predicts a continuous value</td><td>House price estimation</td><td>Number</td></tr>
+      <tr><td><strong>Ranking</strong></td><td>Orders items by relevance</td><td>Search results, recommendations</td><td>Ordered list</td></tr>
+      <tr><td><strong>Generation</strong></td><td>Creates new content</td><td>Text, images, code</td><td>Structured output</td></tr>
+    </table>
+  </div>
+
+  <div class="practical-box">
+    <div class="practical-label">🛠️ In Practice</div>
+    <h4>How to Frame: "Increase User Engagement"</h4>
+    <p>This single business goal can be framed as multiple ML problems:</p>
+    <ul>
+      <li><strong>Classification</strong> — Will this user churn? (Binary)</li>
+      <li><strong>Regression</strong> — How many minutes will this user spend? (Continuous)</li>
+      <li><strong>Ranking</strong> — Which content should we show first? (Ordered list)</li>
+      <li><strong>Multi-label</strong> — Which categories does this user like? (Multiple labels)</li>
+    </ul>
+    <p style="margin-top: 0.6rem">The right framing depends on what action you can take on the prediction and what data you have available.</p>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: Objective Functions & Decoupling</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <p>A critical skill is <strong>decoupling objectives</strong>. Many real problems have multiple objectives that conflict:</p>
+      <ul>
+        <li><strong>Relevance vs. Revenue</strong> — show what users want vs. what advertisers pay for</li>
+        <li><strong>Accuracy vs. Fairness</strong> — maximize overall accuracy vs. equalize performance across groups</li>
+        <li><strong>Precision vs. Recall</strong> — avoid false positives vs. avoid false negatives</li>
+      </ul>
+      <p style="margin-top: 0.8rem"><strong>Approaches:</strong></p>
+      <ul>
+        <li><strong>Multi-objective optimization</strong> — Pareto frontiers, weighted loss functions</li>
+        <li><strong>Cascading systems</strong> — first filter for quality, then rank for relevance, then re-rank for diversity</li>
+        <li><strong>Constraint-based</strong> — maximize metric A subject to metric B ≥ threshold</li>
+      </ul>
+      <p style="margin-top: 0.8rem"><strong>Explore further:</strong> Study how Netflix decomposes recommendations into candidate generation → ranking → re-ranking. Look into multi-task learning and Pareto efficiency in ML.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CH 3: DATA ENGINEERING ═══════════════════ -->
+<section class="chapter-section ch-3 reveal" id="ch3">
+  <div class="chapter-header">
+    <div class="chapter-number">03</div>
+    <h2>
+      <small>Chapter 3</small>
+      Data Engineering Fundamentals
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    Data is the foundation of every ML system. Understanding <strong>data formats, models, storage, and processing paradigms</strong> is essential. Bad data engineering creates a ceiling that no model improvement can break through.
+  </p>
+
+  <div class="flow-diagram">
+    <div class="flow-step"><span class="step-icon">📥</span> Data Sources</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="step-icon">🔄</span> ETL / ELT</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="step-icon">🗄️</span> Storage</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="step-icon">⚙️</span> Processing</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="step-icon">📊</span> Feature Store</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="step-icon">🤖</span> Model</div>
+  </div>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">📝</div>
+      <h4>Data Formats</h4>
+      <p class="card-brief">Choosing between JSON, CSV, Parquet, Avro, Protobuf, and others determines how efficiently you can store and process data.</p>
+      <div class="card-detail">
+        <p><strong>Row-oriented</strong> (CSV, JSON): good for writing and reading individual records. Best for transactional workloads and when you need all columns.</p>
+        <p style="margin-top:0.5rem"><strong>Column-oriented</strong> (Parquet, ORC): good for analytical queries on specific columns. Best for ML feature extraction — you rarely need all columns.</p>
+        <p style="margin-top:0.5rem"><strong>Binary formats</strong> (Protobuf, Avro): compact, fast, schema-enforced. Best for streaming and service-to-service communication.</p>
+        <p style="margin-top:0.5rem"><strong>Rule of thumb:</strong> Use Parquet for analytical/ML workloads. Use Protobuf or Avro for streaming. Use JSON only for human-readable configs.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🏗️</div>
+      <h4>Data Models</h4>
+      <p class="card-brief">Relational, document, and graph models each suit different ML data patterns. Understanding trade-offs is key.</p>
+      <div class="card-detail">
+        <p><strong>Relational (SQL)</strong> — structured, joins, ACID transactions. Great when your data has clear schema and relationships. Most ML feature pipelines start here.</p>
+        <p style="margin-top:0.5rem"><strong>Document (NoSQL)</strong> — flexible schema, nested structures. Good for unstructured data, user profiles with varying fields.</p>
+        <p style="margin-top:0.5rem"><strong>Graph</strong> — nodes and edges, relationship-first. Perfect for social networks, knowledge graphs, fraud detection (KùzuDB, Neo4j).</p>
+        <p style="margin-top:0.5rem">For ML, you often need <strong>denormalized</strong> data — flatten everything into wide feature tables. The data model affects how painful this is.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🌊</div>
+      <h4>Batch vs Stream Processing</h4>
+      <p class="card-brief">Batch processes historical data in large chunks; stream processes data in real-time as it arrives. Most ML systems need both.</p>
+      <div class="card-detail">
+        <p><strong>Batch processing</strong> (Spark, Dask):</p>
+        <ul><li>Process large datasets periodically (hourly/daily)</li>
+        <li>Higher throughput, higher latency</li>
+        <li>Good for: training data prep, feature backfills, reporting</li></ul>
+        <p style="margin-top:0.5rem"><strong>Stream processing</strong> (Kafka + Flink/Spark Streaming):</p>
+        <ul><li>Process events as they arrive</li>
+        <li>Lower latency, more complex to build</li>
+        <li>Good for: real-time features, live fraud detection, online learning</li></ul>
+        <p style="margin-top:0.5rem"><strong>Lambda Architecture:</strong> Run both batch and stream, combine results. Complex but powerful.</p>
+        <p><strong>Kappa Architecture:</strong> Stream-only with replay capability. Simpler, gaining popularity.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🔗</div>
+      <h4>ETL vs ELT</h4>
+      <p class="card-brief">Extract-Transform-Load vs Extract-Load-Transform — the order matters more than you think for ML pipelines.</p>
+      <div class="card-detail">
+        <p><strong>ETL (traditional):</strong> Transform data before loading into the warehouse. Data arrives clean, but transformations are rigid — if you need different features, you rebuild the pipeline.</p>
+        <p style="margin-top:0.5rem"><strong>ELT (modern):</strong> Load raw data first, transform later. More flexible for ML because you can create new features from raw data without re-ingesting.</p>
+        <p style="margin-top:0.5rem"><strong>For ML, ELT is usually better</strong> because:</p>
+        <ul><li>You don't know what features you'll need upfront</li>
+        <li>Raw data enables experimentation</li>
+        <li>Feature engineering is iterative</li>
+        <li>Compute is cheaper than re-ingestion</li></ul>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <div class="rule-of-thumb">
+    <div class="rot-label">📏 Rule of Thumb</div>
+    <p><strong>"If your training data changes, your model changes."</strong> Treat your data pipeline with the same rigor as your code pipeline: version control, testing, CI/CD, monitoring, and rollback capabilities.</p>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: Data Storage for ML</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <p>Where your data lives affects everything:</p>
+      <ul>
+        <li><strong>Data Lake</strong> (S3, GCS) — raw, unstructured. Cheap, flexible, but slow queries. Good for storing everything.</li>
+        <li><strong>Data Warehouse</strong> (BigQuery, Snowflake, Redshift) — structured, optimized for SQL. Good for feature extraction.</li>
+        <li><strong>Data Lakehouse</strong> (Delta Lake, Iceberg, Hudi) — best of both. Raw storage + ACID transactions + fast queries. Increasingly the gold standard for ML.</li>
+        <li><strong>Feature Store</strong> (Feast, Tecton) — purpose-built for ML features. Handles online/offline serving, versioning, lineage.</li>
+        <li><strong>Vector Database</strong> (LanceDB, Pinecone, Weaviate) — for embeddings and similarity search. Essential for modern retrieval-augmented systems.</li>
+      </ul>
+      <p style="margin-top:0.8rem"><strong>Explore further:</strong> Study the Data Mesh paradigm (domain-oriented data ownership). Learn about data contracts — formal agreements between producers and consumers about schema, quality, and SLAs.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CH 4: TRAINING DATA ═══════════════════ -->
+<section class="chapter-section ch-4 reveal" id="ch4">
+  <div class="chapter-header">
+    <div class="chapter-number">04</div>
+    <h2>
+      <small>Chapter 4</small>
+      Training Data
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    The quality of your training data sets the ceiling for your model. <strong>Most ML project time is spent on data</strong>, not model architecture. Understanding sampling, labeling, class imbalance, and data augmentation is critical.
+  </p>
+
+  <div class="key-insight">
+    <div class="insight-label">Core Insight</div>
+    <p><strong>Models are only as good as their training data.</strong> If you're spending 80% of your time on model tuning and 20% on data, you have it backwards. Flip that ratio — better data almost always beats a better model.</p>
+  </div>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🎲</div>
+      <h4>Sampling Strategies</h4>
+      <p class="card-brief">How you sample data from the real world into your training set determines what your model learns and what it misses.</p>
+      <div class="card-detail">
+        <p><strong>Non-probability sampling</strong> (convenience, snowball, judgment) — easy but biased. Your model learns the biases of your sampling.</p>
+        <p style="margin-top:0.5rem"><strong>Simple random sampling</strong> — every item equally likely. Good baseline but can miss rare events.</p>
+        <p style="margin-top:0.5rem"><strong>Stratified sampling</strong> — ensure proportional representation of subgroups. Critical when some classes are rare.</p>
+        <p style="margin-top:0.5rem"><strong>Reservoir sampling</strong> — sample from a stream without knowing the total size. Key for streaming data.</p>
+        <p style="margin-top:0.5rem"><strong>Importance sampling</strong> — oversample rare/important events, apply weights to correct the bias.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🏷️</div>
+      <h4>Labeling</h4>
+      <p class="card-brief">Getting labels is expensive and error-prone. The labeling strategy you choose can make or break your project timeline and model quality.</p>
+      <div class="card-detail">
+        <p><strong>Hand labeling</strong> — accurate but slow and expensive. Subject to annotator disagreement.</p>
+        <p style="margin-top:0.5rem"><strong>Natural labels</strong> — labels generated by user behavior (clicks = positive, no click = negative). Free but noisy and have feedback delay.</p>
+        <p style="margin-top:0.5rem"><strong>Programmatic labeling</strong> (Snorkel) — use heuristics, rules, and weak classifiers to generate noisy labels. Then denoise with label models.</p>
+        <p style="margin-top:0.5rem"><strong>Semi-supervised</strong> — small labeled set + large unlabeled set. Self-training, co-training, label propagation.</p>
+        <p style="margin-top:0.5rem"><strong>Active learning</strong> — have the model identify which samples it's most uncertain about, then label only those. Maximum information per label.</p>
+        <p style="margin-top:0.5rem"><strong>Transfer learning</strong> — use a model pre-trained on a large dataset, fine-tune with small labeled data.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">⚖️</div>
+      <h4>Class Imbalance</h4>
+      <p class="card-brief">When 99% of emails are not spam and 1% are spam, naive models learn to always predict "not spam" — and get 99% accuracy.</p>
+      <div class="card-detail">
+        <p><strong>Data-level approaches:</strong></p>
+        <ul><li><strong>Oversampling</strong> minority class (SMOTE — creates synthetic examples)</li>
+        <li><strong>Undersampling</strong> majority class (Tomek links, random undersampling)</li>
+        <li><strong>Data augmentation</strong> — create more minority examples through transformations</li></ul>
+        <p style="margin-top:0.5rem"><strong>Algorithm-level approaches:</strong></p>
+        <ul><li><strong>Cost-sensitive learning</strong> — penalize misclassification of minority more</li>
+        <li><strong>Ensemble methods</strong> — bagging with balanced bootstraps</li>
+        <li><strong>Focal loss</strong> — down-weight easy examples, focus on hard ones</li></ul>
+        <p style="margin-top:0.5rem"><strong>Use the right metrics:</strong> Not accuracy. Use F1, PR-AUC, recall, or domain-specific metrics.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🔮</div>
+      <h4>Data Augmentation</h4>
+      <p class="card-brief">Synthetically increase your training set by applying transformations that preserve the label but change the input.</p>
+      <div class="card-detail">
+        <p><strong>Computer vision:</strong> rotation, flipping, cropping, color jittering, CutMix, MixUp, random erasing.</p>
+        <p style="margin-top:0.5rem"><strong>NLP:</strong> synonym replacement, back-translation, random insertion/deletion, paraphrasing with LLMs.</p>
+        <p style="margin-top:0.5rem"><strong>Tabular:</strong> SMOTE, noise injection, feature perturbation. Less common but useful for rare events.</p>
+        <p style="margin-top:0.5rem"><strong>Key principle:</strong> augmentations must be <strong>label-preserving</strong>. Rotating a "6" image 180° makes it look like a "9" — that's bad augmentation.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <div class="pitfall-box">
+    <div class="pitfall-label">⚠️ Common Pitfalls</div>
+    <ul>
+      <li><strong>Label leakage</strong> — the label somehow gets encoded in the features (e.g., a "fraud" tag in the user profile used as a feature)</li>
+      <li><strong>Survivorship bias</strong> — you only have data on approved loans, not rejected ones</li>
+      <li><strong>Label ambiguity</strong> — different annotators disagree on 20% of labels, but you treat them as ground truth</li>
+      <li><strong>Temporal leakage</strong> — using future information to predict the past in your train/test split</li>
+    </ul>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: Data Quality & Data-Centric AI</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <p>The <strong>Data-Centric AI</strong> movement (championed by Andrew Ng) argues we should focus on systematically improving data rather than model architectures:</p>
+      <ul>
+        <li><strong>Consistent labeling</strong> — fix disagreements, create clear guidelines, measure inter-annotator agreement (Cohen's kappa)</li>
+        <li><strong>Error analysis</strong> — systematically find slices where the model fails, then fix the data for those slices</li>
+        <li><strong>Data cleaning</strong> — identify and fix mislabeled examples, remove duplicates, handle outliers</li>
+        <li><strong>Data valuation</strong> — techniques like Data Shapley to quantify how much each training example contributes to model performance</li>
+        <li><strong>Curriculum learning</strong> — order training examples from easy to hard</li>
+      </ul>
+      <p style="margin-top:0.8rem"><strong>Explore further:</strong> Study Andrew Ng's Data-Centric AI Competition. Look into Cleanlab for automated data quality. Read about Data Shapley for understanding which training examples matter most.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CH 5: FEATURE ENGINEERING ═══════════════════ -->
+<section class="chapter-section ch-5 reveal" id="ch5">
+  <div class="chapter-header">
+    <div class="chapter-number">05</div>
+    <h2>
+      <small>Chapter 5</small>
+      Feature Engineering
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    Features are the <strong>bridge between raw data and model understanding</strong>. Good features make simple models powerful; bad features make complex models useless. Feature engineering is where domain expertise meets ML craft.
+  </p>
+
+  <div class="key-insight">
+    <div class="insight-label">Core Insight</div>
+    <p><strong>A feature is a measurable property of your data presented in a form the model can use.</strong> The art is knowing which transformations surface the signal and which bury it in noise.</p>
+  </div>
+
+  <h3 style="font-family: var(--font-display); margin: 2rem 0 1rem; font-size: 1.2rem;">Common Feature Engineering Operations</h3>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🔢</div>
+      <h4>Handling Missing Values</h4>
+      <p class="card-brief">Missing data isn't just an inconvenience — the pattern of missingness itself can be informative.</p>
+      <div class="card-detail">
+        <p>Three types of missing data:</p>
+        <ul><li><strong>MCAR</strong> (Missing Completely At Random) — safe to drop/impute</li>
+        <li><strong>MAR</strong> (Missing At Random) — missingness depends on observed data</li>
+        <li><strong>MNAR</strong> (Missing Not At Random) — missingness depends on the missing value itself (most dangerous)</li></ul>
+        <p style="margin-top:0.5rem"><strong>Strategies:</strong> deletion, mean/median/mode imputation, indicator variable for missingness, model-based imputation (KNN, iterative). Always create a binary <code>is_missing</code> feature — it's often predictive!</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">📐</div>
+      <h4>Scaling & Normalization</h4>
+      <p class="card-brief">Features at different scales confuse many models. Normalizing ensures each feature contributes proportionally.</p>
+      <div class="card-detail">
+        <ul><li><strong>Min-Max</strong> — scales to [0, 1]. Preserves distribution shape. Sensitive to outliers.</li>
+        <li><strong>Standard (Z-score)</strong> — mean=0, std=1. Works well for normally distributed features.</li>
+        <li><strong>Robust scaling</strong> — uses median and IQR. Handles outliers gracefully.</li>
+        <li><strong>Log transform</strong> — compress right-skewed distributions (income, page views).</li></ul>
+        <p style="margin-top:0.5rem"><strong>Critical:</strong> Fit the scaler on training data only. Apply the same transformation to test/production data. This is a major source of training-serving skew.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🏷️</div>
+      <h4>Encoding Categoricals</h4>
+      <p class="card-brief">Models need numbers. Converting categories to numbers without introducing false orderings is an art.</p>
+      <div class="card-detail">
+        <ul><li><strong>One-hot</strong> — binary column per category. Safe but high-dimensional. Works when cardinality is low (< 50).</li>
+        <li><strong>Label encoding</strong> — integers. Only for ordinal features (low/medium/high) or tree-based models.</li>
+        <li><strong>Target encoding</strong> — replace category with mean of the target. Powerful but prone to overfitting (use regularization).</li>
+        <li><strong>Feature hashing</strong> — hash categories into fixed-size vector. Good for high cardinality (user IDs, URLs).</li>
+        <li><strong>Embedding</strong> — learned dense vector. Best for very high cardinality with deep learning.</li></ul>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">✂️</div>
+      <h4>Feature Crossing & Interaction</h4>
+      <p class="card-brief">Sometimes the signal isn't in individual features but in combinations. Feature crossing captures these interactions.</p>
+      <div class="card-detail">
+        <p>A feature cross combines two or more features to capture their interaction. Example: <code>age</code> and <code>income</code> separately may be weak signals, but <code>age × income</code> (young + high income = tech worker) can be very predictive.</p>
+        <ul><li><strong>Manual crosses</strong> — domain knowledge-driven (city + cuisine = neighborhood preference)</li>
+        <li><strong>Polynomial features</strong> — x², x×y, x×y×z. Explosive dimensionality growth.</li>
+        <li><strong>Deep & Cross Network</strong> — learn crosses automatically (used at Google)</li></ul>
+        <p style="margin-top:0.5rem"><strong>Caution:</strong> Feature crosses increase dimensionality exponentially. Use feature selection aggressively afterward.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <div class="practical-box">
+    <div class="practical-label">🛠️ Feature Stores in Practice</div>
+    <h4>Why Feature Stores Matter</h4>
+    <p>A feature store solves three problems at once:</p>
+    <ul>
+      <li><strong>Consistency</strong> — same feature definition used in training AND serving (no training-serving skew)</li>
+      <li><strong>Reusability</strong> — team A computes "user_30d_purchase_count" once, team B reuses it</li>
+      <li><strong>Point-in-time correctness</strong> — avoids temporal leakage by serving features as they were at prediction time</li>
+    </ul>
+    <p style="margin-top:0.6rem">Tools: Feast (open-source), Tecton (managed), Hopsworks, Featureform. If you're building production ML, you'll eventually build or buy one.</p>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: Feature Selection & Importance</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <p>More features ≠ better model. Feature selection is about finding the minimal set that maximizes performance:</p>
+      <ul>
+        <li><strong>Filter methods</strong> — statistical tests independent of the model (correlation, mutual information, chi-squared)</li>
+        <li><strong>Wrapper methods</strong> — use the model as a black box (forward selection, backward elimination, RFE)</li>
+        <li><strong>Embedded methods</strong> — feature selection built into the model (L1 regularization, tree-based importance)</li>
+        <li><strong>SHAP/LIME</strong> — model-agnostic explanation methods that also serve as feature importance</li>
+      </ul>
+      <p style="margin-top:0.8rem"><strong>Practical tip:</strong> Start with feature importance from a gradient boosted tree (XGBoost/LightGBM). Use SHAP for more nuanced understanding. Remove features that are highly correlated with each other (keep the one with higher importance). Monitor feature importance drift in production.</p>
+      <p style="margin-top:0.8rem"><strong>Explore further:</strong> Study Boruta algorithm for feature selection. Read about Shapley values in game theory and their adaptation to ML feature importance via SHAP.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CH 6: MODEL DEVELOPMENT ═══════════════════ -->
+<section class="chapter-section ch-6 reveal" id="ch6">
+  <div class="chapter-header">
+    <div class="chapter-number">06</div>
+    <h2>
+      <small>Chapter 6</small>
+      Model Development & Offline Evaluation
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    Model selection is not about picking the fanciest architecture. It's about finding the <strong>simplest model that meets your requirements</strong> — balancing performance, latency, interpretability, and maintainability.
+  </p>
+
+  <div class="numbered-steps">
+    <div class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Start with a Baseline</h4>
+        <p>Random prediction, majority class, or simple heuristic. You'd be surprised how often a simple rule-based system gets you 80% of the way there. Never skip the baseline.</p>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Try Simple Models First</h4>
+        <p>Logistic regression, decision trees, gradient boosted trees. These are fast to train, easy to debug, and often competitive. XGBoost/LightGBM dominate tabular data.</p>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Move to Complex Models When Justified</h4>
+        <p>Neural networks, transformers, ensemble methods. Only if simple models hit a clear performance ceiling AND you have enough data AND the latency/cost is acceptable.</p>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Experiment Rigorously</h4>
+        <p>Track everything: hyperparameters, data versions, random seeds, metrics per slice. Use experiment tracking tools (MLflow, W&B, Neptune). If you can't reproduce it, it doesn't count.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="key-insight">
+    <div class="insight-label">Core Insight</div>
+    <p><strong>Ensembles almost always beat single models.</strong> But ensembles are harder to serve and maintain. The production trade-off: a single well-tuned model that ships fast vs. an ensemble that ships slow but performs better. Choose based on business impact.</p>
+  </div>
+
+  <h3 style="font-family: var(--font-display); margin: 2rem 0 1rem; font-size: 1.2rem;">Offline Evaluation — Getting It Right Before Production</h3>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">📏</div>
+      <h4>Evaluation Metrics</h4>
+      <p class="card-brief">Choosing the right metric is as important as choosing the right model. The wrong metric optimizes the wrong thing.</p>
+      <div class="card-detail">
+        <p><strong>Classification:</strong> Accuracy, Precision, Recall, F1, PR-AUC (for imbalanced), ROC-AUC, Log Loss</p>
+        <p style="margin-top:0.5rem"><strong>Regression:</strong> MSE, RMSE, MAE, MAPE, R²</p>
+        <p style="margin-top:0.5rem"><strong>Ranking:</strong> NDCG, MAP, MRR</p>
+        <p style="margin-top:0.5rem"><strong>The key question:</strong> What does a mistake cost?</p>
+        <ul><li>High cost of false positives → optimize precision (spam filter being too aggressive)</li>
+        <li>High cost of false negatives → optimize recall (cancer screening missing actual cancer)</li>
+        <li>Care about both → use F1 or set threshold based on business cost matrix</li></ul>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🔀</div>
+      <h4>Data Splits & Cross-Validation</h4>
+      <p class="card-brief">How you split data for evaluation can introduce subtle biases that make your model look better than it really is.</p>
+      <div class="card-detail">
+        <p><strong>Train/Val/Test split</strong> — basic approach. Use test set only at the very end.</p>
+        <p style="margin-top:0.5rem"><strong>K-Fold CV</strong> — more robust for small datasets. Average across K evaluations.</p>
+        <p style="margin-top:0.5rem"><strong>Time-based split</strong> — CRITICAL for time-series. Train on past, validate on future. Never shuffle temporal data randomly.</p>
+        <p style="margin-top:0.5rem"><strong>Stratified split</strong> — maintain class distribution in each fold.</p>
+        <p style="margin-top:0.5rem"><strong>Group split</strong> — ensure all data from a single entity (user, session) is in the same fold. Prevents data leakage through correlated samples.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🔍</div>
+      <h4>Slice-Based Evaluation</h4>
+      <p class="card-brief">Aggregate metrics hide problems. A model with 95% overall accuracy might have 60% accuracy on a critical subgroup.</p>
+      <div class="card-detail">
+        <p>Always evaluate on meaningful slices:</p>
+        <ul><li><strong>Demographic slices</strong> — age groups, geographies, languages</li>
+        <li><strong>Behavioral slices</strong> — new vs returning users, high vs low activity</li>
+        <li><strong>Input property slices</strong> — short vs long text, high vs low resolution images</li>
+        <li><strong>Business-critical slices</strong> — premium users, high-value transactions</li></ul>
+        <p style="margin-top:0.5rem">Use tools like SliceFinder or What-If Tool to discover underperforming slices automatically.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnemonic-label">🧠 Memory Anchor</div>
+    <h4>"BSEC" — Baseline → Simple → Ensemble → Complex</h4>
+    <p>Always progress from simple to complex. Each step up must justify its added complexity with measurable improvement. Document why each step was needed. Many production systems happily run on step 2.</p>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: Hyperparameter Tuning & AutoML</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <ul>
+        <li><strong>Grid search</strong> — exhaustive but expensive. Only for small search spaces.</li>
+        <li><strong>Random search</strong> — surprisingly effective. Often finds good configs faster than grid search (Bergstra & Bengio, 2012).</li>
+        <li><strong>Bayesian optimization</strong> (Optuna, Hyperopt) — models the objective function, intelligently chooses next hyperparameters to try. Best for expensive evaluations.</li>
+        <li><strong>Successive halving / Hyperband</strong> — allocate more resources to promising configs, kill bad ones early. Very efficient.</li>
+        <li><strong>AutoML</strong> (Auto-sklearn, H2O, Google AutoML) — automates model selection + hyperparameter tuning + feature engineering. Good for baselines, but understand what it's doing.</li>
+        <li><strong>Neural Architecture Search</strong> (NAS) — auto-design neural network architectures. Computationally expensive but powerful.</li>
+      </ul>
+      <p style="margin-top:0.8rem"><strong>Practical tip:</strong> Use Optuna with Bayesian optimization for most tuning tasks. Set a compute budget upfront. Log every trial — failed experiments are as informative as successful ones.</p>
+      <p style="margin-top:0.8rem"><strong>Explore further:</strong> Read about multi-fidelity optimization (evaluate cheap proxies first, refine on full data). Study the lottery ticket hypothesis for neural network pruning.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CH 7: DEPLOYMENT ═══════════════════ -->
+<section class="chapter-section ch-7 reveal" id="ch7">
+  <div class="chapter-header">
+    <div class="chapter-number">07</div>
+    <h2>
+      <small>Chapter 7</small>
+      Model Deployment & Prediction Service
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    A model that isn't deployed is just a notebook. <strong>Deployment is where ML meets engineering reality</strong> — latency budgets, scaling, versioning, and the gap between offline and online performance.
+  </p>
+
+  <div class="flow-diagram">
+    <div class="flow-step"><span class="step-icon">📦</span> Model Artifact</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="step-icon">🐳</span> Containerize</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="step-icon">🧪</span> Shadow / Canary</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="step-icon">🚀</span> Gradual Rollout</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="step-icon">📡</span> Full Production</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step"><span class="step-icon">📊</span> Monitor</div>
+  </div>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">⚡</div>
+      <h4>Online vs Batch Prediction</h4>
+      <p class="card-brief">Online prediction serves one request at a time with low latency; batch prediction processes large volumes offline.</p>
+      <div class="card-detail">
+        <p><strong>Online prediction:</strong></p>
+        <ul><li>Real-time, low latency (ms to seconds)</li>
+        <li>Triggered by user action</li>
+        <li>Examples: search ranking, fraud detection, autocomplete</li>
+        <li>Challenges: tail latency, cold start, feature serving</li></ul>
+        <p style="margin-top:0.5rem"><strong>Batch prediction:</strong></p>
+        <ul><li>Run periodically, process large volumes</li>
+        <li>Store results for later retrieval</li>
+        <li>Examples: recommendations precomputed nightly, risk scores</li>
+        <li>Cheaper but stale — doesn't react to recent behavior</li></ul>
+        <p style="margin-top:0.5rem"><strong>Hybrid:</strong> Pre-compute base predictions in batch, adjust in real-time. Common pattern for recommendation systems.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🔀</div>
+      <h4>Model Compression</h4>
+      <p class="card-brief">Make models smaller and faster without losing much accuracy. Essential for latency-sensitive and edge deployments.</p>
+      <div class="card-detail">
+        <ul><li><strong>Knowledge distillation</strong> — train a small "student" model to mimic a large "teacher." BERT → DistilBERT is the classic example.</li>
+        <li><strong>Pruning</strong> — remove weights/neurons that contribute little. Unstructured (individual weights) or structured (entire channels).</li>
+        <li><strong>Quantization</strong> — reduce precision from FP32 to INT8 or even INT4. 2-4x speedup with minimal accuracy loss. ONNX Runtime, TensorRT support this.</li>
+        <li><strong>Low-rank factorization</strong> — decompose weight matrices into products of smaller matrices.</li></ul>
+        <p style="margin-top:0.5rem">These can be combined: distill → prune → quantize for maximum compression.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">☁️</div>
+      <h4>Edge vs Cloud Deployment</h4>
+      <p class="card-brief">Where the model runs (user's device vs cloud server) has profound implications for latency, privacy, and cost.</p>
+      <div class="card-detail">
+        <p><strong>Cloud:</strong> powerful hardware, easy to update, centralized monitoring. But: network latency, privacy concerns, ongoing compute cost.</p>
+        <p style="margin-top:0.5rem"><strong>Edge:</strong> low latency (no network), works offline, data stays on device. But: limited compute, hard to update, diverse hardware, no server-side monitoring.</p>
+        <p style="margin-top:0.5rem"><strong>Hybrid:</strong> Simple/fast model on edge, complex model in cloud. On-device model handles 80% of cases, cloud model handles edge cases. Best of both worlds.</p>
+        <p style="margin-top:0.5rem"><strong>Tools:</strong> TensorFlow Lite, CoreML, ONNX Runtime Mobile, MLX (Apple Silicon).</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🚦</div>
+      <h4>Deployment Strategies</h4>
+      <p class="card-brief">How you roll out a new model is as important as the model itself. Wrong deployment can cause outages.</p>
+      <div class="card-detail">
+        <ul><li><strong>Shadow deployment</strong> — new model runs alongside old one, serves no traffic but logs predictions. Compare performance safely.</li>
+        <li><strong>Canary</strong> — route 1-5% of traffic to new model. If metrics look good, gradually increase.</li>
+        <li><strong>Blue/Green</strong> — two identical environments, switch traffic atomically. Fast rollback.</li>
+        <li><strong>A/B testing</strong> — split traffic between old and new model, measure business impact statistically.</li>
+        <li><strong>Multi-armed bandit</strong> — dynamically allocate more traffic to the better-performing model.</li></ul>
+        <p style="margin-top:0.5rem"><strong>Golden rule:</strong> Always have a fast rollback plan. Never deploy Friday afternoon.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <div class="pitfall-box">
+    <div class="pitfall-label">⚠️ Training-Serving Skew</div>
+    <p>The #1 deployment bug. Features computed differently during training vs serving:</p>
+    <ul>
+      <li>Using Python libraries in training but Java in serving — numeric differences</li>
+      <li>Feature lookups from different data sources (batch tables vs real-time cache)</li>
+      <li>Preprocessing order differences (normalize before or after encoding?)</li>
+      <li>Time zone differences between training data and live requests</li>
+    </ul>
+    <p style="margin-top: 0.5rem"><strong>Solution:</strong> Share feature computation code between training and serving. Or use a feature store that guarantees consistency.</p>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: ML Serving Architecture</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <ul>
+        <li><strong>Model server</strong> (TorchServe, TF Serving, Triton, BentoML) — serves model behind an API. Handles batching, versioning, health checks.</li>
+        <li><strong>Feature serving</strong> — low-latency retrieval of pre-computed features. Redis, DynamoDB, or dedicated feature store.</li>
+        <li><strong>Prediction cache</strong> — cache repeated predictions. Huge win if your input space is bounded.</li>
+        <li><strong>Async prediction</strong> — for non-interactive use cases, queue predictions and process in background (Celery, SQS).</li>
+        <li><strong>Microservice vs Monolith</strong> — ML model as a microservice enables independent scaling and deployment. But adds network overhead and operational complexity.</li>
+      </ul>
+      <p style="margin-top:0.8rem"><strong>Explore further:</strong> Study Uber's Michelangelo, Facebook's FBLearner, Google's TFX. Each represents a different philosophy for production ML serving. Learn about model mesh — Kubernetes-native model serving at scale.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CH 8: DATA DISTRIBUTION SHIFTS ═══════════════════ -->
+<section class="chapter-section ch-8 reveal" id="ch8">
+  <div class="chapter-header">
+    <div class="chapter-number">08</div>
+    <h2>
+      <small>Chapter 8</small>
+      Data Distribution Shifts & Monitoring
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    Your model was trained on past data but predicts future data. When the future looks different from the past, <strong>your model silently degrades</strong>. Monitoring distribution shifts is how you catch this before users notice.
+  </p>
+
+  <div class="key-insight">
+    <div class="insight-label">Core Insight</div>
+    <p><strong>All models degrade over time.</strong> The question isn't "will my model drift?" but "how quickly will it drift and how will I detect it?" Without monitoring, you're flying blind.</p>
+  </div>
+
+  <h3 style="font-family: var(--font-display); margin: 2rem 0 1rem; font-size: 1.2rem;">Types of Distribution Shifts</h3>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">📊</div>
+      <h4>Covariate Shift</h4>
+      <p class="card-brief">The input distribution P(X) changes, but the relationship P(Y|X) stays the same. The most common type of shift.</p>
+      <div class="card-detail">
+        <p><strong>Example:</strong> You trained a product recommendation model on desktop users. Mobile users have different browsing patterns (different X), but their preferences given what they browse (P(Y|X)) are the same.</p>
+        <p style="margin-top:0.5rem"><strong>Detection:</strong> Monitor input feature distributions. Statistical tests (KS test, PSI) on each feature.</p>
+        <p style="margin-top:0.5rem"><strong>Fix:</strong> Importance weighting (upweight training examples that look like production data), or retrain with new data distribution.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🎯</div>
+      <h4>Label Shift (Prior Shift)</h4>
+      <p class="card-brief">The output distribution P(Y) changes, but P(X|Y) stays the same. The base rates of classes change.</p>
+      <div class="card-detail">
+        <p><strong>Example:</strong> Your fraud detection model was trained when 1% of transactions were fraudulent. A new attack vector pushes fraud to 5%. Fraudulent transactions still look the same, but there are more of them.</p>
+        <p style="margin-top:0.5rem"><strong>Detection:</strong> Monitor prediction distribution. If the model suddenly predicts way more positives, the prior may have shifted.</p>
+        <p style="margin-top:0.5rem"><strong>Fix:</strong> Adjust decision thresholds, recalibrate the model, or retrain with data reflecting the new prior.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🌀</div>
+      <h4>Concept Drift</h4>
+      <p class="card-brief">The relationship P(Y|X) itself changes. The same input should now get a different prediction. The hardest to detect.</p>
+      <div class="card-detail">
+        <p><strong>Example:</strong> Pre-COVID, a model predicting restaurant foot traffic learned "Saturday + good weather = high traffic." During lockdowns, this relationship broke. Same inputs, completely different outputs.</p>
+        <p style="margin-top:0.5rem"><strong>Types:</strong></p>
+        <ul><li><strong>Sudden</strong> — abrupt change (pandemic, regulation change)</li>
+        <li><strong>Gradual</strong> — slow shift over weeks/months (cultural trends)</li>
+        <li><strong>Recurring</strong> — seasonal patterns (holiday shopping)</li>
+        <li><strong>Incremental</strong> — imperceptible daily changes that accumulate</li></ul>
+        <p style="margin-top:0.5rem"><strong>Detection:</strong> Monitor model performance metrics directly. Track accuracy/precision/recall on labeled production data.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <h3 style="font-family: var(--font-display); margin: 2.5rem 0 1rem; font-size: 1.2rem;">Monitoring — Your ML Immune System</h3>
+
+  <div class="mini-arch">
+    <div class="mini-arch-box"><div class="box-icon">📥</div><div class="box-label">Input Monitoring</div></div>
+    <div class="mini-arch-box"><div class="box-icon">⚙️</div><div class="box-label">Feature Drift</div></div>
+    <div class="mini-arch-box"><div class="box-icon">📈</div><div class="box-label">Prediction Drift</div></div>
+    <div class="mini-arch-box"><div class="box-icon">🎯</div><div class="box-label">Performance Decay</div></div>
+    <div class="mini-arch-box"><div class="box-icon">🔔</div><div class="box-label">Alerting</div></div>
+    <div class="mini-arch-box"><div class="box-icon">🔄</div><div class="box-label">Trigger Retrain</div></div>
+  </div>
+
+  <div class="practical-box">
+    <div class="practical-label">🛠️ What to Monitor in Production</div>
+    <h4>The ML Monitoring Stack</h4>
+    <ul>
+      <li><strong>Operational metrics</strong> — latency, throughput, error rates, CPU/memory</li>
+      <li><strong>Model metrics</strong> — accuracy, precision, recall on labeled samples (if available)</li>
+      <li><strong>Data metrics</strong> — feature distributions, missing value rates, cardinality changes</li>
+      <li><strong>Prediction distribution</strong> — histogram of predicted scores over time</li>
+      <li><strong>Business metrics</strong> — click-through rate, conversion, revenue (the ultimate ground truth)</li>
+    </ul>
+    <p style="margin-top: 0.6rem">Tools: Evidently AI, Whylabs, Arize, NannyML, Fiddler, or build with Prometheus + Grafana.</p>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: Statistical Tests for Drift Detection</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <ul>
+        <li><strong>KS Test (Kolmogorov-Smirnov)</strong> — compares CDFs of two distributions. Good for continuous features. Sensitive to all types of distributional changes.</li>
+        <li><strong>PSI (Population Stability Index)</strong> — measures how much a distribution has shifted. Common in credit scoring. PSI &lt; 0.1 = no shift, 0.1-0.25 = moderate, &gt; 0.25 = significant.</li>
+        <li><strong>Chi-squared test</strong> — for categorical features. Tests if observed frequencies match expected frequencies.</li>
+        <li><strong>MMD (Maximum Mean Discrepancy)</strong> — kernel-based test for multivariate distributions. Can detect shifts in feature interactions.</li>
+        <li><strong>Page-Hinkley test</strong> — sequential test for detecting change points in a time series.</li>
+      </ul>
+      <p style="margin-top:0.8rem"><strong>Practical tip:</strong> Don't set alerts on every feature — you'll drown in false alarms. Identify your 10-20 most important features and monitor those closely. Use a slower cadence (daily) for less critical features.</p>
+      <p style="margin-top:0.8rem"><strong>Explore further:</strong> Read about concept drift detectors (ADWIN, DDM, EDDM). Study how Uber, Airbnb, and Spotify implement production ML monitoring at scale.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CH 9: CONTINUAL LEARNING ═══════════════════ -->
+<section class="chapter-section ch-9 reveal" id="ch9">
+  <div class="chapter-header">
+    <div class="chapter-number">09</div>
+    <h2>
+      <small>Chapter 9</small>
+      Continual Learning & Testing in Production
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    The best ML systems don't just deploy and forget. They <strong>continuously learn from new data</strong> and use production as a testing ground. This chapter covers how to keep your model fresh and validate changes safely.
+  </p>
+
+  <div class="key-insight">
+    <div class="insight-label">Core Insight</div>
+    <p><strong>A model is a snapshot of the world at training time.</strong> The world keeps moving. Continual learning is how your model keeps up — but it introduces new risks like catastrophic forgetting and training instability.</p>
+  </div>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🔄</div>
+      <h4>Retraining Strategies</h4>
+      <p class="card-brief">How often and how much to retrain depends on how fast your data shifts and how expensive retraining is.</p>
+      <div class="card-detail">
+        <p><strong>Stateless retraining</strong> — retrain from scratch on all data. Simple and reproducible, but expensive and slow.</p>
+        <p style="margin-top:0.5rem"><strong>Stateful training (fine-tuning)</strong> — continue training from the previous checkpoint with new data. Faster, but can forget old patterns (catastrophic forgetting).</p>
+        <p style="margin-top:0.5rem"><strong>Frequency spectrum:</strong></p>
+        <ul><li>Annually — slow-changing domains (geology, astronomy)</li>
+        <li>Monthly/Weekly — most enterprise ML (churn, recommendations)</li>
+        <li>Daily — fast-changing domains (ads, trending content)</li>
+        <li>Real-time — streaming/online learning (stock trading, real-time personalization)</li></ul>
+        <p style="margin-top:0.5rem"><strong>Trigger-based:</strong> Retrain when drift is detected, not on a fixed schedule. More efficient but requires good monitoring.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🧪</div>
+      <h4>Testing in Production</h4>
+      <p class="card-brief">Offline metrics never tell the full story. Real validation happens in production with real users and real consequences.</p>
+      <div class="card-detail">
+        <p><strong>A/B Testing</strong> — gold standard. Split traffic randomly, measure business metric difference. Requires statistical significance (usually 1-2 weeks of data).</p>
+        <p style="margin-top:0.5rem"><strong>Shadow testing</strong> — run new model in parallel, log predictions but don't serve them. Zero risk.</p>
+        <p style="margin-top:0.5rem"><strong>Canary release</strong> — serve new model to tiny fraction (1%). Monitor closely. Expand if healthy.</p>
+        <p style="margin-top:0.5rem"><strong>Interleaving</strong> — for ranking: interleave results from old and new model, measure which gets more clicks. More sample-efficient than A/B testing.</p>
+        <p style="margin-top:0.5rem"><strong>Bandits</strong> — dynamically allocate traffic to better-performing model. Minimizes regret during testing.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🛡️</div>
+      <h4>Safeguards for Continual Learning</h4>
+      <p class="card-brief">Automated retraining without safeguards is a time bomb. You need guardrails at every step.</p>
+      <div class="card-detail">
+        <p><strong>Data validation</strong> — check incoming data quality before it enters training. Schema validation, range checks, freshness checks.</p>
+        <p style="margin-top:0.5rem"><strong>Model validation</strong> — automated checks before deployment:</p>
+        <ul><li>Performance on held-out test set ≥ threshold</li>
+        <li>Performance on critical slices ≥ threshold</li>
+        <li>No significant regression on any metric</li>
+        <li>Inference latency within budget</li></ul>
+        <p style="margin-top:0.5rem"><strong>Staged rollout</strong> — shadow → canary → 10% → 50% → 100%, with automated rollback at each stage.</p>
+        <p style="margin-top:0.5rem"><strong>Human in the loop</strong> — for high-stakes domains, require human approval before production deployment.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnemonic-label">🧠 Memory Anchor</div>
+    <h4>"Train, Validate, Gate, Deploy, Monitor — TVGDM"</h4>
+    <p>The continual learning loop: Train on new data → Validate on test set + slices → Gate (pass quality checks?) → Deploy (staged rollout) → Monitor (watch metrics). If monitoring detects drift, the loop restarts.</p>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: Online Learning & Real-Time Adaptation</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <p><strong>Online learning</strong> updates the model with each new example. Extremely powerful for fast-changing environments:</p>
+      <ul>
+        <li><strong>Use cases:</strong> Ad click prediction (Facebook's GBDT + logistic regression), real-time pricing, trending content recommendations.</li>
+        <li><strong>Challenges:</strong> Catastrophic forgetting, training instability, adversarial manipulation (users can craft inputs that "poison" the model).</li>
+        <li><strong>Algorithms:</strong> SGD on mini-batches, Follow-The-Regularized-Leader (FTRL), Vowpal Wabbit.</li>
+        <li><strong>Replay buffers:</strong> Keep a buffer of past examples and mix them with new data during training. Prevents forgetting.</li>
+        <li><strong>Elastic Weight Consolidation:</strong> Slow down learning for weights important to old tasks. Balances plasticity (learning new) vs. stability (remembering old).</li>
+      </ul>
+      <p style="margin-top:0.8rem"><strong>Explore further:</strong> Study how Google and Meta implement real-time model updates for ads ranking. Look into continual learning research — particularly Progressive Neural Networks and PackNet. Read about concept drift-aware ensemble methods.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CH 10: INFRASTRUCTURE ═══════════════════ -->
+<section class="chapter-section ch-10 reveal" id="ch10">
+  <div class="chapter-header">
+    <div class="chapter-number">10</div>
+    <h2>
+      <small>Chapter 10</small>
+      Infrastructure & Tooling for MLOps
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    MLOps is the practice of <strong>operationalizing ML</strong> — the infrastructure, tooling, and processes that take a model from experiment to production and keep it running reliably. Think of it as DevOps + data engineering + ML.
+  </p>
+
+  <h3 style="font-family: var(--font-display); margin: 2rem 0 1rem; font-size: 1.2rem;">The MLOps Stack</h3>
+
+  <div class="mini-arch">
+    <div class="mini-arch-box"><div class="box-icon">💾</div><div class="box-label">Data Stack</div></div>
+    <div class="mini-arch-box"><div class="box-icon">🧪</div><div class="box-label">Experiment Tracking</div></div>
+    <div class="mini-arch-box"><div class="box-icon">📦</div><div class="box-label">Model Registry</div></div>
+    <div class="mini-arch-box"><div class="box-icon">⚙️</div><div class="box-label">Feature Store</div></div>
+    <div class="mini-arch-box"><div class="box-icon">🔁</div><div class="box-label">Pipeline Orchestration</div></div>
+    <div class="mini-arch-box"><div class="box-icon">🚀</div><div class="box-label">Model Serving</div></div>
+    <div class="mini-arch-box"><div class="box-icon">📊</div><div class="box-label">Monitoring</div></div>
+    <div class="mini-arch-box"><div class="box-icon">🏗️</div><div class="box-label">Compute Platform</div></div>
+  </div>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🔁</div>
+      <h4>Pipeline Orchestration</h4>
+      <p class="card-brief">ML workflows are DAGs of dependent steps. Orchestrators manage execution order, retries, scheduling, and dependencies.</p>
+      <div class="card-detail">
+        <p><strong>Key tools:</strong></p>
+        <ul><li><strong>Airflow</strong> — the workhorse. DAG-based, widely adopted, great ecosystem. Can be complex to manage.</li>
+        <li><strong>Prefect / Dagster</strong> — modern alternatives. Better developer experience, data-aware scheduling.</li>
+        <li><strong>Kubeflow Pipelines</strong> — Kubernetes-native ML pipelines. Good for training workflows.</li>
+        <li><strong>Metaflow</strong> (Netflix) — Python-native, scales from laptop to cloud transparently.</li>
+        <li><strong>ZenML</strong> — framework-agnostic, pluggable stack components.</li></ul>
+        <p style="margin-top:0.5rem"><strong>What to orchestrate:</strong> data ingestion → feature computation → training → evaluation → deployment → monitoring.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">📝</div>
+      <h4>Experiment Tracking & Model Registry</h4>
+      <p class="card-brief">If you can't reproduce an experiment, you can't improve on it. Track everything, version everything.</p>
+      <div class="card-detail">
+        <p><strong>Experiment tracking</strong> captures:</p>
+        <ul><li>Hyperparameters and configuration</li>
+        <li>Data version / snapshot used</li>
+        <li>Code version (git commit)</li>
+        <li>Metrics, learning curves, artifacts</li>
+        <li>Environment (dependencies, hardware)</li></ul>
+        <p style="margin-top:0.5rem"><strong>Model registry</strong> is the source of truth for model lifecycle:</p>
+        <ul><li>Which model versions exist</li>
+        <li>Which is currently in staging/production</li>
+        <li>Who approved it, when</li>
+        <li>Linked experiment and data version</li></ul>
+        <p style="margin-top:0.5rem"><strong>Tools:</strong> MLflow, Weights & Biases, Neptune, CometML, DVC.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🏗️</div>
+      <h4>Compute & Resource Management</h4>
+      <p class="card-brief">ML workloads are compute-hungry and bursty. Managing GPU resources, distributed training, and cost is a key infrastructure challenge.</p>
+      <div class="card-detail">
+        <p><strong>Training compute:</strong></p>
+        <ul><li>Single GPU → Multi-GPU (data parallelism, model parallelism)</li>
+        <li>Distributed training (Horovod, DeepSpeed, FSDP)</li>
+        <li>Spot/preemptible instances for cost savings</li>
+        <li>Cloud (AWS/GCP/Azure) vs on-prem vs hybrid</li></ul>
+        <p style="margin-top:0.5rem"><strong>Inference compute:</strong></p>
+        <ul><li>CPU for simple models (usually sufficient for gradient boosted trees)</li>
+        <li>GPU for neural networks, especially transformers</li>
+        <li>Specialized hardware (TPU, Inferentia, custom ASICs)</li>
+        <li>Auto-scaling based on traffic patterns</li></ul>
+        <p style="margin-top:0.5rem"><strong>Cost optimization:</strong> Right-size instances, use spot pricing, batch inference where possible, cache predictions, optimize model size.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">📜</div>
+      <h4>ML Platform Maturity Levels</h4>
+      <p class="card-brief">Not every company needs a full ML platform on day one. Build incrementally based on your actual needs.</p>
+      <div class="card-detail">
+        <p><strong>Level 0 — Manual:</strong> Jupyter notebooks, manual model export, no automation. Fine for experimentation, not for production.</p>
+        <p style="margin-top:0.5rem"><strong>Level 1 — ML Pipeline Automation:</strong> Automated training pipeline, basic monitoring, CI/CD for model deployment. This is where most companies should aim first.</p>
+        <p style="margin-top:0.5rem"><strong>Level 2 — CI/CD for ML:</strong> Automated testing, data validation, model validation, automated retraining triggers, feature store integration.</p>
+        <p style="margin-top:0.5rem"><strong>Level 3 — Full Platform:</strong> Self-service ML platform. Any team can build, deploy, and monitor models independently. Centralized governance, multi-tenant resource management.</p>
+        <p style="margin-top:0.5rem"><strong>Principle:</strong> Don't build Level 3 infrastructure for Level 0 problems. Match your tooling to your actual pain points.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <div class="rule-of-thumb">
+    <div class="rot-label">📏 Rule of Thumb</div>
+    <p><strong>"Buy/adopt before you build."</strong> Building your own ML infrastructure is tempting but incredibly expensive. Use managed services and open-source tools. Only build custom when off-the-shelf doesn't fit your exact requirements after honest evaluation.</p>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: Build vs Buy & Tool Selection</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <p>When evaluating MLOps tools, consider:</p>
+      <ul>
+        <li><strong>Adoption cost</strong> — how long to set up? how steep is the learning curve?</li>
+        <li><strong>Integration</strong> — does it work with your existing stack? (cloud provider, orchestrator, storage)</li>
+        <li><strong>Lock-in</strong> — can you migrate away? is the format open?</li>
+        <li><strong>Community</strong> — active development? good documentation? real-world case studies?</li>
+        <li><strong>Scale</strong> — will it handle your growth? at what cost?</li>
+      </ul>
+      <p style="margin-top:0.8rem"><strong>A pragmatic starter stack:</strong> MLflow (experiment tracking + model registry) + Airflow or Prefect (orchestration) + Feast (feature store) + Evidently (monitoring) + your cloud provider's compute (training/serving). This gets you very far before you need anything custom.</p>
+      <p style="margin-top:0.8rem"><strong>Explore further:</strong> Study the ML Platform architecture at Spotify, Doordash, and Airbnb. Read Thoughtworks' Technology Radar for ML tooling trends. Review the MLOps Community's annual survey for real-world tool adoption data.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CH 11: HUMAN SIDE ═══════════════════ -->
+<section class="chapter-section ch-11 reveal" id="ch11">
+  <div class="chapter-header">
+    <div class="chapter-number">11</div>
+    <h2>
+      <small>Chapter 11</small>
+      The Human Side of Machine Learning
+    </h2>
+  </div>
+
+  <p class="section-desc">
+    ML systems are used by people and built by people. <strong>Responsible ML</strong> isn't an afterthought — it's a design requirement. Fairness, interpretability, and trust determine whether your system helps or harms.
+  </p>
+
+  <div class="key-insight">
+    <div class="insight-label">Core Insight</div>
+    <p><strong>An ML system can be highly accurate and deeply unfair at the same time.</strong> Fairness is not a single metric — it's a set of trade-offs that must be navigated with context, empathy, and domain expertise.</p>
+  </div>
+
+  <div class="concepts-grid">
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">⚖️</div>
+      <h4>Fairness & Bias</h4>
+      <p class="card-brief">ML models can amplify societal biases present in training data. Understanding where bias enters and how to mitigate it is essential.</p>
+      <div class="card-detail">
+        <p><strong>Sources of bias:</strong></p>
+        <ul><li><strong>Historical bias</strong> — the world itself is biased; data reflects that</li>
+        <li><strong>Representation bias</strong> — some groups are underrepresented in data</li>
+        <li><strong>Measurement bias</strong> — features measure different things for different groups</li>
+        <li><strong>Aggregation bias</strong> — one model for all subgroups when behavior differs</li>
+        <li><strong>Evaluation bias</strong> — benchmark doesn't represent real usage</li></ul>
+        <p style="margin-top:0.5rem"><strong>Fairness metrics:</strong> Demographic parity, equalized odds, calibration across groups, individual fairness. These metrics often conflict — you can't satisfy all simultaneously (Impossibility theorem).</p>
+        <p style="margin-top:0.5rem"><strong>Mitigation:</strong> Pre-processing (rebalance data), in-processing (constrained optimization), post-processing (adjust thresholds per group).</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🔍</div>
+      <h4>Interpretability & Explainability</h4>
+      <p class="card-brief">If you can't explain why your model made a decision, can you really trust it? Interpretability is key for debugging, trust, and compliance.</p>
+      <div class="card-detail">
+        <p><strong>Intrinsically interpretable:</strong> Linear models, decision trees, rule lists. You can read the model itself.</p>
+        <p style="margin-top:0.5rem"><strong>Post-hoc explanation methods:</strong></p>
+        <ul><li><strong>SHAP</strong> — Shapley value-based. Theoretically grounded, model-agnostic.</li>
+        <li><strong>LIME</strong> — local linear approximation around each prediction.</li>
+        <li><strong>Attention visualization</strong> — for transformers (but attention ≠ explanation)</li>
+        <li><strong>Counterfactual explanations</strong> — "if you had income $5K higher, you'd be approved"</li>
+        <li><strong>Concept-based</strong> (TCAV) — explain in human-meaningful concepts</li></ul>
+        <p style="margin-top:0.5rem"><strong>When it matters most:</strong> Healthcare, finance, criminal justice, any high-stakes decision. Also critical for debugging — if you can't explain a wrong prediction, how will you fix it?</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">🔒</div>
+      <h4>Privacy & Security</h4>
+      <p class="card-brief">ML models can leak training data. Privacy-preserving techniques let you build useful models while protecting individual data.</p>
+      <div class="card-detail">
+        <p><strong>Threats:</strong></p>
+        <ul><li><strong>Model inversion</strong> — reconstruct training data from model</li>
+        <li><strong>Membership inference</strong> — determine if a sample was in training data</li>
+        <li><strong>Data poisoning</strong> — corrupt training data to manipulate model</li>
+        <li><strong>Model extraction</strong> — steal model by querying it repeatedly</li></ul>
+        <p style="margin-top:0.5rem"><strong>Defenses:</strong></p>
+        <ul><li><strong>Differential privacy</strong> — add calibrated noise during training</li>
+        <li><strong>Federated learning</strong> — train on distributed data without centralizing it</li>
+        <li><strong>Secure multi-party computation</strong> — multiple parties compute on combined data without sharing it</li>
+        <li><strong>Data anonymization/pseudonymization</strong></li></ul>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+
+    <div class="concept-card" onclick="toggleCard(this)">
+      <div class="card-icon">📋</div>
+      <h4>Model Cards & Documentation</h4>
+      <p class="card-brief">Every model in production should have a "model card" — a standardized document explaining what it does, how it was built, and its limitations.</p>
+      <div class="card-detail">
+        <p><strong>A model card should include:</strong></p>
+        <ul><li>Model name, version, owner, date</li>
+        <li>Intended use and out-of-scope uses</li>
+        <li>Training data description</li>
+        <li>Performance metrics (overall and per-slice)</li>
+        <li>Fairness evaluation across relevant groups</li>
+        <li>Known limitations and failure modes</li>
+        <li>Ethical considerations</li></ul>
+        <p style="margin-top:0.5rem">Model cards bring accountability and transparency. They make it harder to deploy a model without understanding its implications. They also help new team members onboard quickly.</p>
+      </div>
+      <div class="expand-hint"><span class="arrow">▼</span> Click to expand</div>
+    </div>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnemonic-label">🧠 Memory Anchor</div>
+    <h4>"FIPE" — Fairness · Interpretability · Privacy · Ethics</h4>
+    <p>The four pillars of responsible ML. Every production model should be evaluated across all four dimensions. A model that excels on accuracy but fails on fairness is not a good model — it's a liability.</p>
+  </div>
+
+  <div class="deep-dive" onclick="toggleDeepDive(this)">
+    <div class="deep-dive-header">
+      <h4>🔬 Dig Deeper: Building an ML Ethics Practice</h4>
+      <span class="toggle">+</span>
+    </div>
+    <div class="deep-dive-content">
+      <ul>
+        <li><strong>Pre-deployment review</strong> — establish a checklist before any model goes live. Include fairness analysis, privacy review, failure mode analysis.</li>
+        <li><strong>Red teaming</strong> — have a team try to break or misuse your model before users do. Especially important for generative AI.</li>
+        <li><strong>Feedback channels</strong> — give users a way to flag bad predictions. This is both ethically right and a free data quality signal.</li>
+        <li><strong>Regular audits</strong> — schedule quarterly reviews of model performance across demographic slices. Automate slice-based reporting.</li>
+        <li><strong>Incident response</strong> — have a plan for when things go wrong. Who gets paged? What's the rollback process? How do you communicate to users?</li>
+      </ul>
+      <p style="margin-top:0.8rem"><strong>Organizational:</strong> Consider creating an ML ethics committee or review board. Include diverse perspectives — not just ML engineers, but ethicists, domain experts, and representatives of affected communities.</p>
+      <p style="margin-top:0.8rem"><strong>Explore further:</strong> Study Google's Model Cards for Model Reporting paper. Read about the EU AI Act and its risk-based classification. Look into tools like Fairlearn (Microsoft), AI Fairness 360 (IBM), and Responsible AI Toolkit (Google).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="site-footer">
+  <p style="margin-bottom: 0.5rem; font-family: var(--font-display); font-size: 1.1rem;">Happy Learning, Manik 🚀</p>
+  <p>This interactive guide covers the core concepts of production ML systems design.</p>
+  <p style="margin-top: 0.5rem;">For deeper exploration, consult the original literature, implementation guides, and hands-on projects.</p>
+  <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.75rem;">Built as a learning companion — apply these concepts in your work at the intersection of DS/ML management and AI tooling.</p>
+</footer>
+
+<script>
+// ── Card toggle ──
+function toggleCard(el) {
+  el.classList.toggle('expanded');
+}
+
+// ── Deep dive toggle ──
+function toggleDeepDive(el) {
+  el.classList.toggle('open');
+}
+
+// ── Sticky nav scroll effect ──
+const nav = document.getElementById('chapterNav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 100);
+});
+
+// ── Active nav link tracking ──
+const sections = document.querySelectorAll('.chapter-section');
+const navLinks = document.querySelectorAll('.nav-link');
+
+const observerOptions = {
+  rootMargin: '-20% 0px -70% 0px',
+  threshold: 0
+};
+
+const sectionObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+      });
+      // Scroll active nav link into view
+      const activeLink = document.querySelector('.nav-link.active');
+      if (activeLink) {
+        activeLink.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
+  });
+}, observerOptions);
+
+sections.forEach(section => sectionObserver.observe(section));
+
+// ── Reveal on scroll animation ──
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.05 });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+</script>
+
+</body>
+</html>

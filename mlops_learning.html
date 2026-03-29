@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practical MLOps — Interactive Learning System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08090b;--bg2:#0d0f13;--bg3:#12141a;--bg4:#181b22;--bg5:#1e212a;
+  --bd:#1c1f28;--bd2:#282c38;
+  --t1:#e6e8ee;--t2:#9499a6;--t3:#5a5f6e;
+  --cyan:#00d4ff;--cyanA:rgba(0,212,255,.1);
+  --green:#00e87b;--greenA:rgba(0,232,123,.1);
+  --amber:#f5a623;--amberA:rgba(245,166,35,.1);
+  --red:#f74a6a;--redA:rgba(247,74,106,.1);
+  --purple:#a78bfa;--purpleA:rgba(167,139,250,.1);
+  --blue:#60a5fa;--blueA:rgba(96,165,250,.1);
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'DM Sans',system-ui,-apple-system,sans-serif;
+  --serif:'Playfair Display',Georgia,serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);font-family:var(--sans);font-size:15px;line-height:1.7}
+::selection{background:rgba(0,212,255,.2)}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+
+#app{display:flex;min-height:100vh}
+#sidebar{width:260px;min-width:260px;background:var(--bg2);border-right:1px solid var(--bd);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden;z-index:10}
+#main{flex:1;min-width:0}
+.vp{max-width:880px;margin:0 auto;padding:36px 40px 80px}
+
+.s-head{padding:20px 18px 14px;border-bottom:1px solid var(--bd)}
+.s-logo{font-family:var(--mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan)}
+.s-title{font-family:var(--serif);font-size:20px;font-style:italic;color:var(--t1);margin-top:2px}
+.s-sub{font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:4px}
+.s-search{padding:10px 14px;border-bottom:1px solid var(--bd)}
+.s-search input{width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:5px;color:var(--t1);font-family:var(--mono);font-size:11px;outline:none}
+.s-search input:focus{border-color:var(--cyan)}
+.s-search input::placeholder{color:var(--t3)}
+.s-nav{flex:1;overflow-y:auto;padding:8px 0}
+.s-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);padding:14px 18px 4px}
+.s-item{display:flex;align-items:center;gap:9px;padding:7px 18px;cursor:pointer;font-size:12.5px;color:var(--t2);border-left:2px solid transparent;transition:all .12s}
+.s-item:hover{background:var(--bg3);color:var(--t1)}
+.s-item.on{background:var(--cyanA);color:var(--cyan);border-left-color:var(--cyan)}
+.s-num{font-family:var(--mono);font-size:10px;color:var(--t3);min-width:20px}
+.s-item.on .s-num{color:var(--cyan)}
+.s-foot{padding:14px 18px;border-top:1px solid var(--bd)}
+.s-foot .lbl{font-family:var(--mono);font-size:9px;color:var(--t3);display:flex;justify-content:space-between;margin-bottom:5px}
+.pbar{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));transition:width .4s;border-radius:2px}
+
+#mobileBar{display:none;position:sticky;top:0;z-index:20;background:var(--bg2);border-bottom:1px solid var(--bd);padding:10px 14px;align-items:center;gap:10px}
+#mobileBar button{background:none;border:none;color:var(--t1);font-size:18px;cursor:pointer}
+#mobileBar span{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:1.5px}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9}
+@media(max-width:780px){
+  #mobileBar{display:flex}
+  #sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);transition:transform .25s;z-index:15}
+  #sidebar.open{transform:translateX(0)}
+  #overlay.open{display:block}
+  .vp{padding:20px 16px 60px}
+  .ch-title{font-size:26px!important}
+  .ctx-grid{grid-template-columns:1fr!important}
+}
+
+.ch-head{margin-bottom:40px;padding-bottom:28px;border-bottom:1px solid var(--bd)}
+.ch-badge{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan);background:var(--cyanA);padding:3px 12px;border-radius:14px;margin-bottom:12px}
+.ch-title{font-family:var(--serif);font-size:36px;font-style:italic;line-height:1.15;color:var(--t1);margin-bottom:10px}
+.ch-sub{font-size:15px;color:var(--t2);max-width:620px;line-height:1.65}
+
+.sec{margin-bottom:40px}
+.sh{font-size:21px;font-weight:600;color:var(--t1);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.sh .ico{width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:var(--cyanA);border-radius:5px;font-size:13px}
+.st{color:var(--t2);margin-bottom:14px;line-height:1.8}
+.st strong{color:var(--t1);font-weight:500}
+
+.ctx-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.ctx{background:var(--bg3);border:1px solid var(--bd);border-radius:7px;padding:14px 16px;cursor:pointer;transition:all .15s}
+.ctx:hover{border-color:var(--bd2);background:var(--bg4)}
+.ctx.exp{grid-column:1/-1;border-color:var(--cyan);background:var(--cyanA)}
+.ctx .ql{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--cyan);margin-bottom:4px}
+.ctx .qt{font-weight:500;font-size:13.5px;color:var(--t1)}
+.ctx .qa{font-size:13px;color:var(--t2);line-height:1.7;display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--bd)}
+.ctx.exp .qa{display:block}
+
+.dbox{background:var(--bg3);border:1px solid var(--bd);border-radius:9px;padding:20px;margin:18px 0}
+.dbox-t{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.dbox-t::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+.flow{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;padding:10px 0}
+.fnode{background:var(--bg4);border:1px solid var(--bd2);border-radius:7px;padding:10px 16px;text-align:center;min-width:100px;cursor:pointer;transition:all .15s}
+.fnode:hover{border-color:var(--cyan);transform:translateY(-2px);box-shadow:0 0 16px rgba(0,212,255,.1)}
+.fnode .nl{font-size:12px;font-weight:500;color:var(--t1)}
+.fnode .nd{font-size:9px;color:var(--t3);font-family:var(--mono);margin-top:2px}
+.farr{color:var(--t3);font-size:16px;padding:0 5px;user-select:none}
+.fdp{background:var(--bg4);border:1px solid var(--bd);border-radius:7px;padding:14px 16px;margin-top:12px;font-size:13px;color:var(--t2);line-height:1.7;display:none}
+.fdp.vis{display:block}
+
+.pyr{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 0}
+.plvl{display:flex;align-items:center;justify-content:center;padding:12px 20px;border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:500;border:1px solid transparent;transition:all .15s}
+.plvl:hover{transform:scale(1.02);border-color:currentColor}
+
+.cblk{background:#090b0f;border:1px solid var(--bd);border-radius:7px;margin:14px 0;overflow:hidden}
+.cblk-h{display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:var(--bg3);border-bottom:1px solid var(--bd)}
+.cblk-l{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--t3)}
+.cblk-c{font-family:var(--mono);font-size:10px;color:var(--t3);cursor:pointer;background:none;border:1px solid var(--bd);padding:1px 8px;border-radius:3px}
+.cblk-c:hover{color:var(--cyan);border-color:var(--cyan)}
+.cblk-b{padding:14px;font-family:var(--mono);font-size:12px;line-height:1.7;color:#c0c8d4;overflow-x:auto;white-space:pre}
+
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:16px 0}
+.ccard{background:var(--bg3);border:1px solid var(--bd);border-radius:7px;padding:16px;cursor:pointer;transition:all .15s}
+.ccard:hover{border-color:var(--bd2);transform:translateY(-1px)}
+.ccard .ci{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:16px;margin-bottom:10px}
+.ccard .ct{font-weight:600;font-size:14px;color:var(--t1);margin-bottom:4px}
+.ccard .cd{font-size:12px;color:var(--t2);line-height:1.6}
+.ccard .cx{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--bd);font-size:12px;color:var(--t2);line-height:1.7}
+.ccard.exp .cx{display:block}
+
+.ctbl{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.ctbl th{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--t3);padding:8px 14px;text-align:left;border-bottom:1px solid var(--bd);background:var(--bg3)}
+.ctbl td{padding:10px 14px;border-bottom:1px solid var(--bd);color:var(--t2)}
+.ctbl tr:hover td{background:var(--bg3);color:var(--t1)}
+
+.tl{position:relative;padding-left:24px;margin:16px 0}
+.tl::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:var(--bd)}
+.tli{position:relative;padding:0 0 20px 18px}
+.tli::before{content:'';position:absolute;left:-22px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--cyan);border:2px solid var(--bg)}
+.tli .ty{font-family:var(--mono);font-size:10px;color:var(--cyan);margin-bottom:3px}
+.tli .tt{font-weight:500;color:var(--t1);font-size:14px;margin-bottom:3px}
+.tli .td{font-size:12.5px;color:var(--t2);line-height:1.6}
+
+.co{border-radius:7px;padding:14px 16px;margin:14px 0;font-size:13px;line-height:1.7}
+.co-i{background:var(--cyanA);border-left:3px solid var(--cyan);color:var(--t2)}
+.co-w{background:var(--amberA);border-left:3px solid var(--amber);color:var(--t2)}
+.co-k{background:var(--greenA);border-left:3px solid var(--green);color:var(--t2)}
+.co .col{font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;font-weight:600}
+.co-i .col{color:var(--cyan)}.co-w .col{color:var(--amber)}.co-k .col{color:var(--green)}
+
+.tabs{margin:16px 0}
+.tabs-h{display:flex;gap:0;border-bottom:1px solid var(--bd);overflow-x:auto}
+.tbtn{padding:8px 16px;font-family:var(--mono);font-size:10.5px;color:var(--t3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:all .12s;white-space:nowrap}
+.tbtn:hover{color:var(--t2)}
+.tbtn.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tpnl{display:none;padding:16px 0}
+.tpnl.on{display:block}
+
+.acc{margin:14px 0}
+.aci{border:1px solid var(--bd);border-radius:7px;margin-bottom:6px;overflow:hidden}
+.atr{width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border:none;color:var(--t1);cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500;text-align:left}
+.atr:hover{background:var(--bg4)}
+.atr .aw{transition:transform .2s;color:var(--t3)}
+.aci.open .atr .aw{transform:rotate(90deg)}
+.abd{display:none;padding:14px 16px;font-size:12.5px;color:var(--t2);line-height:1.7;background:var(--bg2)}
+.aci.open .abd{display:block}
+
+.quiz{background:var(--bg3);border:1px solid var(--bd);border-radius:9px;padding:20px;margin:18px 0}
+.quiz .qq{font-weight:500;margin-bottom:14px;color:var(--t1);font-size:14px}
+.qopt{display:block;width:100%;text-align:left;padding:9px 14px;margin-bottom:5px;background:var(--bg4);border:1px solid var(--bd);border-radius:6px;color:var(--t2);cursor:pointer;font-size:12.5px;font-family:var(--sans);transition:all .12s}
+.qopt:hover{border-color:var(--bd2);background:var(--bg5)}
+.qopt.ok{border-color:var(--green);background:var(--greenA);color:var(--green)}
+.qopt.no{border-color:var(--red);background:var(--redA);color:var(--red)}
+.qexp{display:none;margin-top:10px;padding:10px 14px;background:var(--greenA);border-radius:6px;font-size:12.5px;color:var(--t2);line-height:1.6}
+
+.mstrip{display:flex;gap:10px;margin:16px 0;flex-wrap:wrap}
+.mitem{background:var(--bg3);border:1px solid var(--bd);border-radius:7px;padding:12px 16px;flex:1;min-width:120px}
+.mitem .mv{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--cyan)}
+.mitem .ml{font-size:10px;color:var(--t3);margin-top:2px;font-family:var(--mono)}
+
+.slist{list-style:none;margin:10px 0}
+.slist li{padding:5px 0 5px 18px;position:relative;color:var(--t2);font-size:13px}
+.slist li::before{content:'▸';position:absolute;left:0;color:var(--cyan)}
+.slist li strong{color:var(--t1);font-weight:500}
+
+.tag{display:inline-block;font-family:var(--mono);font-size:9.5px;padding:2px 7px;border-radius:3px;margin:1px}
+.tag-c{background:var(--cyanA);color:var(--cyan)}
+.tag-g{background:var(--greenA);color:var(--green)}
+.tag-a{background:var(--amberA);color:var(--amber)}
+.tag-p{background:var(--purpleA);color:var(--purple)}
+.tag-b{background:var(--blueA);color:var(--blue)}
+
+.chnav{display:flex;justify-content:space-between;margin-top:48px;padding-top:24px;border-top:1px solid var(--bd)}
+.cnbtn{display:flex;align-items:center;gap:6px;padding:10px 16px;background:var(--bg3);border:1px solid var(--bd);border-radius:6px;color:var(--t2);cursor:pointer;font-family:var(--sans);font-size:12.5px;transition:all .12s}
+.cnbtn:hover{border-color:var(--cyan);color:var(--cyan);background:var(--cyanA)}
+
+.g25{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px}
+.g25-i{border-radius:7px;padding:16px;text-align:center}
+.g25-i .gv{font-size:24px;font-weight:700;font-family:var(--mono)}
+.g25-i .gl{font-weight:500;margin-top:3px;font-size:13px;color:var(--t1)}
+.g25-i .gs{font-size:10px;color:var(--t3);margin-top:3px}
+</style>
+</head>
+<body>
+
+<div id="overlay" onclick="toggleSB()"></div>
+<div id="app">
+<aside id="sidebar">
+  <div class="s-head">
+    <div class="s-logo">&#9670; Mission Control</div>
+    <div class="s-title">Practical MLOps</div>
+    <div class="s-sub">Gift &amp; Deza &middot; O'Reilly 2021</div>
+  </div>
+  <div class="s-search"><input type="text" placeholder="Search..." oninput="filterN(this.value)"></div>
+  <div class="s-nav" id="snav"></div>
+  <div class="s-foot">
+    <div class="lbl"><span>PROGRESS</span><span id="ppct">0%</span></div>
+    <div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+  </div>
+</aside>
+<div id="main">
+  <div id="mobileBar">
+    <button onclick="toggleSB()">&#9776;</button>
+    <span>MLOPS MISSION CONTROL</span>
+  </div>
+  <div class="vp" id="vp"></div>
+</div>
+</div>
+
+<script>
+var NAV=[
+  {s:"Foundations"},{id:0,t:"Prologue: Why MLOps?"},{id:1,t:"Introduction to MLOps"},{id:2,t:"MLOps Foundations"},
+  {s:"Core Practices"},{id:3,t:"Containers & Edge"},{id:4,t:"Continuous Delivery for ML"},{id:5,t:"AutoML & KaizenML"},{id:6,t:"Monitoring & Logging"},
+  {s:"Cloud Platforms"},{id:7,t:"MLOps for AWS"},{id:8,t:"MLOps for Azure"},{id:9,t:"MLOps for GCP"},
+  {s:"Advanced Topics"},{id:10,t:"ML Interoperability"},{id:11,t:"CLI Tools & Microservices"},{id:12,t:"Case Studies & Patterns"}
+];
+
+function buildNav(){var el=document.getElementById("snav"),h="";NAV.forEach(function(n){if(n.s)h+='<div class="s-lbl">'+n.s+"</div>";else h+='<div class="s-item" data-ch="'+n.id+'" onclick="go('+n.id+')"><span class="s-num">'+String(n.id).padStart(2,"0")+"</span>"+n.t+"</div>"});el.innerHTML=h}
+
+function E(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function H(){return Array.prototype.join.call(arguments,"")}
+
+// Helpers
+function hd(badge,title,sub){return '<div class="ch-head"><div class="ch-badge">'+badge+'</div><h1 class="ch-title">'+title+'</h1><p class="ch-sub">'+sub+'</p></div>'}
+function sec(ico,t){return '<div class="sh"><span class="ico">'+ico+'</span>'+t+'</div>'}
+function p(t){return '<div class="st">'+t+'</div>'}
+function ctx(lbl,q,a){return '<div class="ctx" onclick="this.classList.toggle(\'exp\')"><div class="ql">'+lbl+'</div><div class="qt">'+q+'</div><div class="qa">'+a+'</div></div>'}
+function tli(y,t,d){return '<div class="tli"><div class="ty">'+y+'</div><div class="tt">'+t+'</div><div class="td">'+d+'</div></div>'}
+function acc(t,b){return '<div class="aci"><button class="atr" onclick="this.parentElement.classList.toggle(\'open\')"><span>'+t+'</span><span class="aw">&#9656;</span></button><div class="abd">'+b+'</div></div>'}
+function fn(l,d,bc){return '<div class="fnode"'+(bc?' style="border-color:'+bc+'"':'')+'><div class="nl">'+l+'</div><div class="nd">'+d+'</div></div>'}
+function fa(){return '<div class="farr">&rarr;</div>'}
+function cb(lang,code){return '<div class="cblk"><div class="cblk-h"><span class="cblk-l">'+lang+'</span><button class="cblk-c" onclick="var t=this.parentElement.nextElementSibling.textContent;navigator.clipboard.writeText(t);this.textContent=\'Done!\';setTimeout(function(){this.textContent=\'Copy\'}.bind(this),1500)">Copy</button></div><div class="cblk-b">'+E(code)+'</div></div>'}
+function co(type,label,body){return '<div class="co co-'+type+'"><div class="col">'+label+'</div>'+body+'</div>'}
+function cc(icon,bgc,clr,title,desc,deep){return '<div class="ccard"'+(deep?' onclick="this.classList.toggle(\'exp\')"':'')+'><div class="ci" style="background:var(--'+bgc+');color:var(--'+clr+')">'+icon+'</div><div class="ct">'+title+'</div><div class="cd">'+desc+'</div>'+(deep?'<div class="cx">'+deep+'</div>':'')+'</div>'}
+function mi(v,l){return '<div class="mitem"><div class="mv">'+v+'</div><div class="ml">'+l+'</div></div>'}
+function pl(idx,t,w,bg,c){return '<div class="plvl" style="width:'+w+';background:'+bg+';color:'+c+'" onclick="showPyr('+idx+')">'+t+'</div>'}
+function g25(v,l,s,bg,c){return '<div class="g25-i" style="background:var(--'+bg+')"><div class="gv" style="color:var(--'+c+')">'+v+'</div><div class="gl">'+l+'</div><div class="gs">'+s+'</div></div>'}
+function quiz(q,opts,ci,expl){var h='<div class="quiz"><div class="qq">'+q+'</div>';for(var i=0;i<opts.length;i++)h+='<button class="qopt" onclick="checkQ(this,'+i+','+ci+')">'+opts[i]+'</button>';return h+'<div class="qexp">'+expl+'</div></div>'}
+function tabs(pre,labels,contents){var h='<div class="tabs"><div class="tabs-h">';for(var i=0;i<labels.length;i++)h+='<button class="tbtn'+(i===0?' on':'')+'" onclick="swTab(this,\''+pre+i+'\')">'+labels[i]+'</button>';h+='</div>';for(var i=0;i<contents.length;i++)h+='<div class="tpnl'+(i===0?' on':'')+'" id="'+pre+i+'"><div class="st">'+contents[i]+'</div></div>';return h+'</div>'}
+
+// ─── CHAPTERS ───
+function CH(id){
+var R="";
+switch(id){
+
+// ═══ CH0: PROLOGUE ═══
+case 0:
+R+=hd("Prologue","Why Does MLOps Even Exist?","Before tools or techniques &mdash; why was MLOps invented? What was broken? Why should you care?");
+R+='<div class="sec">'+sec("&#128269;","The Foundational Questions")+'<div class="ctx-grid">';
+R+=ctx("Origin","Why does MLOps exist?","MLOps exists because <strong>organizations invested millions in data science but saw almost zero return</strong>. Up to 87% of ML models never reached production. Data scientists built models in notebooks, but those models rarely shipped. MLOps bridges this &ldquo;last mile&rdquo; gap &mdash; applying proven DevOps automation to deploying, monitoring, and maintaining ML systems.");
+R+=ctx("History","What was done before MLOps?","Before MLOps, deploying ML was chaos: <strong>data scientists emailed pickle files to engineers</strong> who spent weeks on dependencies. No versioning of data or models, no automated retraining, no drift monitoring. The software world solved similar issues with DevOps by 2010, but ML was stuck in 2005-era practices until ~2018.");
+R+=ctx("Problem","What problem does it solve?","The <strong>&ldquo;production gap&rdquo;</strong>: (1) Reproducibility, (2) Automation, (3) Monitoring for accuracy degradation, (4) Scalability to 10K req/sec, (5) Team collaboration. Without MLOps, all of this is manual and fragile.");
+R+=ctx("Alternatives","What would you use without it?","<strong>Artisanal ML deployment:</strong> SSH into servers. Cron jobs for retraining. Files on shared drives. Print statements for monitoring. Discover drift when customers complain. Name files &ldquo;model_v2_final_FINAL.pkl&rdquo;. This pain motivated the discipline.");
+R+=ctx("Decision","When should I use MLOps?","<strong>Use when:</strong> models in production, regular retraining, changing data, team collaboration, accuracy impacts business. <strong>Skip when:</strong> one-off analyses, pure research, solo POCs. But most teams adopt too late.");
+R+=ctx("Why not DevOps?","Why not just regular DevOps?","DevOps handles code. ML adds: <strong>(1) Data</strong> changing independently, (2) <strong>Models</strong> as large binaries, (3) <strong>Training</strong> requiring compute orchestration. MLOps = DevOps + DataOps + ModelOps.");
+R+='</div></div>';
+
+R+='<div class="sec">'+sec("&#128220;","The Historical Arc")+'<div class="tl">';
+R+=tli("2006-2012","Hadoop Era","Big Data without intelligence. Companies collect massive data. ML is mainly academic.");
+R+=tli("2012-2016","Deep Learning Boom","AlexNet triggers revolution. Jupyter becomes the workspace. Models impress in demos but rarely ship.");
+R+=tli("2015-2017","Technical Debt Wake-Up","Google publishes seminal ML debt paper. ML code is tiny; surrounding infra is massive.");
+R+=tli("2017-2019","First-Gen Tools","MLflow, Kubeflow, SageMaker, Azure ML. Docker+K8s become standard. Feature stores invented.");
+R+=tli("2020-2021","Goes Mainstream","COVID accelerates need. MLOps becomes first-class engineering discipline. This book written.");
+R+=tli("2022-Present","LLMOps Era","Foundation models add new challenges. Core MLOps principles still apply to new artifacts.");
+R+='</div></div>';
+
+R+='<div class="sec">'+sec("&#127959;","If You Were Building It From Scratch");
+R+=p("Imagine your company&rsquo;s first data scientist built a churn model. CEO says: <strong>&ldquo;Ship it.&rdquo;</strong> Each pain maps to an MLOps tool:");
+R+='<div class="acc">';
+R+=acc("Step 1: &ldquo;How do I run this?&rdquo; &rarr; Containers","Model runs on their laptop with specific deps. Your server differs. <strong>Discovery: Docker</strong> packages model with exact environment.");
+R+=acc("Step 2: &ldquo;How to expose it?&rdquo; &rarr; Model Serving","Users need predictions via API. <strong>Discovery: Flask/FastAPI</strong> wrapping the model as a REST endpoint.");
+R+=acc("Step 3: &ldquo;Deploy without downtime?&rdquo; &rarr; CI/CD","Deploy v2, API crashes. <strong>Discovery: CI/CD pipelines</strong> with model quality gates, not just code tests.");
+R+=acc("Step 4: &ldquo;Getting worse over time!&rdquo; &rarr; Drift Detection","Customer behavior changed. Nobody noticed for weeks. <strong>Discovery: monitoring + drift detection</strong>.");
+R+=acc("Step 5: &ldquo;Retraining takes 3 days&rdquo; &rarr; Pipeline Automation","Manual process of pull-clean-train-email. <strong>Discovery: ML pipelines</strong> automating the entire cycle.");
+R+=acc("Step 6: &ldquo;Run on mobile&rdquo; &rarr; Interoperability","500MB model needs to run on phones. <strong>Discovery: ONNX/TFLite/CoreML</strong> for cross-platform deployment.");
+R+='</div></div>';
+
+R+='<div class="sec">'+sec("&#129517;","Book Map")+'<div class="dbox"><div class="dbox-t">Learning Path</div><div class="flow">';
+R+=fn("Ch 1-2","FOUNDATIONS","var(--cyan)")+fa()+fn("Ch 3-4","DEPLOY","")+fa()+fn("Ch 5-6","AUTOMATE","")+fa()+fn("Ch 7-9","CLOUDS","")+fa()+fn("Ch 10-12","ADVANCED","");
+R+='</div></div></div>';
+break;
+
+// ═══ CH1: INTRODUCTION ═══
+case 1:
+R+=hd("Chapter 01","Introduction to MLOps","What MLOps is, how it extends DevOps, the hierarchy of needs, and why automation is the beating heart.");
+R+='<div class="mstrip">'+mi("87%","Models never reach prod")+mi("25%","Rule of equal importance")+mi("10&times;","Faster ML is the goal")+'</div>';
+
+R+='<div class="sec">'+sec("&#127919;","What Is MLOps?");
+R+=p("<strong>MLOps is automating machine learning using DevOps methodologies.</strong> DevOps + DataOps + ModelOps. Not a tool &mdash; a behavior. &ldquo;If it&rsquo;s not automated, it&rsquo;s broken.&rdquo;");
+R+=co("k","Kaizen (&#25913;&#21892;)","Japanese for &ldquo;improvement.&rdquo; Daily, incremental improvements. Requires accurate assessment of current state. Why monitoring (Ch 6) is non-negotiable.");
+R+='</div>';
+
+R+='<div class="sec">'+sec("&#9650;","MLOps Hierarchy of Needs");
+R+=p("Like Maslow&rsquo;s hierarchy &mdash; each layer depends on the one below. You cannot skip levels.");
+R+='<div class="dbox"><div class="dbox-t">Click each level</div><div class="pyr">';
+R+=pl(4,"&#9670; MLOps (Full Automation)","45%","var(--purpleA)","var(--purple)");
+R+=pl(3,"&#9670; Platform Automation","55%","var(--blueA)","var(--blue)");
+R+=pl(2,"&#9670; DataOps & Data Engineering","67%","var(--greenA)","var(--green)");
+R+=pl(1,"&#9670; DevOps (CI/CD, IaC)","78%","var(--amberA)","var(--amber)");
+R+=pl(0,"&#9670; Software Engineering","90%","var(--cyanA)","var(--cyan)");
+R+='</div><div class="fdp" id="pyrP"></div></div></div>';
+
+R+='<div class="sec">'+sec("&#128260;","DevOps vs. MLOps");
+R+='<table class="ctbl"><thead><tr><th>Dimension</th><th>DevOps</th><th>MLOps adds</th></tr></thead><tbody>';
+R+="<tr><td>Code</td><td>Version control, CI/CD, testing</td><td>+ notebook-to-script</td></tr>";
+R+="<tr><td>Data</td><td>DB migrations</td><td>Versioning, feature stores, drift</td></tr>";
+R+="<tr><td>Model</td><td>N/A</td><td>Registry, A/B testing, canary</td></tr>";
+R+="<tr><td>Monitoring</td><td>Latency, errors</td><td>Accuracy, data drift</td></tr>";
+R+="</tbody></table></div>";
+
+R+='<div class="sec">'+sec("&#128230;","MLOps Feedback Loop")+'<div class="cgrid">';
+R+=cc("&#128257;","cyanA","cyan","Reusable ML Pipelines","Data/people change. Version your pipelines.","Codify ingestion, feature eng, training, evaluation, deployment. If your best data scientist leaves, the pipeline works. Tools: Kubeflow, SageMaker Pipelines, Airflow + MLflow.");
+R+=cc("&#128640;","greenA","green","Continuous Delivery","All steps automated &mdash; model deployable any time.","Automated testing + containerization + deployment. Goal: push to main = model in production.");
+R+=cc("&#128203;","amberA","amber","Audit Trail","Track security, bias, accuracy for debugging.","Who trained, on what data, what hyperparams, who approved. Non-optional in regulated industries.");
+R+=cc("&#128200;","purpleA","purple","Observe Drift","Data shifts beneath the model.","Types: covariate (input changes), concept (relationship changes), label (target changes). Tools: Evidently AI, SageMaker Monitor.");
+R+='</div></div>';
+
+R+='<div class="sec">'+sec("&#128208;","Rule of 25%");
+R+='<div class="dbox"><div class="dbox-t">Balanced MLOps</div><div class="g25">';
+R+=g25("25%","Software Engineering","CI/CD, testing, IaC","cyanA","cyan");
+R+=g25("25%","Data Engineering","ETL, pipelines, lakes","greenA","green");
+R+=g25("25%","ML Modeling","Training, evaluation","amberA","amber");
+R+=g25("25%","Business Problem","ROI, feasibility","purpleA","purple");
+R+='</div></div>';
+R+=co("w","Anti-Pattern","Most failed projects overweight modeling at the expense of data engineering and business alignment.");
+R+='</div>';
+
+R+='<div class="sec">'+sec("&#9889;","DevOps Foundation: Scaffolding");
+R+=cb("Project Structure","Makefile          # Automation commands\nrequirements.txt  # Pinned dependencies\nhello.py          # Source code\ntest_hello.py     # Tests (pytest)");
+R+=cb("Makefile","install:\n\tpip install --upgrade pip && pip install -r requirements.txt\n\nlint:\n\tpylint --disable=R,C *.py\n\ntest:\n\tpython -m pytest -vv --cov=hello test_hello.py");
+R+=co("i","Why Makefiles?","Type <code>make lint</code> instead of memorizing complex commands. Same command runs in CI. Less typing = fewer errors.");
+R+='</div>';
+
+R+='<div class="sec">'+sec("&#129514;","Test Yourself");
+R+=quiz("What is the PRIMARY reason most ML models fail to reach production?",["Models not accurate enough","Lack of engineering (automation, CI/CD, monitoring)","Not enough training data","GPU hardware too expensive"],1,"The bottleneck is NOT accuracy &mdash; it&rsquo;s surrounding engineering. ML code is tiny; data eng, deployment, monitoring dominate.");
+R+='</div>';
+break;
+
+// ═══ CH2: FOUNDATIONS ═══
+case 2:
+R+=hd("Chapter 02","MLOps Foundations","Bash, cloud computing, Python, math for ML, and building your first pipeline from zero.");
+R+='<div class="sec">'+sec("&#128421;","Bash & Command Line");
+R+=p("<strong>You cannot do MLOps without terminal skills.</strong> Cloud platforms assume terminal interaction.");
+R+=cb("Essential Commands","# Navigation\npwd                       # Where am I?\ncd /path/to/dir            # Change directory\nls -la                     # List with details\n\n# Piping (superpower)\necho \"hello\" > out.txt     # Write to file\ncat out.txt | wc -w        # Count words\nshuf -n 100000 big.csv > sample.csv\n\n# Virtual environments\npython3 -m venv ~/.myproject\nsource ~/.myproject/bin/activate");
+R+=co("k","Virtual Environments","Python grabs libraries from anywhere on the OS. A venv isolates packages so your ML project doesn&rsquo;t break from other projects.");
+R+='</div>';
+
+R+='<div class="sec">'+sec("&#9729;","Cloud Computing");
+R+=p("<strong>&ldquo;Almost all ML requires cloud computing.&rdquo;</strong> Near-infinite resources. Without the cloud, many models can&rsquo;t be operationalized.");
+R+=co("i","Killer Feature","Compute ON data WITHOUT moving it, using near-infinite resources via SageMaker/Azure ML. Not replicable without cloud. Plus the &ldquo;Automator&rsquo;s Law&rdquo;: once the public talks about automating something, it eventually happens.");
+R+='</div>';
+
+R+='<div class="sec">'+sec("&#128013;","Python Essentials");
+R+=p("Two essentials: <strong>statements and functions.</strong> OOP, metaprogramming, concurrency are for library creators, not consumers.");
+R+=co("w","Performance","Python is 64,000&times; slower than C for matrix ops. Uses ~50&times; more energy. Cloud computing + containers rescue it &mdash; productivity matters more than raw speed for MLOps.");
+R+='</div>';
+
+R+='<div class="sec">'+sec("&#128200;","Math You Need")+'<div class="acc">';
+R+=acc("Descriptive Statistics & Normal Distributions","Most things are bell-curved. Understanding mean, median, std dev lets you assess if data &ldquo;looks right.&rdquo; If distributions change &rarr; drift.");
+R+=acc("Optimization (Gradient Descent)","All ML training = minimize loss function. Gradient descent iteratively adjusts params. Learning rate: too high = overshoot, too low = slow.");
+R+=acc("ML Types: Supervised, Unsupervised, Reinforcement","<strong>Supervised</strong>: labeled data &rarr; classification/regression. <strong>Unsupervised</strong>: patterns/clusters. <strong>Reinforcement</strong>: trial and error with rewards.");
+R+='</div></div>';
+
+R+='<div class="sec">'+sec("&#128295;","End-to-End Pipeline")+'<div class="dbox"><div class="dbox-t">Pipeline from Zero</div><div class="flow">';
+R+=fn("GitHub","SOURCE","")+fa()+fn("CI/CD","ACTIONS","")+fa()+fn("Flask","API","")+fa()+fn("Docker","CONTAINER","")+fa()+fn("Cloud","PRODUCTION","var(--green)");
+R+='</div></div></div>';
+break;
+
+// ═══ CH3: CONTAINERS ═══
+case 3:
+R+=hd("Chapter 03","Containers & Edge Devices","Docker: the atomic unit of ML deployment. Plus edge computing with Coral, TFHub, Azure Percept.");
+R+='<div class="sec">'+sec("&#128230;","Why Containers?")+'<div class="ctx-grid">';
+R+=ctx("Before Docker","What did we use?","<strong>Virtual Machines</strong> &mdash; full OS copies, GBs, minutes to boot. Containers share OS kernel, MBs, start in seconds. &ldquo;How do I install?&rdquo; became &ldquo;just pull the container.&rdquo;");
+R+=ctx("For ML","Why ideal for ML?","ML has fragile dependency chains. Containers freeze the EXACT environment. Run locally, cloud scale, instant reproducibility.");
+R+='</div></div>';
+
+R+='<div class="sec">'+sec("&#128051;","Docker Essentials");
+R+=cb("Dockerfile","FROM python:3.7\nARG VERSION\nLABEL org.label-schema.version=$VERSION\nCOPY ./requirements.txt /webapp/requirements.txt\nWORKDIR /webapp\nRUN pip install -r requirements.txt\nCOPY webapp/* /webapp\nENTRYPOINT [ \"python\" ]\nCMD [ \"app.py\" ]");
+R+='<div class="acc">';
+R+=acc("Layers & Caching","Base image downloaded once, reused. Only changed layers rebuild. Put stable deps first, code last.");
+R+=acc("Security: Lint + Scan","hadolint for linting. grype for CVE scanning (Python 3.8 had 1,540 vulns!). Automate in CI.");
+R+=acc("No SSH","Use <code>docker exec -it ID bash</code> for interactive, <code>docker exec ID CMD</code> for one-off. Don&rsquo;t SSH.");
+R+='</div></div>';
+
+R+='<div class="sec">'+sec("&#128225;","Edge Devices");
+R+=p("Run inference close to users. <strong>Specialized chips getting smaller, faster, ML-optimized.</strong>");
+R+='<div class="cgrid">';
+R+=cc("&#9646;","greenA","green","Google Coral TPU","USB Accelerator for TFLite. Works offline.","For remote locations, low-latency, privacy. Models compiled for TPU.");
+R+=cc("&#128311;","blueA","blue","Azure Percept","Edge AI dev kit with vision/audio.","Integrates Azure IoT Hub + ML. No-code edge AI.");
+R+=cc("&#127978;","amberA","amber","TFHub","Pre-trained models for transfer learning.","Cloud, mobile (TFLite), edge (TPU) targets. Fine-tune on small datasets.");
+R+='</div></div>';
+break;
+
+// ═══ CH4: CD FOR ML ═══
+case 4:
+R+=hd("Chapter 04","Continuous Delivery for ML","Packaging, IaC, cloud pipelines, blue-green & canary, testing techniques.");
+R+='<div class="sec">'+sec("&#128230;","Packaging Models");
+R+=p("Get trained models into containers. Three benefits: <strong>local exec, cloud scaling, easy sharing.</strong>");
+R+=co("w","Don&rsquo;t Store Models in Git","GitHub has 100MB limit. Git isn&rsquo;t for binaries. Use model registries (Azure ML, MLflow, SageMaker).");
+R+='</div>';
+R+='<div class="sec">'+sec("&#127959;","IaC for ML");
+R+=p("Real problem: someone built a container manually, uploaded it, source files lost. <strong>IaC prevents this.</strong>");
+R+='<div class="dbox"><div class="dbox-t">Automated Pipeline</div><div class="flow">';
+R+=fn("Git Push","TRIGGER","")+fa()+fn("Auth","CLOUD","")+fa()+fn("Download","MODEL","")+fa()+fn("Build","CONTAINER","")+fa()+fn("Push","REGISTRY","var(--green)");
+R+='</div></div></div>';
+R+='<div class="sec">'+sec("&#128678;","Deployment Strategies")+'<div class="cgrid">';
+R+=cc("&#128309;","blueA","blue","Blue-Green","Two identical envs. Switch traffic instantly.","K8s service selectors. Cost: pay for two environments.");
+R+=cc("&#128036;","amberA","amber","Canary","Route 1-5% to new model, gradually increase.","Monitor accuracy real-time. Needs traffic splitting (Istio, ALB).");
+R+=cc("&#128123;","purpleA","purple","Shadow Mode","New model gets traffic but predictions NOT served.","Zero risk. Compare offline. Ideal for high-stakes models.");
+R+='</div></div>';
+R+='<div class="sec">'+sec("&#9989;","Testing")+'<ul class="slist">';
+R+="<li><strong>Unit tests</strong> &mdash; preprocessing, feature engineering</li>";
+R+="<li><strong>Integration tests</strong> &mdash; API endpoint request/response</li>";
+R+="<li><strong>Quality gates</strong> &mdash; reject if accuracy below threshold</li>";
+R+="<li><strong>Data validation</strong> &mdash; schema, nulls, distributions</li>";
+R+="<li><strong>Load testing</strong> &mdash; handle expected traffic?</li>";
+R+="</ul></div>";
+break;
+
+// ═══ CH5: AUTOML ═══
+case 5:
+R+=hd("Chapter 05","AutoML & KaizenML","Automated ML across platforms. Feature stores, explainability, continuous improvement.");
+R+='<div class="sec">'+sec("&#129302;","AutoML: Democratizing ML");
+R+=p("Automates algorithm selection, hyperparameter tuning, feature engineering. The <strong>&ldquo;MLOps Industrial Revolution.&rdquo;</strong>");
+R+=tabs("aml",["Apple","Google","Azure","AWS","Open Source"],
+["<strong>Create ML</strong>: drag-and-drop in Xcode. <strong>Core ML Tools</strong> converts from TF/PyTorch. Neural Engine optimization.",
+"<strong>AutoML Vision</strong>: image classification &rarr; Cloud, TFLite, TF.js, CoreML, Coral. Now Vertex AI.",
+"<strong>Azure AutoML</strong>: classification, regression, forecasting. No-code deployment creates REST API.",
+"<strong>SageMaker Autopilot</strong>: explores data, trains, generates notebooks showing what it did.",
+"<strong>Ludwig</strong> (Uber): declarative YAML. <strong>FLAML</strong> (Microsoft): fast, lightweight. Also: Auto-sklearn, H2O, TPOT."]);
+R+='</div>';
+R+='<div class="sec">'+sec("&#127978;","Feature Stores");
+R+=p("Centralized repo for <strong>production-ready features</strong> shared across teams.");
+R+=co("k","Why?","Without: teams compute features differently, training-serving skew. Feature store = single source of truth.");
+R+=p('<span class="tag tag-c">Feast</span> <span class="tag tag-g">Tecton</span> <span class="tag tag-a">SageMaker FS</span> <span class="tag tag-b">Vertex AI FS</span> <span class="tag tag-p">Databricks FS</span>');
+R+='</div>';
+R+='<div class="sec">'+sec("&#128269;","Model Explainability")+'<ul class="slist">';
+R+="<li><strong>SHAP</strong> &mdash; each feature&rsquo;s contribution per prediction</li>";
+R+="<li><strong>LIME</strong> &mdash; explains individual predictions via perturbation</li>";
+R+="<li><strong>Feature importance</strong> &mdash; built into tree models</li>";
+R+="<li><strong>Partial Dependence</strong> &mdash; marginal feature effect</li></ul></div>";
+break;
+
+// ═══ CH6: MONITORING ═══
+case 6:
+R+=hd("Chapter 06","Monitoring & Logging","Observability: structured logging, cloud monitoring, drift detection.");
+R+='<div class="sec">'+sec("&#128200;","Why Monitoring Matters");
+R+=p("The subscribe button &mdash; generating revenue &mdash; could break from a JS bug, and no CPU alert would detect it. <strong>Infra monitoring is necessary but insufficient for ML.</strong>");
+R+=co("i","Logging Test","A log like <code>pipe(0x7feddc022470 sd=3)</code> is cryptic. Translation: &ldquo;unable to contact monitor.&rdquo; That fix ticket was filed in 2014, still open at time of writing.");
+R+='</div>';
+R+='<div class="sec">'+sec("&#128221;","Python Logging &gt; print()");
+R+=cb("Logging Setup","import logging\n\nlog_format = \"[%(name)s][%(levelname)-6s] %(message)s\"\nlogging.basicConfig(format=log_format)\nlogger = logging.getLogger(\"my-ml-app\")\nlogger.setLevel(logging.DEBUG)\n\nlogger.debug(\"Processing: %s\", path)\nlogger.info(\"Model loaded\")\n\ntry:\n    predictions = model.predict(data)\nexcept Exception:\n    logger.exception(\"Failed\")  # Full traceback!\n    # Program continues!");
+R+='<ul class="slist"><li><strong>Resilience</strong> &mdash; never crashes your app</li><li><strong>Levels</strong> &mdash; DEBUG &rarr; INFO &rarr; WARNING &rarr; ERROR &rarr; CRITICAL</li><li><strong>Per-module</strong> &mdash; urllib3 at ERROR, your app at DEBUG</li><li><strong>Multiple outputs</strong> &mdash; terminal + logfile</li></ul></div>';
+R+='<div class="sec">'+sec("&#128225;","Cloud Observability")+'<div class="cgrid">';
+R+=cc("&#9729;","amberA","amber","AWS CloudWatch","Metrics, logs, auto-scaling, SageMaker monitoring","");
+R+=cc("&#128311;","blueA","blue","Azure Monitor","Application Insights, built-in drift detection","");
+R+=cc("&#128994;","greenA","green","GCP Operations","Cloud Monitoring + Logging, Vertex AI integration","");
+R+='</div></div>';
+R+='<div class="sec">'+sec("&#128201;","Drift Detection")+'<ul class="slist">';
+R+="<li><strong>Data drift</strong> &mdash; input distribution changes</li>";
+R+="<li><strong>Model drift</strong> &mdash; accuracy degrades</li>";
+R+="<li><strong>Concept drift</strong> &mdash; feature&harr;target relationship changes</li>";
+R+="<li><strong>Baseline</strong> &mdash; training data profile as reference</li></ul></div>";
+break;
+
+// ═══ CH7-9: CLOUD CHAPTERS ═══
+case 7:
+R+=hd("Chapter 07","MLOps for AWS","SageMaker, Lambda, S3, ECR, CodeBuild &mdash; end-to-end ML on Amazon&rsquo;s cloud.");
+R+='<div class="sec">'+sec("&#9729;","AWS ML Ecosystem")+'<div class="cgrid">';
+R+=cc("&#129504;","amberA","amber","SageMaker","End-to-end: notebooks, training, hosting, monitoring, pipelines.","Studio IDE + Pipelines + Model Monitor + Autopilot. Orchestrates VMs, S3, endpoints.");
+R+=cc("&#9889;","amberA","amber","Lambda","Serverless event-driven inference.","Attach to S3 uploads, SQS, API Gateway. SAM for local testing. Containerized Lambda.");
+R+=cc("&#129717;","amberA","amber","S3 + Data Lake","Near-infinite storage hub.","+ Glue (ETL) + Athena (SQL) + QuickSight (viz) = complete stack.");
+R+=cc("&#127959;","amberA","amber","ECR + CodeBuild","Container registry + CI/CD.","Build &rarr; push to ECR &rarr; deploy to ECS/EKS/Lambda.");
+R+='</div></div>';
+break;
+
+case 8:
+R+=hd("Chapter 08","MLOps for Azure","Azure ML: CLI/SDK, compute, model registration, pipelines, lifecycle.");
+R+='<div class="sec">'+sec("&#128311;","Azure ML")+'<div class="acc">';
+R+=acc("Service Principals","App identity for CI/CD auth. <code>az ad sp create-for-rbac</code>. Store as GitHub Secrets.");
+R+=acc("Model Registration","Registry with versioning, metadata, provenance. <code>Model.register(ws, path, name)</code>. Link to training run.");
+R+=acc("Deploy to Clusters","AKS or ACI. Inference config = scoring script + environment. Azure handles containers, endpoints, LB.");
+R+=acc("Pipelines & Designer","Multi-step workflows publishable as REST endpoints. Designer = drag-and-drop visual builder.");
+R+='</div></div>';
+break;
+
+case 9:
+R+=hd("Chapter 09","MLOps for GCP","Kubernetes, BigQuery ML, Cloud Functions, Vertex AI.");
+R+='<div class="sec">'+sec("&#128994;","GCP ML Ecosystem")+'<div class="cgrid">';
+R+=cc("&#9784;","greenA","green","Kubernetes (GKE)","Google invented K8s. Gold standard for containers.","Pods, deployments, services, ingress. GKE Autopilot manages infra.");
+R+=cc("&#128200;","greenA","green","BigQuery","Serverless warehouse. ML IN SQL.","<code>CREATE MODEL</code> directly in SQL. No data movement. Perfect for SQL teams.");
+R+=cc("&#9889;","greenA","green","Cloud Functions + Build","Serverless compute + CI/CD.","Event-driven inference. cloudbuild.yaml config.");
+R+='</div></div>';
+break;
+
+// ═══ CH10: INTEROP ═══
+case 10:
+R+=hd("Chapter 10","ML Interoperability","ONNX, format conversion, cross-platform deployment, Core ML, edge.");
+R+='<div class="sec">'+sec("&#128260;","Why Interoperability?");
+R+=p("Peru has thousands of potato varieties. ML models come in different formats. <strong>Interoperability = train once, deploy anywhere.</strong>");
+R+=p("Real problem: author trained with Azure AutoML, couldn&rsquo;t run locally. SDK only supported Python 3.7. xgboost breaking changes. <strong>Low code = great for speed, dangerous for portability.</strong>");
+R+='</div>';
+R+='<div class="sec">'+sec("&#9670;","ONNX");
+R+=p("Started 2017 by Facebook + Microsoft. Open ecosystem. <strong>Train in your framework, run anywhere.</strong>");
+R+='<div class="dbox"><div class="dbox-t">ONNX Flow</div><div class="flow">';
+R+=fn("PyTorch/TF/sklearn","TRAIN","")+fa()+fn("ONNX","UNIVERSAL","var(--cyan)")+fa()+fn("Cloud/Edge/Mobile","DEPLOY","");
+R+='</div></div>';
+R+=p("PyTorch&rarr;ONNX (built-in <code>torch.onnx.export()</code>), TF&rarr;ONNX (tf2onnx), sklearn&rarr;ONNX. Reverse: ONNX&rarr;Core ML.");
+R+=co("k","Provenance","Author traced a critical package to a departed engineer&rsquo;s home directory on a random server. Always capture full source-of-truth.");
+R+='</div>';
+break;
+
+// ═══ CH11: CLI ═══
+case 11:
+R+=hd("Chapter 11","CLI Tools & Microservices","Python packaging, dataset linters, serverless functions, ML workflow CLIs.");
+R+='<div class="sec">'+sec("&#128295;","Building ML Tools");
+R+=p("<strong>Automate whenever possible, start with the simplest problem.</strong>");
+R+='<div class="acc">';
+R+=acc("Python Packaging","Make tools pip-installable. setup.py/pyproject.toml. Difference between script and tool: a tool can be installed, imported, reused.");
+R+=acc("Dataset Linter","CLI checking CSVs for missing values, wrong types, outliers. Like pylint for data. Uses Click. Becomes pipeline gate.");
+R+=acc("Serverless Functions","Lambda/Azure Functions/Cloud Functions for lightweight inference. Cold starts, size limits, timeouts.");
+R+=acc("Cloud ML CLI","Orchestrate cloud workflows: trigger training, deploy, rollback. Uses Fire library. Manage ML lifecycle from terminal.");
+R+='</div></div>';
+break;
+
+// ═══ CH12: CASE STUDIES ═══
+case 12:
+R+=hd("Chapter 12","Case Studies & Design Patterns","Real-world MLOps, ethical challenges, anti-patterns, final recommendations.");
+R+='<div class="sec">'+sec("&#128214;","Sqor Sports Case Study")+'<ul class="slist">';
+R+="<li><strong>Mechanical Turk Labeling</strong> &mdash; quality varies. Solution: redundant labeling + majority vote.</li>";
+R+="<li><strong>Influencer Rank</strong> &mdash; defining &ldquo;influence&rdquo; is subjective. Iterate with business.</li>";
+R+="<li><strong>Athlete Intelligence</strong> &mdash; the product was an entire system, not just a model.</li></ul>";
+R+=co("k","Key Lesson","Not knowing the &ldquo;right&rdquo; way forces simple, practical solutions. Ship first, optimize later.");
+R+='</div>';
+
+R+='<div class="sec">'+sec("&#9888;","Critical Challenges")+'<div class="cgrid">';
+R+=cc("&#128274;","redA","red","Ethics","Biased data &rarr; biased predictions at scale. Fairness audits non-optional.","");
+R+=cc("&#128295;","amberA","amber","Ops Excellence","Most ML teams lack production skills.","");
+R+=cc("&#127919;","purpleA","purple","Accuracy Obsession","0.1% gains while ignoring deployment + business value.","");
+R+='</div></div>';
+
+R+='<div class="sec">'+sec("&#128506;","Design Patterns")+'<ul class="slist">';
+R+="<li><strong>Data Governance</strong> &mdash; encrypt at rest/transit, least privilege, audit</li>";
+R+="<li><strong>Build Once, Run Many</strong> &mdash; containerize, deploy from one artifact</li>";
+R+="<li><strong>Feature Store Pattern</strong> &mdash; centralize, share across teams</li>";
+R+="<li><strong>Continuous Training</strong> &mdash; auto-retrain on drift</li>";
+R+="<li><strong>Champion/Challenger</strong> &mdash; best model serves while new tested</li>";
+R+="<li><strong>Human-in-the-Loop</strong> &mdash; predictions are suggestions humans approve</li></ul>";
+R+=co("k","Final Advice","Start with automation. If not automated, it&rsquo;s broken. Use cloud-native tools. Embrace 25% rule. Monitor everything. Make deployment boring (boring = reliable). Think engineer, not just scientist.");
+R+='</div>';
+break;
+}
+return R;
+}
+
+// ═══ PYRAMID DATA ═══
+var PYR=[
+  "Software Engineering: Git, code review, testing (pytest), linting, docs. Non-negotiable. Fix FIRST.",
+  "DevOps: CI validates on push. CD automates deploy. IaC versions infra. Monitoring detects breaks. Without DevOps, no MLOps.",
+  "DataOps: Automated pipelines (Airflow, Glue), data lakes, ETL, quality checks. Without data flow automation, advanced ML is impossible.",
+  "Platform Automation: SageMaker, Azure ML, Vertex AI handle training orchestration, hosting, scaling, endpoints.",
+  "MLOps: Automated pipelines, CD of models, drift monitoring, feedback loops, explainability, audit trails. Only possible when lower levels are solid."
+];
+
+// ═══ STATE ═══
+var curCh=0,visited={0:1},totalCh=13;
+
+function render(id){
+  curCh=id;visited[id]=1;
+  var vp=document.getElementById("vp");
+  var content=CH(id);
+  var prev=id>0?'<button class="cnbtn" onclick="go('+(id-1)+')">&larr; Ch '+String(id-1).padStart(2,"0")+'</button>':"<div></div>";
+  var next=id<totalCh-1?'<button class="cnbtn" onclick="go('+(id+1)+')">Ch '+String(id+1).padStart(2,"0")+' &rarr;</button>':"<div></div>";
+  vp.innerHTML=content+'<div class="chnav">'+prev+next+'</div>';
+  document.querySelectorAll(".s-item").forEach(function(el){el.classList.toggle("on",parseInt(el.dataset.ch)===id)});
+  var pct=Math.round(Object.keys(visited).length/totalCh*100);
+  document.getElementById("ppct").textContent=pct+"%";
+  document.getElementById("pfill").style.width=pct+"%";
+  window.scrollTo(0,0);
+}
+
+function go(id){render(id);closeSB()}
+function toggleSB(){document.getElementById("sidebar").classList.toggle("open");document.getElementById("overlay").classList.toggle("open")}
+function closeSB(){document.getElementById("sidebar").classList.remove("open");document.getElementById("overlay").classList.remove("open")}
+function filterN(q){var lc=q.toLowerCase();document.querySelectorAll(".s-item").forEach(function(el){el.style.display=el.textContent.toLowerCase().indexOf(lc)>=0?"flex":"none"})}
+function showPyr(idx){var p=document.getElementById("pyrP");if(p){p.textContent=PYR[idx];p.classList.add("vis")}}
+function checkQ(btn,idx,correct){var b=btn.parentElement;b.querySelectorAll(".qopt").forEach(function(o){o.disabled=true;o.style.pointerEvents="none"});btn.classList.add(idx===correct?"ok":"no");if(idx!==correct)b.querySelectorAll(".qopt")[correct].classList.add("ok");b.querySelector(".qexp").style.display="block"}
+function swTab(btn,pid){var c=btn.parentElement.parentElement;c.querySelectorAll(".tbtn").forEach(function(b){b.classList.remove("on")});c.querySelectorAll(".tpnl").forEach(function(p){p.classList.remove("on")});btn.classList.add("on");document.getElementById(pid).classList.add("on")}
+
+buildNav();render(0);
+</script>
+</body>
+</html>
