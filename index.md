@@ -34,4 +34,4 @@ Real-world projects spanning operations research, computer vision, and predictiv
 
 ### Learning Resources 
 
-[Learning AI Coding Agents](https://manikazad.github.io/AI-Coding-Agents-Interactive-Book.html)
+[Learning AI Coding Agents](https://singhalmanik.github.io/AI-Coding-Agents-Interactive-Book.html)

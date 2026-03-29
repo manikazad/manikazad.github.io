@@ -157,4 +157,4 @@ Once we have got the segment classification results and change detection results
 ### Bounding Box and Location Detection:
 This is required to pinpoint the location of construction and the probable area of the site. A series of steps are taken to achieve bounded boxes around built-up structures. Using the heatmap obtained above, first we generate all the countours for all level starting from 1 to 7. Then we find the mapping of related contours such if centroid of a higher level contour is found in the lower level contour then those locations are related. On iteratively creating these maps we get a heirarchy of all the levels of contours. On filtering the areas such that they must have atleast one area with level 3 confidence we achieve a reasonable amount of probable contruction areas.
 
-![Image](https://manikazad.github.io/Image6.png)
+![Image](https://singhalmanik.github.io/Image6.png)
